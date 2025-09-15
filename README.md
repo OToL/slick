@@ -14,55 +14,57 @@ N/A
 
 # Depot structure
 
-&lt;root&gt;/
-├─ _build/                      Generated build system files
-│   └─ &lt;target&gt;_&lt;config&gt;/
-├─ slk/                         Shared c/c++ engine modules
-│   ├─ src/
-│   │   └─ &lt;module name&gt;/
-│   ├─ data/
-│   ├─ ...
-│   └─ test/                    Unit tests
-├─ extern/                      External dependencies
-│   ├─ redist/                  Pre-built external dependencies
-│   │   ├─ include/
-│   │   │   └─ &lt;dep name&gt;/
-│   │   ├─ lib/
-│   │   │   └─ &lt;target&gt;/
-│   │   └─ bin/
-│   │       └─ &lt;target&gt;/
-│   └─ src/                     Dependencies Git sub-module or snapshot to build them from sources
-│       └─ &lt;dep name&gt;/
-├─ scripts/                     Utility scripts e.g. make, build, etc.
-├─ tools/                       Tools sources
-│   ├─ shared/                  Optional common resources
-│   │   ├─ data/
-│   │   ├─ ...
-│   │   └─ extern/
-│   └─ &lt;tool name&gt;/             Simple tools can have all sources directly in the folder
-│       ├─ src/
-│       ├─ data/
-│       ├─ ...
-│       └─ extern/
-├─ samples/                     Sample applications demonstrating Slick features
-│   ├─ shared/                  Optional common resources
-│   │   ├─ data/
-│   │   ├─ ...
-│   │   └─ extern/
-│   └─ &lt;sample name&gt;/           Simple sample can have all sources directly in the folder
-│       ├─ src/
-│       ├─ data/
-│       ├─ ...
-│       └─ extern/
-├─ projects/                    Personal projects to learn & investigate new things
-│   ├─ shared/                  Optional common resources
-│   │   ├─ data/
-│   │   ├─ ...
-│   │   └─ extern/
-│   └─ &lt;project name&gt;/          Simple projects can have all sources directly in the folder
-│       ├─ src/
-│       ├─ data/
-│       ├─ ...
-│       └─ extern/
-└─ README.md
+```
+<root>/
+├── _build/                      Generated build system files
+│   └── <target>_<config>/
+├── slk/                         Shared c/c++ engine modules
+│   ├── src/
+│   │   └── <module name>/
+│   ├── data/
+│   ├── ...
+│   └── test/                    Unit tests
+├── extern/                      External dependencies
+│   ├── redist/                  Pre-built external dependencies
+│   │   ├── include/
+│   │   │   └── <dep name>/
+│   │   ├── lib/
+│   │   │   └── <target>/
+│   │   └── bin/
+│   │       └── <target>/
+│   └── src/                     Dependencies Git sub-module or snapshot to build them from sources
+│       └── <dep name>/
+├── scripts/                     Utility scripts e.g. make, build, etc.
+├── tools/                       Tools sources
+│   ├── shared/                  Optional common resources
+│   │   ├── data/
+│   │   ├── ...
+│   │   └── extern/
+│   └── <tool name>/             Simple tools can have all sources directly in the folder
+│       ├── src/
+│       ├── data/
+│       ├── ...
+│       └── extern/
+├── samples/                     Sample applications demonstrating Slick features
+│   ├── shared/                  Optional common resources
+│   │   ├── data/
+│   │   ├── ...
+│   │   └── extern/
+│   └── <sample name>/           Simple sample can have all sources directly in the folder
+│       ├── src/
+│       ├── data/
+│       ├── ...
+│       └── extern/
+├── projects/                    Personal projects to learn & investigate new things
+│   ├── shared/                  Optional common resources
+│   │   ├── data/
+│   │   ├── ...
+│   │   └── extern/
+│   └── <project name>/          Simple projects can have all sources directly in the folder
+│       ├── src/
+│       ├── data/
+│       ├── ...
+│       └── extern/
+└── README.md
+```
 
