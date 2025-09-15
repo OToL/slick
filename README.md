@@ -59,6 +59,5 @@
 └── README.md
 ```
 
-Notes:
 - Folders containing generated files (e.g. \_build) must have a name starting with '_'.
 - Simple projects, samples and tools can have all their sources stored directly under their root.
