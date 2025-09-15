@@ -39,31 +39,19 @@
 │       └── <dep name>/
 ├── scripts/                     Utility scripts e.g. make, build, etc.
 ├── tools/                       Tools sources
-│   ├── shared/                  Optional common resources
-│   │   ├── data/
-│   │   ├── ...
-│   │   └── extern/
-│   └── <tool name>/             Simple tools can have all sources directly in the folder
+│   └── <tool name>/
 │       ├── src/
 │       ├── data/
 │       ├── ...
 │       └── extern/
 ├── samples/                     Applications demonstrating/testing specific features
-│   ├── shared/                  Optional common resources
-│   │   ├── data/
-│   │   ├── ...
-│   │   └── extern/
-│   └── <sample name>/           Simple sample can have all sources directly in the folder
+│   └── <sample name>/
 │       ├── src/
 │       ├── data/
 │       ├── ...
 │       └── extern/
 ├── projects/                    Personal projects to learn & investigate new things
-│   ├── shared/                  Optional common resources
-│   │   ├── data/
-│   │   ├── ...
-│   │   └── extern/
-│   └── <project name>/          Simple projects can have all sources directly in the folder
+│   └── <project name>/
 │       ├── src/
 │       ├── data/
 │       ├── ...
@@ -71,4 +59,6 @@
 └── README.md
 ```
 
-_NOTE_: folders containing generated files have a name starting with '_' e.g. _build
+Notes:
+- Folders containing generated files (e.g. \_build) must have a name starting with '_'.
+- Simple projects, samples and tools can have all their sources stored directly under their root.
