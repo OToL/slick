@@ -1,24 +1,27 @@
 # What is it?
 
-*Slick* is a simple framework to test, prototype and learn various software engineering topics/techinques such as ...
-- Latest c/c++ constructs
+*Slick* is a simple framework to experiment with various Game Development aspects and ideas ...
+- Core languages' constructs (e.g. latest C/C++ standard, Zig, etc.)
 - Game engine features
+- Gameplay mechanics
 - Rendering techniques
 - Profiling & optimization tricks
-- LLM
+- LLM assisted development
 - etc.
 
 # Pillars
 
-N/A
+- Fast iterations: Time from source modifications (code, data, etc.) to testing must be as short as possible
+- Simplicity: Minimize encapsulation and avoid unnecessary generalizations
+- Explicitness: Interfaces must be explicit
 
 # Depot structure
 
 ```
 <root>/
-├── _build/                      Generated build system files
+├── _build/                      Generated build system files (ninja, etc.)
 │   └── <target>_<config>/
-├── slk/                         Shared c/c++ engine modules
+├── slk/                         Shared c/c++ engine modules used by other components
 │   ├── src/
 │   │   └── <module name>/
 │   ├── data/
@@ -32,7 +35,7 @@ N/A
 │   │   │   └── <target>/
 │   │   └── bin/
 │   │       └── <target>/
-│   └── src/                     Dependencies Git sub-module or snapshot to build them from sources
+│   └── src/                     Dependencies sources (Git sub-module or snapshot) 
 │       └── <dep name>/
 ├── scripts/                     Utility scripts e.g. make, build, etc.
 ├── tools/                       Tools sources
@@ -45,7 +48,7 @@ N/A
 │       ├── data/
 │       ├── ...
 │       └── extern/
-├── samples/                     Sample applications demonstrating Slick features
+├── samples/                     Applications demonstrating/testing specific features
 │   ├── shared/                  Optional common resources
 │   │   ├── data/
 │   │   ├── ...
@@ -68,3 +71,4 @@ N/A
 └── README.md
 ```
 
+_NOTE_: folders containing generated files have a name starting with '_' e.g. _build
