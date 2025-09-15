@@ -8,7 +8,7 @@ set_target_properties(ps3_uploader PROPERTIES
 
 target_include_directories(ps3_uploader PRIVATE 
     ${SLK_SRC_DIR}
-    ${SLK_EXTERN_INC_DIR})
+    ${SLK_EXTERN_INCLUDE_DIR})
 
 target_link_libraries(ps3_uploader PRIVATE 
     slk::ext-zlib)

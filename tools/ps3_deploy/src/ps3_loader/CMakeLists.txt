@@ -5,7 +5,7 @@ slk_add_executable_ps3(ps3_loader
 
 target_include_directories(ps3_loader PRIVATE 
     ${SLK_PS3_SDK_INCLUDE_DIRS_PATH}
-    ${SLK_EXTERN_INC_DIR})
+    ${SLK_EXTERN_INCLUDE_DIR})
 
 target_link_directories(ps3_loader PUBLIC 
     ${SLK_PS3_SDK_LIB_DIRS_PATH})
