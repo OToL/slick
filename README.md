@@ -14,55 +14,57 @@ N/A
 
 # Depot structure
 
-\<root\>/
+```
+<root>/
 ├─ _build/                      Generated build system files
-│   └─ \<target\>\_\<config\>/
-├─ slk/                         Shared c/c++ engine modules 
-│   ├─ src\
-│   │   └─ \<module name\>/
-│   ├─ data\
+│   └─ <target>_<config>/
+├─ slk/                         Shared c/c++ engine modules
+│   ├─ src/
+│   │   └─ <module name>/
+│   ├─ data/
 │   ├─ ...
-│   └─ test\                    Unit tests
+│   └─ test/                    Unit tests
 ├─ extern/                      External dependencies
 │   ├─ redist/                  Pre-built external dependencies
 │   │   ├─ include/
-│   │   │   └─ \<dep name\>/
+│   │   │   └─ <dep name>/
 │   │   ├─ lib/
-│   │   │   └─ \<target\>/
+│   │   │   └─ <target>/
 │   │   └─ bin/
-│   │       └─ \<target\>/
-│   └─ src/                     Dependenices Git sub-module or snapshot to build them from sources
-│       └─ \<dep name\>/
+│   │       └─ <target>/
+│   └─ src/                     Dependencies Git sub-module or snapshot to build them from sources
+│       └─ <dep name>/
 ├─ scripts/                     Utility scripts e.g. make, build, etc.
-├─ tools/                       Tools sources 
-│   ├─ shared\                  Optional common resources                                                  
+├─ tools/                       Tools sources
+│   ├─ shared/                  Optional common resources
 │   │   ├─ data/
 │   │   ├─ ...
 │   │   └─ extern/
-│   └─ <\tool name\>            Simple tools can have all sources directly in the folder 
+│   └─ <tool name>/             Simple tools can have all sources directly in the folder
 │       ├─ src/
 │       ├─ data/
 │       ├─ ...
 │       └─ extern/
-├─ samples/                     Sample applications demonstrating Slick features 
-│   ├─ shared\                  Optional common resources                                                  
+├─ samples/                     Sample applications demonstrating Slick features
+│   ├─ shared/                  Optional common resources
 │   │   ├─ data/
 │   │   ├─ ...
 │   │   └─ extern/
-│   └─ \<sample name\>          Simple sample can have all sources directly in the folder 
+│   └─ <sample name>/           Simple sample can have all sources directly in the folder
 │       ├─ src/
 │       ├─ data/
 │       ├─ ...
 │       └─ extern/
 ├─ projects/                    Personal projects to learn & investigate new things
-│   ├─ shared\                  Optional common resources                                                  
+│   ├─ shared/                  Optional common resources
 │   │   ├─ data/
 │   │   ├─ ...
 │   │   └─ extern/
-│   └─ \<sample name\>          Simple projects can have all sources directly in the folder 
+│   └─ <project name>/          Simple projects can have all sources directly in the folder
 │       ├─ src/
 │       ├─ data/
 │       ├─ ...
 │       └─ extern/
 └─ README.md
+```
 
