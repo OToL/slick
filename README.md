@@ -14,33 +14,32 @@ N/A
 
 # Depot structure
 
-```
-<root>/
+&lt;root&gt;/
 ├─ _build/                      Generated build system files
-│   └─ <target>_<config>/
+│   └─ &lt;target&gt;_&lt;config&gt;/
 ├─ slk/                         Shared c/c++ engine modules
 │   ├─ src/
-│   │   └─ <module name>/
+│   │   └─ &lt;module name&gt;/
 │   ├─ data/
 │   ├─ ...
 │   └─ test/                    Unit tests
 ├─ extern/                      External dependencies
 │   ├─ redist/                  Pre-built external dependencies
 │   │   ├─ include/
-│   │   │   └─ <dep name>/
+│   │   │   └─ &lt;dep name&gt;/
 │   │   ├─ lib/
-│   │   │   └─ <target>/
+│   │   │   └─ &lt;target&gt;/
 │   │   └─ bin/
-│   │       └─ <target>/
+│   │       └─ &lt;target&gt;/
 │   └─ src/                     Dependencies Git sub-module or snapshot to build them from sources
-│       └─ <dep name>/
+│       └─ &lt;dep name&gt;/
 ├─ scripts/                     Utility scripts e.g. make, build, etc.
 ├─ tools/                       Tools sources
 │   ├─ shared/                  Optional common resources
 │   │   ├─ data/
 │   │   ├─ ...
 │   │   └─ extern/
-│   └─ <tool name>/             Simple tools can have all sources directly in the folder
+│   └─ &lt;tool name&gt;/             Simple tools can have all sources directly in the folder
 │       ├─ src/
 │       ├─ data/
 │       ├─ ...
@@ -50,7 +49,7 @@ N/A
 │   │   ├─ data/
 │   │   ├─ ...
 │   │   └─ extern/
-│   └─ <sample name>/           Simple sample can have all sources directly in the folder
+│   └─ &lt;sample name&gt;/           Simple sample can have all sources directly in the folder
 │       ├─ src/
 │       ├─ data/
 │       ├─ ...
@@ -60,11 +59,10 @@ N/A
 │   │   ├─ data/
 │   │   ├─ ...
 │   │   └─ extern/
-│   └─ <project name>/          Simple projects can have all sources directly in the folder
+│   └─ &lt;project name&gt;/          Simple projects can have all sources directly in the folder
 │       ├─ src/
 │       ├─ data/
 │       ├─ ...
 │       └─ extern/
 └─ README.md
-```
 
