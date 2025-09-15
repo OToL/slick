@@ -11,9 +11,9 @@
 
 # Pillars
 
-- Fast iterations: Time from source modifications (code, data, etc.) to testing must be as short as possible
-- Simplicity: Minimize encapsulation and avoid unnecessary generalizations
-- Explicitness: Interfaces must be explicit
+- Fast iterations: Time from source modifications (code, data, etc.) to testing must be as short as possible.
+- Simplicity: Minimize encapsulation and avoid unnecessary generalizations.
+- Explicitness: Interfaces must be explicit in their name, parameters, intents, etc.
 
 # Depot structure
 
@@ -59,5 +59,5 @@
 └── README.md
 ```
 
-- Folders containing generated files (e.g. \_build) must have a name starting with '_'.
+- Folders containing generated files (e.g. \_build) must have their name starting with '_'.
 - Simple projects, samples and tools can have all their sources stored directly under their root.
