@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ps3 uploader",
+            "type": "codelldb",
+            "request": "launch",
+            "program": "./_build/macos-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "runInTerminal": false,
+            "sourceLanguages": [
+                "cpp"
+            ]
+        }
+    ]
+}

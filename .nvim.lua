@@ -1,7 +1,30 @@
---%-GIn\ file\ include\ %.%#
-vim.cmd([[
-    set errorformat=%f:%l:%c:\ %t%*[^:]:\ %m
-]])
+--------------------------------------------------------------------------------------------------------
+--                                         Utilities                                                  --
+--------------------------------------------------------------------------------------------------------
+
+-- Detect current platform
+local function get_current_platform()
+  if vim.fn.has("macunix") == 1 then
+    return "macos"
+  elseif vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
+    return "windows"
+  elseif vim.fn.has("unix") == 1 then
+    return "linux"
+  else
+    return "unknown"
+  end
+end
+
+function GetWorkspaceRootDirPath()
+    -- local current_file_path = debug.getinfo(1, "S").source:sub(2)
+    -- local current_dir = vim.fn.fnamemodify(current_file_path, ':h')
+    local ws = require('workspaces')
+    return ws.path()
+end
+
+function GetBuildDirPath()
+    return vim.fs.joinpath(GetWorkspaceRootDirPath(), "_build")
+end
 
 local function file_exists(path)
   local f = io.open(path, "r")
@@ -36,17 +59,6 @@ local function get_mtime(path)
   return stat and stat.mtime.sec or nil
 end
 
-local function get_workspace_root_directory_path()
-    -- local current_file_path = debug.getinfo(1, "S").source:sub(2)
-    -- local current_dir = vim.fn.fnamemodify(current_file_path, ':h')
-    local ws = require('workspaces')
-    return ws.path()
-end
-
-local function get_build_directory_path()
-    return vim.fs.joinpath(get_workspace_root_directory_path(), "_build")
-end
-
 local function escape_pattern_case_insensitive(str)
   -- Escape pattern characters first
   str = str:gsub("([^%w])", "%%%1")
@@ -57,6 +69,55 @@ local function escape_pattern_case_insensitive(str)
   return str
 end
 
+--------------------------------------------------------------------------------------------------------
+--                                  Globl workspace variables                                         --
+--------------------------------------------------------------------------------------------------------
+
+vim.g.active_project = vim.g.active_project or "default"
+vim.g.active_platform = vim.g.active_platform or get_current_platform()
+
+-- Load vscode launch description
+require('dap.ext.vscode').load_launchjs("launch.json", { codelldb = { 'cpp' } })
+
+--------------------------------------------------------------------------------------------------------
+--                                      Quick app launch                                              --
+--------------------------------------------------------------------------------------------------------
+
+-- Project launch configurations
+function GetLaunchCommand(project)
+  local curr_platform = get_current_platform()
+  local commands = {
+    ["default"] = "echo 'No project selected'",
+    ["ps3_upload"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader"),
+  }
+  return commands[project] or commands["default"]
+end
+
+-- Launch active program
+function LaunchActiveProject()
+  local command = GetLaunchCommand(vim.g.active_project)
+  vim.cmd(string.format('!tmux send-keys -t 2 C-u "%s" Enter', command))
+  vim.cmd('!tmux resize-pane')
+end
+
+-- User command to set active program
+vim.api.nvim_create_user_command('SetActiveProject', function(opts)
+  vim.g.active_project = opts.args
+  vim.notify("Active program set to: " .. opts.args)
+end, { nargs = 1 })
+
+vim.api.nvim_set_keymap("n", "<M-F6>", '<cmd>lua LaunchActiveProject()<cr>', {noremap = true, silent = true})
+
+--%-GIn\ file\ include\ %.%#
+vim.cmd([[
+    set errorformat=%f:%l:%c:\ %t%*[^:]:\ %m
+]])
+
+--------------------------------------------------------------------------------------------------------
+--                                  LSP platform switch                                               --
+--------------------------------------------------------------------------------------------------------
+
+
 local function patch_ps3_commands()
     local ps3_sdk_root = os.getenv("PSL1GHT")
     if not ps3_sdk_root then
@@ -64,7 +125,7 @@ local function patch_ps3_commands()
         return
     end
 
-    local build_dir = get_build_directory_path()
+    local build_dir = GetBuildDirPath()
     local ps3_build_dir = vim.fs.joinpath(build_dir, "ps3-debug")
     local backup_commands_file_path = vim.fs.joinpath(ps3_build_dir, "compile_commands.json.bak")
     local commands_file_path = vim.fs.joinpath(ps3_build_dir, "compile_commands.json")
@@ -117,19 +178,19 @@ end
 -- TODO: support target config as optional paramter e.g. release, debug, etc.
 
 vim.api.nvim_create_user_command('BuildPs3', function()
-    local build_dir_path = get_build_directory_path()
+    local build_dir_path = GetBuildDirPath()
     vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "ps3-debug")
     vim.cmd('Build')
 end, {})
 
 vim.api.nvim_create_user_command('BuildMacos', function()
-    local build_dir_path = get_build_directory_path()
+    local build_dir_path = GetBuildDirPath()
     vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "macos-debug")
     vim.cmd('Build')
 end, {})
 
 vim.api.nvim_create_user_command('LSPPs3', function()
-    local workspace_root = get_workspace_root_directory_path()
+    local workspace_root = GetWorkspaceRootDirPath()
     local clangd_path = vim.fs.joinpath(workspace_root, ".clangd")
     local clangd_ps3_path = vim.fs.joinpath(workspace_root, ".clangd_ps3")
 
@@ -139,7 +200,7 @@ vim.api.nvim_create_user_command('LSPPs3', function()
 end, {})
 
 vim.api.nvim_create_user_command('LSPMacos', function()
-    local workspace_root = get_workspace_root_directory_path()
+    local workspace_root = GetWorkspaceRootDirPath()
     local clangd_path = vim.fs.joinpath(workspace_root, ".clangd")
     local clangd_macos_path = vim.fs.joinpath(workspace_root, ".clangd_macos")
 
