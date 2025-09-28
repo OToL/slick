@@ -15,3 +15,4 @@ include(scripts/make/slk_toolchain.cmake)
 
 add_subdirectory("extern")
 add_subdirectory("tools")
+add_subdirectory("samples")

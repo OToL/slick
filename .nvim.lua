@@ -89,6 +89,7 @@ function GetLaunchCommand(project)
   local commands = {
     ["default"] = "echo 'No project selected'",
     ["ps3_upload"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader"),
+    ["cpp_sandbox"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/cpp_sandbox/cpp_sandbox"),
   }
   return commands[project] or commands["default"]
 end
@@ -107,6 +108,7 @@ vim.api.nvim_create_user_command('SetActiveProject', function(opts)
 end, { nargs = 1 })
 
 vim.api.nvim_set_keymap("n", "<M-F6>", '<cmd>lua LaunchActiveProject()<cr>', {noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<M-F7>", '<cmd>Build<cr>', {noremap = true, silent = true})
 
 --%-GIn\ file\ include\ %.%#
 vim.cmd([[
@@ -184,10 +186,19 @@ vim.api.nvim_create_user_command('BuildPs3', function()
 end, {})
 
 vim.api.nvim_create_user_command('BuildMacos', function()
-    local build_dir_path = GetBuildDirPath()
-    vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "macos-debug")
+  local build_dir_path = GetBuildDirPath()
+  vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "macos-debug")
     vim.cmd('Build')
+  -- vim.cmd('silent! wall')  -- Save all, ignore errors
+  -- vim.cmd('make')          -- Use make instead of Build
 end, {})
+
+-- vim.api.nvim_create_user_command('BuildMacos', function()
+--     local build_dir_path = GetBuildDirPath()
+--     vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "macos-debug")
+--     print(vim.o.makeprg)
+--     vim.cmd('Build')
+-- end, {})
 
 vim.api.nvim_create_user_command('LSPPs3', function()
     local workspace_root = GetWorkspaceRootDirPath()

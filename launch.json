@@ -2,6 +2,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "cpp sandbox",
+            "type": "codelldb",
+            "request": "launch",
+            "program": "./_build/macos-debug/samples/cpp_sandbox/cpp_sandbox",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "runInTerminal": false,
+            "sourceLanguages": [
+                "cpp"
+            ]
+        },
+        {
             "name": "ps3 uploader",
             "type": "codelldb",
             "request": "launch",
