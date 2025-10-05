@@ -90,6 +90,7 @@ function GetLaunchCommand(project)
     ["default"] = "echo 'No project selected'",
     ["ps3_upload"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader"),
     ["cpp_sandbox"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/cpp_sandbox/cpp_sandbox"),
+    ["graphics_sandbox"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/graphics_sandbox/graphics_sandbox"),
   }
   return commands[project] or commands["default"]
 end

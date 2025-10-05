@@ -1,3 +1,6 @@
 [submodule "extern/src/zlib"]
 	path = extern/src/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "extern/src/raylib"]
+	path = extern/src/raylib
+	url = https://github.com/raysan5/raylib.git
