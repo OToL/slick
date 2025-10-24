@@ -95,11 +95,13 @@ function GetLaunchCommand(project)
   return commands[project] or commands["default"]
 end
 
--- Launch active program
+-- Launch active program using the workspace root as current directory
 function LaunchActiveProject()
-  local command = GetLaunchCommand(vim.g.active_project)
-  vim.cmd(string.format('!tmux send-keys -t 2 C-u "%s" Enter', command))
-  vim.cmd('!tmux resize-pane')
+    local command = GetLaunchCommand(vim.g.active_project)
+    local workspace_dir = GetWorkspaceRootDirPath()
+    -- Change to workspace directory first, then run command
+    vim.cmd(string.format('!tmux send-keys -t 2 C-u "cd %s && %s" Enter', workspace_dir, command))
+    vim.cmd('!tmux resize-pane')
 end
 
 -- User command to set active program

@@ -1,5 +1,5 @@
 add_executable(graphics_sandbox
-    main.cpp)
+    src/main.cpp)
 
 target_link_libraries(graphics_sandbox 
     slk::ext-raylib)
