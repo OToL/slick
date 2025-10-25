@@ -46,9 +46,9 @@ int main()
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    constexpr int grid_size = 10;
-    const int screenHeight = 450;
+    const int screenWidth = 800*2;
+    const int screenHeight = 450*2;
+    constexpr int grid_size = 500;
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 3d camera free");
 
@@ -74,6 +74,15 @@ int main()
     const int cameraWorldPosLoc = GetShaderLocation(shader, "u_cameraWorldPos");
     assert(cameraWorldPosLoc >= 0);
 
+    const int thin_color_loc = GetShaderLocation(shader, "u_thin_color");
+    assert(thin_color_loc >= 0);
+
+    const int thick_color_loc = GetShaderLocation(shader, "u_thick_color");
+    assert(thick_color_loc >= 0);
+
+    const int cell_size_loc = GetShaderLocation(shader, "u_cell_size");
+    assert(cell_size_loc >= 0);
+
     // const int cameraPosLoc = GetShaderLocation(shader, "u_cameraPos");
     // assert(gridSizeLoc >= 0);
 
@@ -96,6 +105,10 @@ int main()
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
+    const Vector4 thin_color{0.75, 0.75, 0.75, 1.0};
+    const Vector4 thick_color{0.25, 0.25, 0.25, 1.0};
+    const float cell_size = 1.f;
+
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
@@ -113,7 +126,11 @@ int main()
 
         // float time = GetTime();
         SetShaderValue(shader, gridSizeLoc, &grid_size, SHADER_UNIFORM_INT);
+        SetShaderValue(shader, cell_size_loc, &cell_size, SHADER_UNIFORM_FLOAT);
         SetShaderValue(shader, cameraWorldPosLoc, &camera.position, SHADER_UNIFORM_VEC3);
+        SetShaderValue(shader, thin_color_loc, &thin_color, SHADER_UNIFORM_VEC4);
+        SetShaderValue(shader, thick_color_loc, &thick_color, SHADER_UNIFORM_VEC4);
+
         SetShaderValueMatrix(shader, viewProjLoc, view_proj);
         SetShaderValueMatrix(shader, worldTransformLoc, grid_world_transform);
 
