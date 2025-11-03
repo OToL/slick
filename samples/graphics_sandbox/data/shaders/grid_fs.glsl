@@ -3,7 +3,7 @@
 in vec3 v_view_dir;         // vector between the camera and the corresponing grid point
 in vec2 v_grid_position;    // fragment position in grid space [-grid_size; gridsize]
 
-uniform int u_gridSize;
+uniform float u_gridSize;
 uniform float u_cell_size;
 uniform vec4 u_thin_color; 
 uniform vec4 u_thick_color;  

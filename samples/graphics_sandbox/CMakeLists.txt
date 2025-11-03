@@ -1,4 +1,5 @@
 add_executable(graphics_sandbox
+    src/graphics.cpp
     src/main.cpp)
 
 target_link_libraries(graphics_sandbox 

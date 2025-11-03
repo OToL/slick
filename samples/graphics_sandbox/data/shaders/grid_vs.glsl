@@ -5,7 +5,7 @@ in vec3 vertexPosition;
 // Uniforms
 uniform mat4 u_viewProj;
 uniform mat4 u_worldTransform;
-uniform int u_gridSize;
+uniform float u_gridSize;
 uniform vec3 u_cameraWorldPos;
 
 out vec3 v_view_dir;

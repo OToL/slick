@@ -1,3 +1,5 @@
+#include "graphics.hpp"
+
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -6,91 +8,21 @@
 #include <raylib/raymath.h>
 #include <raylib/rcamera.h>
  
-// Create quad mesh (2 triangles)
-Mesh CreateQuadMesh()
-{
-    Mesh mesh = {};
-
-    // 4 vertices for quad
-    mesh.vertexCount = 4;
-    mesh.triangleCount = 2;
-
-    // Allocate memory
-    mesh.vertices = (float *)RL_MALLOC(mesh.vertexCount * 3 * sizeof(float));
-    mesh.indices = (unsigned short *)RL_MALLOC(mesh.triangleCount * 3 * sizeof(unsigned short));
-
-    // Vertex positions (quad from -1 to 1)
-    constexpr float vertices[] = {
-        1.0f,  0.0f,  1.0f,
-        1.0f, 0.0f,  -1.0f,
-        -1.0f, 0.0f, -1.0f,
-        -1.0f,  0.0f, 1.0f
-    };
-
-    // Indices for 2 triangles
-    constexpr unsigned short indices[] = {
-        0, 1, 2, // First triangle
-        2, 3, 0 // Second triangle
-    };
-
-    memcpy(mesh.vertices, vertices, sizeof(vertices));
-    memcpy(mesh.indices, indices, sizeof(indices));
-
-    // Upload to GPU
-    UploadMesh(&mesh, false);
-
-    return mesh;
-}
-
 int main()
 {
-    // Initialization
-    //--------------------------------------------------------------------------------------
     const int screenWidth = 800*2;
     const int screenHeight = 450*2;
-    constexpr int grid_size = 500;
+    constexpr int grid_size = 100000;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - 3d camera free");
+    InitWindow(screenWidth, screenHeight, "Sandbox");
 
     SetTraceLogLevel(LOG_TRACE);
+    DisableCursor(); // Limit cursor to relative movement inside the window
+    SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
-    // Create quad mesh
-    Mesh quadMesh = CreateQuadMesh();
+    auto grid_hdl = graphics::create_grid();
+    assert(grid_hdl);
 
-    // Load shader
-    Shader shader = LoadShader("samples/graphics_sandbox/data/vertex.glsl", "samples/graphics_sandbox/data/fragment.glsl");
-    assert(IsShaderValid(shader));
-
-    // Get shader uniform locations
-    const int gridSizeLoc = GetShaderLocation(shader, "u_gridSize");
-    assert(gridSizeLoc >= 0);
-
-    const int viewProjLoc = GetShaderLocation(shader, "u_viewProj");
-    assert(viewProjLoc >= 0);
-
-    const int worldTransformLoc = GetShaderLocation(shader, "u_worldTransform");
-    assert(worldTransformLoc >= 0);
-
-    const int cameraWorldPosLoc = GetShaderLocation(shader, "u_cameraWorldPos");
-    assert(cameraWorldPosLoc >= 0);
-
-    const int thin_color_loc = GetShaderLocation(shader, "u_thin_color");
-    assert(thin_color_loc >= 0);
-
-    const int thick_color_loc = GetShaderLocation(shader, "u_thick_color");
-    assert(thick_color_loc >= 0);
-
-    const int cell_size_loc = GetShaderLocation(shader, "u_cell_size");
-    assert(cell_size_loc >= 0);
-
-    // const int cameraPosLoc = GetShaderLocation(shader, "u_cameraPos");
-    // assert(gridSizeLoc >= 0);
-
-    // Create material with shader
-    Material material = LoadMaterialDefault();
-    material.shader = shader;
-
-    // Define the camera to look into our 3d world
     Camera3D camera = {{0}};
     camera.position = (Vector3){10.0f, 10.0f, 10.0f}; // Camera position
     camera.target = (Vector3){0.0f, 0.0f, 0.0f}; // Camera looking at point
@@ -98,51 +30,28 @@ int main()
     camera.fovy = 45.0f; // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE; // Camera projection type
 
-    Matrix grid_world_transform = MatrixIdentity();
-
-    DisableCursor(); // Limit cursor to relative movement inside the window
-
-    SetTargetFPS(60); // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
-
-    const Vector4 thin_color{0.75, 0.75, 0.75, 1.0};
-    const Vector4 thick_color{0.25, 0.25, 0.25, 1.0};
+    const Color thin_color{191, 191, 191, 255};
+    const Color thick_color{63, 63, 63, 255}; 
     const float cell_size = 1.f;
 
-    // Main game loop
-    while (!WindowShouldClose()) // Detect window close button or ESC key
+    while (!WindowShouldClose())
     {
-        // Update
-        //----------------------------------------------------------------------------------
         UpdateCamera(&camera, CAMERA_FREE);
 
         if (IsKeyPressed(KEY_Z))
             camera.target = (Vector3){0.0f, 0.0f, 0.0f};
-        //----------------------------------------------------------------------------------
 
         const Matrix view_transform = GetCameraViewMatrix(&camera);
         const Matrix proj_transform = GetCameraProjectionMatrix(&camera, static_cast<float>(screenWidth)/screenHeight);
         const Matrix view_proj = view_transform * proj_transform;
 
-        // float time = GetTime();
-        SetShaderValue(shader, gridSizeLoc, &grid_size, SHADER_UNIFORM_INT);
-        SetShaderValue(shader, cell_size_loc, &cell_size, SHADER_UNIFORM_FLOAT);
-        SetShaderValue(shader, cameraWorldPosLoc, &camera.position, SHADER_UNIFORM_VEC3);
-        SetShaderValue(shader, thin_color_loc, &thin_color, SHADER_UNIFORM_VEC4);
-        SetShaderValue(shader, thick_color_loc, &thick_color, SHADER_UNIFORM_VEC4);
-
-        SetShaderValueMatrix(shader, viewProjLoc, view_proj);
-        SetShaderValueMatrix(shader, worldTransformLoc, grid_world_transform);
-
-        // Draw
-        //----------------------------------------------------------------------------------
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
 
             BeginMode3D(camera);
 
-                DrawMesh(quadMesh, material, MatrixIdentity());
+                graphics::render_grid(grid_hdl, cell_size, grid_size, view_proj, camera.position, thin_color, thick_color);
 
             EndMode3D();
 
@@ -155,16 +64,10 @@ int main()
             DrawText("- Z to zoom to (0, 0, 0)", 40, 80, 10, DARKGRAY);
 
         EndDrawing();
-        //----------------------------------------------------------------------------------
     }
 
-    UnloadMesh(quadMesh);
-    UnloadShader(shader);
-
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow(); // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------}
+    graphics::destroy_grid(grid_hdl);
+    CloseWindow();
 
     return 0;
 }
