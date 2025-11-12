@@ -166,9 +166,10 @@ int main() {
 
             // the ennemy is exiting the environment
             if (!game_state.env_aabb.isInside(ennemy_world_aabb)) {
-
                 slk::Vector2f normal = slk::Vector2f::zero();
 
+                // simple snapping
+#if 1
                 const slk::Vector2f plane_normals[] = {
                     slk::Vector2f{-1.f, 0.f},
                     slk::Vector2f{0.f, -1.f},
@@ -176,20 +177,18 @@ int main() {
                     slk::Vector2f{0.f, 1.f},
                 };
 
-                // simple snapping
-#if 1
                 auto diff_max = slk::maxComponents(ennemy_world_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
                 ennemy.position -= diff_max;
 
-                for (slk::u32 i = 0 ; i != 2; ++i) {
+                for (slk::u32 i = 0; i != 2; ++i) {
                     normal += plane_normals[i] * (float)(diff_max.data[i] > 0);
                 }
 
                 auto diff_min = slk::minComponents(ennemy_world_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
-                ennemy.position -= diff_min; 
+                ennemy.position -= diff_min;
 
-                for (slk::u32 i = 2 ; i != 4; ++i) {
-                    normal += plane_normals[i] * (float)(diff_min.data[i&1] < 0);
+                for (slk::u32 i = 2; i != 4; ++i) {
+                    normal += plane_normals[i] * (float)(diff_min.data[i & 1] < 0);
                 }
 
                 // plane equation
@@ -245,7 +244,6 @@ int main() {
                 for (auto ennemy_iter2 = ennemy_iter + 1; ennemy_iter2 != end(game_state.ennemies); ++ennemy_iter2) {
                     slk::AABB2f world_ennemy2_aabb = ennemy_iter2->extents.displaced(ennemy_iter2->position);
                     if (world_ennemy1_aabb.overlaps(world_ennemy2_aabb)) {
-
                         const slk::AABB2f prev_world_ennemy1_aabb = ennemy_iter->extents.displaced(ennemy_iter->prev_position);
                         const slk::AABB2f prev_world_ennemy2_aabb = ennemy_iter2->extents.displaced(ennemy_iter2->prev_position);
                         slk::Vector2f normal = slk::Vector2f::zero();
@@ -254,27 +252,23 @@ int main() {
                         // 1. deduce the collision normal
                         // 2. cancel out the penetration (only on first ennemy to simplify)
 
-                        if (prev_world_ennemy1_aabb.min.x >= prev_world_ennemy2_aabb.max.x && 
-                            world_ennemy1_aabb.min.x < world_ennemy2_aabb.max.x) {
+                        if (prev_world_ennemy1_aabb.min.x >= prev_world_ennemy2_aabb.max.x && world_ennemy1_aabb.min.x < world_ennemy2_aabb.max.x) {
                             ennemy_iter->position.x += (world_ennemy2_aabb.max.x - world_ennemy1_aabb.min.x) + std::numeric_limits<float>::epsilon();
-                            normal += slk::Vector2f(1,0);
+                            normal += slk::Vector2f(1, 0);
                         }
 
-                        if (prev_world_ennemy1_aabb.min.y >= prev_world_ennemy2_aabb.max.y && 
-                            world_ennemy1_aabb.min.y < world_ennemy2_aabb.max.y) {
+                        if (prev_world_ennemy1_aabb.min.y >= prev_world_ennemy2_aabb.max.y && world_ennemy1_aabb.min.y < world_ennemy2_aabb.max.y) {
                             ennemy_iter->position.y += (world_ennemy2_aabb.max.y - world_ennemy1_aabb.min.y) + std::numeric_limits<float>::epsilon();
-                            normal += slk::Vector2f(0,1);
+                            normal += slk::Vector2f(0, 1);
                         }
 
-                        if (prev_world_ennemy1_aabb.max.x <= prev_world_ennemy2_aabb.min.x && 
-                            world_ennemy1_aabb.max.x > world_ennemy2_aabb.min.x) {
+                        if (prev_world_ennemy1_aabb.max.x <= prev_world_ennemy2_aabb.min.x && world_ennemy1_aabb.max.x > world_ennemy2_aabb.min.x) {
                             ennemy_iter->position.x += (world_ennemy2_aabb.min.x - world_ennemy1_aabb.max.x) - std::numeric_limits<float>::epsilon();
-                            normal += slk::Vector2f(-1,0);
+                            normal += slk::Vector2f(-1, 0);
                         }
-                        if (prev_world_ennemy1_aabb.max.y <= prev_world_ennemy2_aabb.min.y && 
-                            world_ennemy1_aabb.max.y > world_ennemy2_aabb.min.y) {
+                        if (prev_world_ennemy1_aabb.max.y <= prev_world_ennemy2_aabb.min.y && world_ennemy1_aabb.max.y > world_ennemy2_aabb.min.y) {
                             ennemy_iter->position.y += (world_ennemy2_aabb.min.y - world_ennemy1_aabb.max.y) - std::numeric_limits<float>::epsilon();
-                            normal += slk::Vector2f(0,-1);
+                            normal += slk::Vector2f(0, -1);
                         }
 
                         // this could happen if the frame time is too long and the penetration too important
@@ -283,14 +277,12 @@ int main() {
                         }
 
                         normal.normalize();
-                        if (ennemy_iter->velocity.dot(normal) < 0)
-                        {
+                        if (ennemy_iter->velocity.dot(normal) < 0) {
                             const auto vel_proj = ennemy_iter->velocity.dot(normal);
                             ennemy_iter->velocity = normal * (-2 * vel_proj) + ennemy_iter->velocity;
                         }
                         normal *= -1;
-                        if (ennemy_iter2->velocity.dot(normal) < 0)
-                        {
+                        if (ennemy_iter2->velocity.dot(normal) < 0) {
                             const auto vel_proj = ennemy_iter2->velocity.dot(normal);
                             ennemy_iter2->velocity = normal * (-2 * vel_proj) + ennemy_iter2->velocity;
                         }
@@ -300,14 +292,14 @@ int main() {
         }
 
         // snap all ennemies to not let them escape after resolution of ennemy/ennemy collisions
-        for (auto& ennemy : game_state.ennemies) {
+        for (auto & ennemy : game_state.ennemies) {
             slk::AABB2f ennemy_aabb = ennemy.extents.displaced(ennemy.position);
 
             auto diff_max = slk::maxComponents(ennemy_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
             ennemy.position -= diff_max;
 
             auto diff_min = slk::minComponents(ennemy_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
-            ennemy.position -= diff_min; 
+            ennemy.position -= diff_min;
         }
 
         // projectile/ennemy collisions
