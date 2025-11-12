@@ -1,17 +1,5 @@
 BasedOnStyle: WebKit
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterClass: true
-  AfterCaseLabel: true
-  AfterControlStatement: true
-  AfterFunction: true
-  AfterStruct: true
-  BeforeElse: true
-  AfterEnum: true
-  AfterUnion: true
-  AfterExternBlock: true
-  BeforeCatch: true
-  AfterNamespace: false
+BreakBeforeBraces: Attach
 PointerAlignment: Middle
 CompactNamespaces: true
 FixNamespaceComments: true

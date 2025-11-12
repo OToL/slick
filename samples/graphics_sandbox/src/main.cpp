@@ -1,8 +1,6 @@
 #include "graphics.hpp"
 
 #include <cassert>
-#include <cstdlib>
-#include <cstring>
 
 #include <raylib/raylib.h>
 #include <raylib/raymath.h>
