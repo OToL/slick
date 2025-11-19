@@ -89,14 +89,14 @@ if(ENABLE_EXTERN_RLIMGUI AND ENABLE_EXTERN_IMGUI AND ENABLE_EXTERN_RAYLIB)
         target_compile_options(rlimgui PRIVATE -w)
         add_library(slk::ext-rlimgui ALIAS rlimgui)
     else()
-        # add_library(slk_extern_redist_imgui STATIC IMPORTED)
-        # set_target_properties(slk_extern_redist_imgui PROPERTIES
-        #     IMPORTED_LOCATION_DEBUG "${SLK_EXTERN_LIB_DIR}/macos/libimgui_debug.a")
-        # add_library(slk_extern_imgui INTERFACE)
-        # add_library(slk::ext-imgui ALIAS slk_extern_imgui)
-        # target_link_libraries(slk_extern_imgui
-        #     INTERFACE
-        #         slk_extern_redist_imgui)
+        add_library(slk_extern_redist_rlimgui STATIC IMPORTED)
+        set_target_properties(slk_extern_redist_rlimgui PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${SLK_EXTERN_LIB_DIR}/macos/librlimgui_debug.a")
+        add_library(slk_extern_rlimgui INTERFACE)
+        add_library(slk::ext-rlimgui ALIAS slk_extern_rlimgui)
+        target_link_libraries(slk_extern_rlimgui
+            INTERFACE
+                slk_extern_redist_rlimgui)
     endif()
 endif()
 
