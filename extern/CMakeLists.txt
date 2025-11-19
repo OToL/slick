@@ -11,6 +11,7 @@ set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON)
 
 slk_is_in_list(${SLK_TARGET_PLATFORM_ID} ENABLE_EXTERN_ZLIB     "darwin" "ps3")
 slk_is_in_list(${SLK_TARGET_PLATFORM_ID} ENABLE_EXTERN_RAYLIB   "darwin")
+slk_is_in_list(${SLK_TARGET_PLATFORM_ID} ENABLE_EXTERN_RLIMGUI  "darwin")
 slk_is_in_list(${SLK_TARGET_PLATFORM_ID} ENABLE_EXTERN_IMGUI    "darwin")
 
 # ZLIB
@@ -60,7 +61,6 @@ endif()
 # ImGUI
 if(ENABLE_EXTERN_IMGUI)
     if(SLK_ENABLE_BUILD_EXTERN)
-        message("hello!")
         add_library(imgui STATIC 
             src/imgui/imgui.cpp
             src/imgui/imgui_demo.cpp
@@ -77,6 +77,26 @@ if(ENABLE_EXTERN_IMGUI)
         target_link_libraries(slk_extern_imgui
             INTERFACE
                 slk_extern_redist_imgui)
+    endif()
+endif()
+
+if(ENABLE_EXTERN_RLIMGUI AND ENABLE_EXTERN_IMGUI AND ENABLE_EXTERN_RAYLIB)
+    if(SLK_ENABLE_BUILD_EXTERN)
+        add_library(rlimgui STATIC 
+            src/rlimgui/rlImGui.cpp)
+        target_include_directories(rlimgui PUBLIC
+            ${SLK_EXTERN_INCLUDE_DIR})
+        target_compile_options(rlimgui PRIVATE -w)
+        add_library(slk::ext-rlimgui ALIAS rlimgui)
+    else()
+        # add_library(slk_extern_redist_imgui STATIC IMPORTED)
+        # set_target_properties(slk_extern_redist_imgui PROPERTIES
+        #     IMPORTED_LOCATION_DEBUG "${SLK_EXTERN_LIB_DIR}/macos/libimgui_debug.a")
+        # add_library(slk_extern_imgui INTERFACE)
+        # add_library(slk::ext-imgui ALIAS slk_extern_imgui)
+        # target_link_libraries(slk_extern_imgui
+        #     INTERFACE
+        #         slk_extern_redist_imgui)
     endif()
 endif()
 
