@@ -6,6 +6,20 @@
 
 namespace slk {
 
+template <typename T>
+struct Vector2;
+template <typename T>
+struct AABB2;
+template <typename T>
+struct Matrix2;
+
+template<typename T>
+using Vector2Param = Vector2<T>;
+template<typename T>
+using AABB2Param = AABB2<T> const&;
+template<typename T>
+using Matrix2Param = Matrix2<T>;
+
 inline constexpr f32 PI_F32 = 3.14159265f;
 inline constexpr f64 PI_F64 = 3.14159265358979323846;
 

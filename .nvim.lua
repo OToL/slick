@@ -98,6 +98,7 @@ end
 
 -- Launch active program using the workspace root as current directory
 function LaunchActiveProject()
+    print("hello")
     local command = GetLaunchCommand(vim.g.active_project)
     local workspace_dir = GetWorkspaceRootDirPath()
     -- Change to workspace directory first, then run command

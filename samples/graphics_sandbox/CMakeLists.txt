@@ -1,8 +1,10 @@
 add_executable(graphics_sandbox
     src/graphics.cpp
+    src/demos.cpp
     src/main.cpp)
 
 target_link_libraries(graphics_sandbox 
+    core
     slk::ext-raylib)
 
 target_include_directories(graphics_sandbox PRIVATE

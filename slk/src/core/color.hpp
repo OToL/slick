@@ -21,7 +21,12 @@ struct ColorU32
 
     static inline constexpr ColorU32 blue() {
         return { 0u, 255u, 0u, 255u };
-    } 
+    }
+
+    // named 'COLOR_<color>' instead of '<color>' because of collisions with 3rd party libraries e.g. raylib
+    static const ColorU32 COLOR_RED;
+    static const ColorU32 COLOR_GREEN;
+    static const ColorU32 COLOR_BLUE;
 };
 
 }

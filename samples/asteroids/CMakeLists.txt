@@ -14,6 +14,7 @@ target_compile_options(asteroids PRIVATE
     -Wno-unknown-pragmas)
 
 target_link_libraries(asteroids 
+    slk::core
     slk::ext-raylib)
 
 # specify extern libs as System includes to avoid/silent compilation warnings

@@ -1,5 +1,5 @@
-slk_add_executable_ps3(ps3_loader     
-    main.c
+slk_add_executable(ps3_loader     
+    main.
     pad.c
     rsxutil.c)
 

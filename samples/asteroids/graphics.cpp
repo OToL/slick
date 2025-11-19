@@ -40,7 +40,7 @@ void draw_triangle(WindowCtx const& wnd_ctx, slk::Vector2f const& pos, slk::f32 
     // rotatiomathn
     slk::Matrix2f xform = slk::Matrix2f::makeRotation(rot_rad);
     for (auto& vert : vertices) {
-        vert = xform * vert;
+        vert = vert * xform;
     }
 
     // scale

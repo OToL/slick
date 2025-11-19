@@ -9,16 +9,17 @@
 #include <core/math/math.hpp>
 #include <core/math/matrix2.hpp>
 
-#include <print>
 #include <raylib/raylib.h>
 
 #include <chrono>
 #include <vector>
 #include <random>
 #include <cassert>
+#include <deque>
 
 using namespace slk::literals;
 
+// TODO
 // - enable sanitizers
 // - clang tidy
 
@@ -140,7 +141,8 @@ int main() {
                 game_state.projectiles.push_back(*new_projectile);
             }
         }
-
+        std::deque<int> my_d;
+        my_d.push_front(1);
         // projectiles integration + environment collision
         for (auto proj_iter = begin(game_state.projectiles); proj_iter != end(game_state.projectiles);) {
             Projectile & proj = *proj_iter;
@@ -166,7 +168,7 @@ int main() {
 
             // the ennemy is exiting the environment
             if (!game_state.env_aabb.isInside(ennemy_world_aabb)) {
-                slk::Vector2f normal = slk::Vector2f::zero();
+                slk::Vector2f normal = slk::Vector2f::ZERO;
 
                 // simple snapping
 #if 1
@@ -367,11 +369,11 @@ int main() {
             draw_aabb(WND_CTX, ennemy.extents, ennemy.position, slk::ColorU32{255, 0, 0, 255});
 
             DrawLineEx(to_rvec2(WND_CTX, ennemy.position),
-                       to_rvec2(WND_CTX, ennemy.position + hour_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.2f), 2, RED);
+                       to_rvec2(WND_CTX, ennemy.position + slk::Vector2f::unitY() * hour_rot * ennemy.extents.width() * 0.2f), 2, RED);
             DrawLineEx(to_rvec2(WND_CTX, ennemy.position),
-                       to_rvec2(WND_CTX, ennemy.position + min_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.4f), 2, GREEN);
+                       to_rvec2(WND_CTX, ennemy.position + slk::Vector2f::unitY() * min_rot * ennemy.extents.width() * 0.4f), 2, GREEN);
             DrawLineEx(to_rvec2(WND_CTX, ennemy.position),
-                       to_rvec2(WND_CTX, ennemy.position + sec_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.3f), 2, BLUE);
+                       to_rvec2(WND_CTX, ennemy.position + slk::Vector2f::unitY() * sec_rot * ennemy.extents.width() * 0.3f), 2, BLUE);
         }
 
         // Render projectiles
