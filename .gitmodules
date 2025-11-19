@@ -10,3 +10,6 @@
 [submodule "extern/src/rlimgui"]
 	path = extern/src/rlimgui
 	url = https://github.com/OToL/rlImGui.git
+[submodule "extern/src/rlImGui"]
+	path = extern/src/rlImGui
+	url = https://github.com/OToL/rlImGui.git
