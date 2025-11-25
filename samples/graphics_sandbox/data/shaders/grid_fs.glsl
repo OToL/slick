@@ -28,6 +28,7 @@ vec2 saturate(vec2 v2) {
     return vec2(saturate(v2.x), saturate(v2.y));
 }
 
+// jupyter notebook: https://colab.research.google.com/drive/1vIkHz_U8FYJWmO9ecn-poRXt6RFAWUxn
 void main() {
     
     // position in grid space i.e. in (-grid_extent, +grid_extent) of the current pixel

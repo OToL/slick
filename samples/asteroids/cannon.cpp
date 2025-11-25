@@ -48,6 +48,6 @@ void Cannon::turn(slk::f32 rot_rad) {
 }
 
 slk::Vector2f Cannon::getAimingDir() const {
-    const slk::Matrix2f xform = slk::Matrix2f::makeRotation(_rot_curr_rad);
+    const slk::Matrix2f xform = slk::Matrix2f::make_rotation(_rot_curr_rad);
     return slk::Vector2f::unitY() * xform;
 }

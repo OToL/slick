@@ -3,19 +3,23 @@
 
 #include <cassert>
 #include <chrono>
+#include <utility>
+#include <vector>
+#include <iterator>
 
 #include <raylib/raylib.h>
 #include <raylib/raymath.h>
 #include <raylib/rcamera.h>
+
+#include <rlimgui/rlImGui.h>
+
+#include <imgui/imgui.h>
  
 int main()
 {
     const int screen_width = 800*2;
     const int screen_height = 450*2;
-    constexpr int grid_size = 100000;
-
-    const auto demos = getDemos();
-    [[maybe_unused]] const auto demo_count = demos.size();
+    constexpr int grid_size = 1000;
 
     InitWindow(screen_width, screen_height, "Sandbox");
 
@@ -23,13 +27,27 @@ int main()
     DisableCursor(); // Limit cursor to relative movement inside the window
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
-    slk::u32 curr_demo_idx = std::to_underlying(DemoId::EMPTY);
-    demos[curr_demo_idx].init();
+    rlImGuiSetup(true);
+
+    Demos::init(DemoId::CURVES);
+    std::span<DemoInfo const> demos_info = Demos::getDemosInfo();
+    slk::i32 curr_demo_idx = std::to_underlying(Demos::current());
+
+    char dbg_demo_raw_names[2048] = {};
+    char* dbg_buffer_iter = std::begin(dbg_demo_raw_names);
+    char* const dbg_buffer_end = std::end(dbg_demo_raw_names);
+
+    for (DemoInfo const& info : demos_info)
+    {
+        assert(std::distance(dbg_buffer_iter, dbg_buffer_end) > static_cast<std::ptrdiff_t>(info.name.size()));
+        dbg_buffer_iter = std::copy_n(info.name.data(), info.name.size(), dbg_buffer_iter);
+        *(dbg_buffer_iter++) = 0;
+    }
 
     auto grid_hdl = graphics::create_grid();
     assert(grid_hdl);
 
-    Camera3D camera = {{0}};
+    Camera3D camera = {};
     camera.position = (Vector3){10.0f, 10.0f, 10.0f}; // Camera position
     camera.target = (Vector3){0.0f, 0.0f, 0.0f}; // Camera looking at point
     camera.up = (Vector3){0.0f, 1.0f, 0.0f}; // Camera up vector (rotation towards target)
@@ -45,12 +63,16 @@ int main()
 
     while (!WindowShouldClose())
     {
-        UpdateCamera(&camera, CAMERA_FREE);
-
         if (IsKeyPressed(KEY_Z))
             camera.target = (Vector3){0.0f, 0.0f, 0.0f};
 
-        demos[curr_demo_idx].update(delta_time_ms, camera);
+        DemoInfo const& curr_demo_info = demos_info[curr_demo_idx];
+
+        if (has_flag(curr_demo_info.caps, DemoCaps::DEFAULT_CAMERA_CONTROL) && IsKeyDown(KEY_LEFT_ALT))
+            UpdateCamera(&camera, CAMERA_FREE);
+
+        if (!Demos::update(delta_time_ms, camera))
+            break;
 
         const Matrix view_transform = GetCameraViewMatrix(&camera);
         const Matrix proj_transform = GetCameraProjectionMatrix(&camera, static_cast<float>(screen_width)/screen_height);
@@ -58,31 +80,47 @@ int main()
 
         BeginDrawing();
 
+            rlImGuiBegin();
+
+            ImGui::Begin("Demos", nullptr);
+
+                ImGui::Spacing(); ImGui::Spacing();
+
+                static slk::b8 show_imgui_demo = false;
+                ImGui::Checkbox("Show ImGui demo", &show_imgui_demo);
+                if (show_imgui_demo)
+                    ImGui::ShowDemoWindow(&show_imgui_demo);
+
+                slk::i32 next_demo_idx = curr_demo_idx;
+                ImGui::TextUnformatted("Demo:"); ImGui::SameLine(); ImGui::Combo("##DemoSelection", &next_demo_idx, dbg_demo_raw_names);
+
+                if (next_demo_idx != curr_demo_idx)
+                {
+                    Demos::set_current(static_cast<DemoId>(next_demo_idx));
+                    curr_demo_idx = std::to_underlying(Demos::current());
+                }
+
+                ImGui::Spacing(); ImGui::Spacing();
+
+                ImGui::TextUnformatted("Free camera default controls:");
+                ImGui::TextUnformatted("- Mouse Wheel to Zoom in-out");
+                ImGui::TextUnformatted("- Mouse Wheel Pressed to Pan");
+                ImGui::TextUnformatted("- Z to zoom to (0, 0, 0)");
+
+            ImGui::End();
+
             ClearBackground(RAYWHITE);
 
             BeginMode3D(camera);
 
                 graphics::render_grid(grid_hdl, cell_size, grid_size, view_proj, camera.position, thin_color, thick_color);
-
-                if (demos[curr_demo_idx].draw3d)
-                    demos[curr_demo_idx].draw3d(delta_time_ms, camera);
+                Demos::draw3d(delta_time_ms, camera);
 
             EndMode3D();
 
-            if (demos[curr_demo_idx].draw2d)
-                demos[curr_demo_idx].draw2d(delta_time_ms);
+            Demos::draw2d(delta_time_ms);
 
-            DrawRectangle(10, 10, 320, 113, Fade(SKYBLUE, 0.5f));
-            DrawRectangleLines(10, 10, 320, 113, BLUE);
-
-            char demo_tile[125];
-            std::format_to(demo_tile, "Demo: {}", demos[curr_demo_idx].name);
-
-            DrawText(demo_tile, 20, 20, 10, BLACK);
-            DrawText("Free camera default controls:", 20, 40, 10, BLACK);
-            DrawText("- Mouse Wheel to Zoom in-out", 40, 60, 10, DARKGRAY);
-            DrawText("- Mouse Wheel Pressed to Pan", 40, 80, 10, DARKGRAY);
-            DrawText("- Z to zoom to (0, 0, 0)", 40, 100, 10, DARKGRAY);
+            rlImGuiEnd();
 
         EndDrawing();
 
@@ -92,7 +130,7 @@ int main()
         start_time_point = end_frame_time;
     }
 
-    demos[curr_demo_idx].deinit();
+    Demos::shutdown();
 
     graphics::destroy_grid(grid_hdl);
     CloseWindow();

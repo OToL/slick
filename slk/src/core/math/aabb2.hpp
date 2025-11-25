@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/core.hpp>
-#include <core/math/vector2.hpp>
+#include "vector2.hpp"
 
 namespace slk {
 
@@ -33,12 +33,12 @@ struct AABB2 {
         return max - min;
     }
 
-    [[nodiscard]] slk::Vector2<ScalarType> halfSize() const {
+    [[nodiscard]] slk::Vector2<ScalarType> half_size() const {
         return size() * 0.5;
     }
 
     [[nodiscard]] ExtentType center() const {
-        return min + halfSize();
+        return min + half_size();
     }
 
     AABB2& shrink(ExtentParamType v) {
@@ -71,16 +71,16 @@ struct AABB2 {
         return *this;
     }
 
-    [[nodiscard]] AABB2 centeredAtOrigin() const {
-        ExtentType const half_val = halfSize() * 0.5f;
+    [[nodiscard]] AABB2 centered_at_origin() const {
+        ExtentType const half_val = half_size() * 0.5f;
         return {-half_val, half_val};
     }
 
-    [[nodiscard]] bool isInside(slk::Vector2<ScalarType> const& v) const {
+    [[nodiscard]] bool is_inside(slk::Vector2<ScalarType> const& v) const {
         return min < v && v < max;
     }
 
-    [[nodiscard]] bool isInside(ParamType aabb) const {
+    [[nodiscard]] bool is_inside(ParamType aabb) const {
         return min < aabb.min && max > aabb.max;
     }
 

@@ -1,7 +1,6 @@
 add_library(core
     color.cpp
     math/math_constants.cpp)
-
 add_library(slk::core ALIAS core)
 
 target_compile_options(core PRIVATE

@@ -151,7 +151,7 @@ int main() {
             proj.curr_pos = proj.prev_pos + proj.velocity * delta_time_ms;
 
             // out of environment bound
-            if (!game_state.env_aabb.isInside(proj.curr_pos)) {
+            if (!game_state.env_aabb.is_inside(proj.curr_pos)) {
                 removeSwap(game_state.projectiles, proj_iter);
             } else {
                 ++proj_iter;
@@ -167,7 +167,7 @@ int main() {
             auto ennemy_world_aabb = ennemy.extents.displaced(ennemy.position);
 
             // the ennemy is exiting the environment
-            if (!game_state.env_aabb.isInside(ennemy_world_aabb)) {
+            if (!game_state.env_aabb.is_inside(ennemy_world_aabb)) {
                 slk::Vector2f normal = slk::Vector2f::ZERO;
 
                 // simple snapping
@@ -179,18 +179,18 @@ int main() {
                     slk::Vector2f{0.f, 1.f},
                 };
 
-                auto diff_max = slk::maxComponents(ennemy_world_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
+                auto diff_max = slk::max_components(ennemy_world_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
                 ennemy.position -= diff_max;
 
                 for (slk::u32 i = 0; i != 2; ++i) {
-                    normal += plane_normals[i] * (float)(diff_max.data[i] > 0);
+                    normal += plane_normals[i] * (float)(diff_max.values[i] > 0);
                 }
 
-                auto diff_min = slk::minComponents(ennemy_world_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
+                auto diff_min = slk::min_components(ennemy_world_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
                 ennemy.position -= diff_min;
 
                 for (slk::u32 i = 2; i != 4; ++i) {
-                    normal += plane_normals[i] * (float)(diff_min.data[i & 1] < 0);
+                    normal += plane_normals[i] * (float)(diff_min.values[i & 1] < 0);
                 }
 
                 // plane equation
@@ -297,10 +297,10 @@ int main() {
         for (auto & ennemy : game_state.ennemies) {
             slk::AABB2f ennemy_aabb = ennemy.extents.displaced(ennemy.position);
 
-            auto diff_max = slk::maxComponents(ennemy_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
+            auto diff_max = slk::max_components(ennemy_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
             ennemy.position -= diff_max;
 
-            auto diff_min = slk::minComponents(ennemy_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
+            auto diff_min = slk::min_components(ennemy_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
             ennemy.position -= diff_min;
         }
 
@@ -309,7 +309,7 @@ int main() {
             slk::b8 has_hit = false;
             for (auto ennemy_iter = begin(game_state.ennemies); ennemy_iter != end(game_state.ennemies); ++ennemy_iter) {
                 slk::AABB2f world_aabb = ennemy_iter->extents.displaced(ennemy_iter->position);
-                if (world_aabb.isInside(proj_iter->curr_pos)) {
+                if (world_aabb.is_inside(proj_iter->curr_pos)) {
                     const slk::f32 curr_width = ennemy_iter->extents.width();
                     if (curr_width >= 32) {
                         const slk::AABB2f new_extents = ennemy_iter->extents * 0.5f;
@@ -360,9 +360,9 @@ int main() {
         const slk::f32 curr_min_angle = -(actual_time->tm_min / 60.f) * 2 * slk::PI_F32;
         const slk::f32 curr_sec_angle = -(actual_time->tm_sec / 60.f) * 2 * slk::PI_F32;
 
-        const slk::Matrix2f hour_rot = slk::Matrix2f::makeRotation(curr_hour_angle);
-        const slk::Matrix2f min_rot = slk::Matrix2f::makeRotation(curr_min_angle);
-        const slk::Matrix2f sec_rot = slk::Matrix2f::makeRotation(curr_sec_angle);
+        const slk::Matrix2f hour_rot = slk::Matrix2f::make_rotation(curr_hour_angle);
+        const slk::Matrix2f min_rot = slk::Matrix2f::make_rotation(curr_min_angle);
+        const slk::Matrix2f sec_rot = slk::Matrix2f::make_rotation(curr_sec_angle);
 
         // Render ennemies
         for (auto const & ennemy : game_state.ennemies) {

@@ -17,7 +17,7 @@ struct Vector2 {
             ScalarType x;
             ScalarType y;
         };
-        ScalarType data[2];
+        ScalarType values[2];
     };
 
     Vector2() = default;
@@ -80,6 +80,14 @@ struct Vector2 {
         return x * x + y * y;
     }
 
+    [[nodiscard]] ScalarType* data() {
+        return &values[0];
+    }
+
+    [[nodiscard]] ScalarType const* data() const {
+        return &values[0];
+    }
+
     // Operators
 
     Vector2& operator*=(ScalarType val) {
@@ -107,7 +115,7 @@ struct Vector2 {
 
     [[nodiscard]] ScalarType operator[](slk::u32 idx) const {
         // TODO: add assertion on idx value
-        return data[idx];
+        return values[idx];
     }
 
     // Constants
@@ -127,12 +135,18 @@ struct Vector2 {
 };
 
 // forward declaration required by Clang and MSVC
-template <> const Vector2<slk::f32> Vector2<slk::f32>::ZERO;
-template <> const Vector2<slk::f32> Vector2<slk::f32>::UNITX;
-template <> const Vector2<slk::f32> Vector2<slk::f32>::UNITY;
-template <> const Vector2<slk::i32> Vector2<slk::i32>::ZERO;
-template <> const Vector2<slk::i32> Vector2<slk::i32>::UNITX;
-template <> const Vector2<slk::i32> Vector2<slk::i32>::UNITY;
+template <>
+const Vector2<slk::f32> Vector2<slk::f32>::ZERO;
+template <>
+const Vector2<slk::f32> Vector2<slk::f32>::UNITX;
+template <>
+const Vector2<slk::f32> Vector2<slk::f32>::UNITY;
+template <>
+const Vector2<slk::i32> Vector2<slk::i32>::ZERO;
+template <>
+const Vector2<slk::i32> Vector2<slk::i32>::UNITX;
+template <>
+const Vector2<slk::i32> Vector2<slk::i32>::UNITY;
 
 template <typename T>
 [[nodiscard]] inline Vector2<T> operator*(Vector2Param<T> v1, Vector2Param<T> v2) {
@@ -175,7 +189,7 @@ template <typename T>
 }
 
 template <typename T>
-[[nodiscard]] constexpr slk::Vector2<T> minComponents(slk::Vector2Param<T> lval, slk::Vector2Param<T> rval) {
+[[nodiscard]] constexpr slk::Vector2<T> min_components(slk::Vector2Param<T> lval, slk::Vector2Param<T> rval) {
     return {
         lval.x < rval.x ? lval.x : rval.x,
         lval.y < rval.y ? lval.y : rval.y,
@@ -183,7 +197,7 @@ template <typename T>
 }
 
 template <typename T>
-[[nodiscard]] constexpr slk::Vector2<T> maxComponents(slk::Vector2Param<T> lval, slk::Vector2Param<T> rval) {
+[[nodiscard]] constexpr slk::Vector2<T> max_components(slk::Vector2Param<T> lval, slk::Vector2Param<T> rval) {
     return {
         lval.x > rval.x ? lval.x : rval.x,
         lval.y > rval.y ? lval.y : rval.y,
@@ -192,8 +206,5 @@ template <typename T>
 
 using Vector2i = Vector2<slk::i32>;
 using Vector2f = Vector2<slk::f32>;
-
-template <>
-const Vector2f Vector2<slk::f32>::ZERO;
 
 } // namespace slk
