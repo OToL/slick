@@ -3,7 +3,7 @@
 #include <core/math/math.hpp>
 #include <core/math/bezier.hpp>
 
-#include <raylib_utils/conversion.hpp>
+#include <raylib_utils/conversions.hpp>
 
 #include <raylib/raylib.h>
 #include <raylib/raymath.h>
@@ -196,10 +196,10 @@ slk::b8 draw3d(slk::f32 frame_delta_ms, Camera3D const& /* cam3d */) {
     slk::u32 idx = 0;
     for (slk::Vector3f const& point : test_data.ctrl_points) {
         if (idx != 0) {
-            DrawLine3D(slk::to_rvec3(test_data.ctrl_points[idx - 1]), slk::to_rvec3(point), RED);
+            DrawLine3D(slk::convert_to_rvec3(test_data.ctrl_points[idx - 1]), slk::convert_to_rvec3(point), RED);
         }
 
-        DrawCube(slk::to_rvec3(point), 0.5, 0.5, 0.5, RED);
+        DrawCube(slk::convert_to_rvec3(point), 0.5, 0.5, 0.5, RED);
         ++idx;
     }
 
@@ -240,7 +240,7 @@ slk::b8 draw3d(slk::f32 frame_delta_ms, Camera3D const& /* cam3d */) {
             }
         }
 
-        DrawSphere(slk::to_rvec3(curr_bezier_point), .2f, GREEN);
+        DrawSphere(slk::convert_to_rvec3(curr_bezier_point), .2f, GREEN);
     }
 
     // slk::f32 const weights[] = {1.f, 2.f, 1.f};
