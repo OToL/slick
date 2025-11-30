@@ -7,7 +7,7 @@ add_executable(graphics_sandbox
 
 target_link_libraries(graphics_sandbox 
     slk::core
-    slk::utils-raylib
+    slk::utl-raylib
     slk::ext-raylib
     slk::ext-imgui
     slk::ext-rlimgui)

@@ -1,6 +1,6 @@
 add_library(raylib_utils
     conversions.cpp)
-add_library(slk::utils-raylib ALIAS raylib_utils)
+add_library(slk::utl-raylib ALIAS raylib_utils)
 
 target_compile_options(raylib_utils PRIVATE
     -Werror
