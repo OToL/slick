@@ -20,23 +20,28 @@ using b8 = bool;
 
 } // namespace slk
 
-// requires inclusion of std utility (to_underlying)
-#define DECLARE_ENUM_MASK(enum_type) \
-    inline enum_type operator|(enum_type lval, enum_type rval) {                                \
-        return static_cast<enum_type>(std::to_underlying(lval) | std::to_underlying(rval));     \
-    }                                                                                           \
-    inline enum_type operator&(enum_type lval, enum_type rval) {                                \
-        return static_cast<enum_type>(std::to_underlying(lval) & std::to_underlying(rval));     \
-    }                                                                                           \
-    inline enum_type& operator|=(enum_type& lval, enum_type rval) {                             \
-        lval = lval | rval;                                                                     \
-        return lval;                                                                            \
-    }                                                                                           \
-    inline enum_type operator&=(enum_type& lval, enum_type rval) {                              \
-        lval = lval & rval;                                                                     \
-        return lval;                                                                            \
-    }                                                                                           \
-    inline bool has_flag(enum_type lval, enum_type rval) {                                      \
-        return (lval & rval) == rval;                                                           \
-    }
+#if defined(__clang__)
+#    define sb_force_inline [[clang::always_inline]]
+#else
+#    define sb_force_inline
+#endif
 
+// requires inclusion of std utility (to_underlying)
+#define SB_DECLARE_ENUM_MASK(enum_type)                                                                                                                 \
+    inline enum_type operator|(enum_type lval, enum_type rval) {                                                                                     \
+        return static_cast<enum_type>(std::to_underlying(lval) | std::to_underlying(rval));                                                          \
+    }                                                                                                                                                \
+    inline enum_type operator&(enum_type lval, enum_type rval) {                                                                                     \
+        return static_cast<enum_type>(std::to_underlying(lval) & std::to_underlying(rval));                                                          \
+    }                                                                                                                                                \
+    inline enum_type& operator|=(enum_type& lval, enum_type rval) {                                                                                  \
+        lval = lval | rval;                                                                                                                          \
+        return lval;                                                                                                                                 \
+    }                                                                                                                                                \
+    inline enum_type operator&=(enum_type& lval, enum_type rval) {                                                                                   \
+        lval = lval & rval;                                                                                                                          \
+        return lval;                                                                                                                                 \
+    }                                                                                                                                                \
+    inline bool has_flag(enum_type lval, enum_type rval) {                                                                                           \
+        return (lval & rval) == rval;                                                                                                                \
+    }

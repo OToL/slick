@@ -18,7 +18,7 @@ enum class DemoCaps : slk::u32 {
     DEFAULT_CAMERA_CONTROL = 1 << 0,
 };
 
-DECLARE_ENUM_MASK(DemoCaps);
+SB_DECLARE_ENUM_MASK(DemoCaps);
 
 struct DemoInfo {
     std::string_view name;

@@ -1,5 +1,6 @@
 add_library(core
     color.cpp
+    math/curves.cpp
     math/math_constants.cpp)
 add_library(slk::core ALIAS core)
 
