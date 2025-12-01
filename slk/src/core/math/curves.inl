@@ -11,12 +11,12 @@
 namespace slk {
 
 template <typename T>
-T compute_bezier_at(std::span<T const> ctrl_points, slk::f32 time) {
+inline T compute_bezier_curve_at(std::span<T const> ctrl_points, slk::f32 time) {
     if (ctrl_points.size() == 1)
         return ctrl_points[0];
 
-    const T val1 = compute_bezier_at<T>(ctrl_points.subspan(0, ctrl_points.size() - 1), time);
-    const T val2 = compute_bezier_at<T>(ctrl_points.subspan(1, ctrl_points.size() - 1), time);
+    const T val1 = compute_bezier_curve_at<T>(ctrl_points.subspan(0, ctrl_points.size() - 1), time);
+    const T val2 = compute_bezier_curve_at<T>(ctrl_points.subspan(1, ctrl_points.size() - 1), time);
 
     return val1 * (1.f - time) + val2 * time;
 }
@@ -28,7 +28,7 @@ struct WeightedBezierRes {
 };
 
 template <typename T>
-WeightedBezierRes<T> compute_bezier_weighted_at(std::span<T const> ctrl_points, std::span<f32 const> ctrl_weights, f32 time) {
+inline WeightedBezierRes<T> compute_bezier_weighted_at(std::span<T const> ctrl_points, std::span<f32 const> ctrl_weights, f32 time) {
     if (ctrl_points.size() == 1)
         return {ctrl_points[0], ctrl_weights[0]};
 
@@ -42,13 +42,13 @@ WeightedBezierRes<T> compute_bezier_weighted_at(std::span<T const> ctrl_points, 
 }
 
 template <typename T>
-T compute_bezier_at(std::span<T const> ctrl_points, std::span<f32 const> ctrl_weights, f32 time) {
+inline T compute_bezier_curve_at(std::span<T const> ctrl_points, std::span<f32 const> ctrl_weights, f32 time) {
     const auto [val, _] = compute_bezier_weighted_at(ctrl_points, ctrl_weights, time);
     return val;
 }
 
 template <typename T>
-T compute_bezier_quadratic_at(std::span<T const> ctrl_points, f32 time) {
+inline T compute_bezier_quadratic_curve_at(std::span<T const> ctrl_points, f32 time) {
     assert(ctrl_points.size() >= 3);
 
     // Polynomial form:
@@ -71,7 +71,7 @@ T compute_bezier_quadratic_at(std::span<T const> ctrl_points, f32 time) {
 }
 
 template <typename T>
-T compute_bezier_quadratic_at(std::span<T const> ctrl_points, std::span<f32 const> weights, f32 time) {
+inline T compute_bezier_quadratic_curve_at(std::span<T const> ctrl_points, std::span<f32 const> weights, f32 time) {
     assert(ctrl_points.size() >= 3);
 
     T const weighted_ctrl_points[3] = {
@@ -80,14 +80,14 @@ T compute_bezier_quadratic_at(std::span<T const> ctrl_points, std::span<f32 cons
         ctrl_points[2] * weights[2],
     };
 
-    T const weighted_res = compute_bezier_quadratic_at<T const>(weighted_ctrl_points, time);
-    f32 const weights_sum = compute_bezier_quadratic_at<f32 const>(weights, time);
+    T const weighted_res = compute_bezier_quadratic_curve_at<T const>(weighted_ctrl_points, time);
+    f32 const weights_sum = compute_bezier_quadratic_curve_at<f32 const>(weights, time);
 
     return weighted_res / weights_sum;
 }
 
 template <typename T>
-T compute_bezier_cubic_at(std::span<T const> ctrl_points, f32 time) {
+inline T compute_bezier_cubic_curve_at(std::span<T const> ctrl_points, f32 time) {
     assert(ctrl_points.size() >= 4);
 
     // Polynomial form:
@@ -108,7 +108,7 @@ T compute_bezier_cubic_at(std::span<T const> ctrl_points, f32 time) {
 }
 
 template <typename T>
-T compute_bezier_cubic_at(std::span<T const> ctrl_points, std::span<f32 const> weights, f32 time) {
+inline T compute_bezier_cubic_curve_at(std::span<T const> ctrl_points, std::span<f32 const> weights, f32 time) {
     assert(ctrl_points.size() >= 4 && weights.size() >= 4);
 
     T const weighted_ctrl_points[4] = {
@@ -118,14 +118,14 @@ T compute_bezier_cubic_at(std::span<T const> ctrl_points, std::span<f32 const> w
         ctrl_points[3] * weights[3],
     };
 
-    const T weighted_res = compute_bezier_cubic_at<T>(weighted_ctrl_points, time);
-    const f32 weighted_sum = compute_bezier_cubic_at<f32 const>(weights, time);
+    const T weighted_res = compute_bezier_cubic_curve_at<T>(weighted_ctrl_points, time);
+    const f32 weighted_sum = compute_bezier_cubic_curve_at<f32 const>(weights, time);
 
     return weighted_res / weighted_sum;
 }
 
 template <typename T>
-T compute_bezier_spline_at(std::span<T const> ctrl_points, u32 degree, f32 time) {
+inline T compute_bezier_spline_at(std::span<T const> ctrl_points, u32 degree, f32 time) {
     const u32 segment_cnt = (ctrl_points.size() - 1) / degree;
     assert(segment_cnt > 0);
 
@@ -133,11 +133,11 @@ T compute_bezier_spline_at(std::span<T const> ctrl_points, u32 degree, f32 time)
     const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
     const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
 
-    return compute_bezier_at<T>(ctrl_points.subspan(degree * time_fragment, degree + 1), rel_time);
+    return compute_bezier_curve_at<T>(ctrl_points.subspan(degree * time_fragment, degree + 1), rel_time);
 }
 
 template <typename T>
-T compute_bezier_spline_at(std::span<T const> ctrl_points, std::span<f32 const> weights, u32 degree, f32 time) {
+inline T compute_bezier_spline_at(std::span<T const> ctrl_points, std::span<f32 const> weights, u32 degree, f32 time) {
     assert(ctrl_points.size() == weights.size());
 
     const u32 segment_cnt = (ctrl_points.size() - 1) / degree;
@@ -147,12 +147,12 @@ T compute_bezier_spline_at(std::span<T const> ctrl_points, std::span<f32 const> 
     const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
     const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
 
-    return compute_bezier_at<T>(ctrl_points.subspan(degree * time_fragment, degree + 1), weights.subspan(degree * time_fragment, degree + 1),
-                                rel_time);
+    return compute_bezier_curve_at<T>(ctrl_points.subspan(degree * time_fragment, degree + 1), weights.subspan(degree * time_fragment, degree + 1),
+                                      rel_time);
 }
 
 template <typename T>
-T compute_bezier_quadratic_spline_at(std::span<T const> ctrl_points, f32 time) {
+inline T compute_bezier_quadratic_spline_at(std::span<T const> ctrl_points, f32 time) {
     const u32 segment_cnt = (ctrl_points.size() - 1) / 2;
     assert(segment_cnt > 0);
 
@@ -160,11 +160,11 @@ T compute_bezier_quadratic_spline_at(std::span<T const> ctrl_points, f32 time) {
     const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
     const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
 
-    return compute_bezier_quadratic_at<T>(std::span<T const>{ctrl_points.subspan(2 * time_fragment)}, rel_time);
+    return compute_bezier_quadratic_curve_at<T>(std::span<T const>{ctrl_points.subspan(2 * time_fragment)}, rel_time);
 }
 
 template <typename T>
-T compute_bezier_cubic_spline_at(std::span<T const> ctrl_points, f32 time) {
+inline T compute_bezier_cubic_spline_at(std::span<T const> ctrl_points, f32 time) {
     const u32 segment_cnt = (ctrl_points.size() - 1) / 3;
     assert(segment_cnt > 0);
 
@@ -172,11 +172,11 @@ T compute_bezier_cubic_spline_at(std::span<T const> ctrl_points, f32 time) {
     const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
     const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
 
-    return compute_bezier_cubic_at<T>(std::span<T const>{ctrl_points.subspan(3 * time_fragment)}, rel_time);
+    return compute_bezier_cubic_curve_at<T>(std::span<T const>{ctrl_points.subspan(3 * time_fragment)}, rel_time);
 }
 
 template <typename T>
-T compute_bezier_quadratic_spline_at(std::span<T const> ctrl_points, std::span<f32 const> weights, f32 time) {
+inline T compute_bezier_quadratic_spline_at(std::span<T const> ctrl_points, std::span<f32 const> weights, f32 time) {
     const u32 segment_cnt = (ctrl_points.size() - 1) / 2;
     assert(segment_cnt > 0);
 
@@ -184,12 +184,13 @@ T compute_bezier_quadratic_spline_at(std::span<T const> ctrl_points, std::span<f
     const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
     const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
 
-    return compute_bezier_quadratic_at<T>(std::span<T const, 3>{ctrl_points.subspan(2 * time_fragment)},
-                                          std::span<f32 const, 3>{weights.subspan(2 * time_fragment)}, rel_time);
+    return compute_bezier_quadratic_curve_at<T>(std::span<T const, 3>{ctrl_points.subspan(2 * time_fragment)},
+
+                                                std::span<f32 const, 3>{weights.subspan(2 * time_fragment)}, rel_time);
 }
 
 template <typename T>
-T compute_hermite_at(std::span<T const> points, std::span<T const> tangeants, f32 time) {
+inline T compute_hermite_curve_at(std::span<T const> points, std::span<T const> tangeants, f32 time) {
     assert(points.size() >= 2 && tangeants.size() >= 2);
     Vector4f const time_vec = {time * time * time, time * time, time, 1};
     Matrix4f const coeffs_mat = {
@@ -204,7 +205,7 @@ T compute_hermite_at(std::span<T const> points, std::span<T const> tangeants, f3
 
 // interleaved control point and tangeants : [P0, T0] [P1, T1]
 template <typename T>
-T compute_hermite_at(std::span<T const> data, f32 time) {
+inline T compute_hermite_curve_at(std::span<T const> data, f32 time) {
     assert(data.size() >= 4);
 
     Vector4f const time_vec = {time * time * time, time * time, time, 1};
@@ -219,7 +220,7 @@ T compute_hermite_at(std::span<T const> data, f32 time) {
 }
 
 template <typename T>
-T compute_hermite_spline_at(std::span<T const> points, std::span<T const> tangeants, f32 time) {
+inline T compute_hermite_spline_at(std::span<T const> points, std::span<T const> tangeants, f32 time) {
     const u32 segment_cnt = points.size() - 1;
     assert(segment_cnt > 0);
 
@@ -227,11 +228,11 @@ T compute_hermite_spline_at(std::span<T const> points, std::span<T const> tangea
     const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
     const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
 
-    return compute_hermite_at<T>(points.subspan(time_fragment), tangeants.subspan(time_fragment), rel_time);
+    return compute_hermite_curve_at<T>(points.subspan(time_fragment), tangeants.subspan(time_fragment), rel_time);
 }
 
 template <typename T>
-T compute_hermite_spline_at(std::span<T const> data, f32 time) {
+inline T compute_hermite_spline_at(std::span<T const> data, f32 time) {
     const u32 segment_cnt = data.size() / 2 - 1;
     assert(segment_cnt > 0);
 
@@ -239,11 +240,11 @@ T compute_hermite_spline_at(std::span<T const> data, f32 time) {
     const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
     const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
 
-    return compute_hermite_at<T>(data.subspan(time_fragment * 2), rel_time);
+    return compute_hermite_curve_at<T>(data.subspan(time_fragment * 2), rel_time);
 }
 
 template <typename T>
-sb_force_inline T compute_cardinal_at(std::span<T const> data, f32 tension, f32 time) {
+inline T compute_cardinal_curve_at(std::span<T const> data, f32 tension, f32 time) {
     assert(data.size() >= 4);
 
     f32 const s = (1.f - tension) / 2.f;
@@ -261,7 +262,7 @@ sb_force_inline T compute_cardinal_at(std::span<T const> data, f32 tension, f32 
 }
 
 template <typename T>
-sb_force_inline T compute_cardinal_spline_at(std::span<T const> points, f32 tension, f32 time) {
+inline T compute_cardinal_spline_at(std::span<T const> points, f32 tension, f32 time) {
     assert(points.size() >= 4);
 
     const u32 segment_cnt = points.size() - 3;
@@ -271,11 +272,11 @@ sb_force_inline T compute_cardinal_spline_at(std::span<T const> points, f32 tens
     const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
     const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
 
-    return compute_cardinal_at<T>(points.subspan(time_fragment), tension, rel_time);
+    return compute_cardinal_curve_at<T>(points.subspan(time_fragment), tension, rel_time);
 }
 
 template <typename T>
-sb_force_inline T compute_cardinal_extended_spline_at(std::span<T const> points, f32 tension, f32 time) {
+inline T compute_cardinal_spline_extended_at(std::span<T const> points, f32 tension, f32 time) {
     assert(points.size() >= 4);
 
     const u32 segment_cnt = points.size() - 1;
@@ -288,19 +289,19 @@ sb_force_inline T compute_cardinal_extended_spline_at(std::span<T const> points,
     if (time_fragment == 0) {
         T const temp_data[] = {points[0], points[0], points[1], points[2]};
 
-        return compute_cardinal_at<T>(temp_data, tension, rel_time);
+        return compute_cardinal_curve_at<T>(temp_data, tension, rel_time);
     } else if (time_fragment == (segment_cnt - 1)) {
         auto const point_cnt = points.size();
         T const temp_data[] = {points[point_cnt - 3], points[point_cnt - 2], points[point_cnt - 1], points[point_cnt - 1]};
 
-        return compute_cardinal_at<T>(temp_data, tension, rel_time);
+        return compute_cardinal_curve_at<T>(temp_data, tension, rel_time);
     }
 
-    return compute_cardinal_at<T>(points.subspan(time_fragment - 1), tension, rel_time);
+    return compute_cardinal_curve_at<T>(points.subspan(time_fragment - 1), tension, rel_time);
 }
 
 template <typename T>
-sb_force_inline void convert_hermite_to_bezier(std::span<T const> points, std::span<T const> tangeants, std::span<T> bezier_data) {
+inline void convert_hermite_spline_to_bezier(std::span<T const> points, std::span<T const> tangeants, std::span<T> bezier_data) {
     assert(points.size() >= 2 && tangeants.size() >= 2);
 
     slk::u32 const hermite_point_cnt = points.size();
@@ -319,7 +320,7 @@ sb_force_inline void convert_hermite_to_bezier(std::span<T const> points, std::s
 
 // interleaved control point and tangeants : [P0, T0] [P1, T1]
 template <typename T>
-sb_force_inline void convert_hermite_to_bezier(std::span<T const> data, std::span<T> bezier_data) {
+inline void convert_hermite_spline_to_bezier(std::span<T const> data, std::span<T> bezier_data) {
     assert(data.size() >= 4 && (data.size() & 1) == 0);
 
     slk::u32 const hermite_point_cnt = data.size() / 2;
@@ -336,9 +337,10 @@ sb_force_inline void convert_hermite_to_bezier(std::span<T const> data, std::spa
         curr_bezier_data[3] = data[hermite_idx + 2];
     }
 }
+
 template <typename T>
-sb_force_inline void convert_cardinal_to_hermite(std::span<T const> points, std::span<T> hermite_points, std::span<T> const hermite_tangeants,
-                                                 f32 tension, b8 extended) {
+inline void convert_cardinal_spline_to_hermite(std::span<T const> points, std::span<T> hermite_points, std::span<T> const hermite_tangeants,
+                                               f32 tension, b8 extended) {
     assert(points.size() >= 4);
 
     f32 const s = (1.f - tension) / 2.f;
@@ -363,7 +365,7 @@ sb_force_inline void convert_cardinal_to_hermite(std::span<T const> points, std:
 
 // interleaved hermite output
 template <typename T>
-sb_force_inline void convert_cardinal_to_hermite(std::span<T const> points, std::span<T> hermite_data, f32 tension, b8 extended) {
+inline void convert_cardinal_spline_to_hermite(std::span<T const> points, std::span<T> hermite_data, f32 tension, b8 extended) {
     assert(points.size() >= 4);
 
     f32 const s = (1.f - tension) / 2.f;
@@ -386,43 +388,105 @@ sb_force_inline void convert_cardinal_to_hermite(std::span<T const> points, std:
     }
 }
 
+template <typename T>
+inline T compute_bspline_cubic_section_at(std::span<T const> ctrl_points, f32 time) {
+    Vector4f const time_vec = Vector4f{time * time * time, time * time, time, 1} * 1.f / 6.f;
+    Matrix4f const coeffs_mat = {
+        {-1, 3, -3, 1},
+        {3, -6, 3, 0},
+        {-3, 0, 3, 0},
+        {1, 4, 1, 0},
+    };
+
+    Vector4f const time_coeffs_vec = time_vec * coeffs_mat;
+    return ctrl_points[0] * time_coeffs_vec[0] + ctrl_points[1] * time_coeffs_vec[1] + ctrl_points[2] * time_coeffs_vec[2] +
+           ctrl_points[3] * time_coeffs_vec[3];
+}
+
+template <typename T>
+inline T compute_bspline_cubic_spline_at(std::span<T const> ctrl_points, f32 time) {
+    assert(ctrl_points.size() >= 4);
+
+    const u32 segment_cnt = ctrl_points.size() - 3;
+    assert(segment_cnt > 0);
+
+    const f32 clamped_time = std::clamp(time, 0.f, static_cast<f32>(segment_cnt));
+    const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
+    const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
+
+    return compute_bspline_cubic_section_at<T>(ctrl_points.subspan(time_fragment), rel_time);
+}
+
+template <typename T>
+inline T compute_bspline_cubic_spline_extended_at(std::span<T const> ctrl_points, f32 time) {
+    assert(ctrl_points.size() >= 4);
+
+    const u32 segment_cnt = ctrl_points.size() + 1;
+    assert(segment_cnt > 0);
+
+    const f32 clamped_time = std::clamp(time, 0.f, static_cast<f32>(segment_cnt));
+    const u32 time_fragment = min_value(static_cast<u32>(clamped_time), segment_cnt - 1);
+    const f32 rel_time = clamped_time - static_cast<f32>(time_fragment);
+
+    if (time_fragment <= 1) {
+        T const temp_data[] = {ctrl_points[0], ctrl_points[0], ctrl_points[time_fragment], ctrl_points[time_fragment + 1]};
+        return compute_bspline_cubic_section_at<T>(temp_data, rel_time);
+    } else if (time_fragment >= (segment_cnt - 2)) {
+        auto const segment_offset = segment_cnt - time_fragment - 1;
+        auto const point_cnt = ctrl_points.size();
+        T const temp_data[] = {ctrl_points[point_cnt - segment_offset - 2], ctrl_points[point_cnt - segment_offset - 1], ctrl_points[point_cnt - 1],
+                               ctrl_points[point_cnt - 1]};
+
+        return compute_bspline_cubic_section_at<T>(temp_data, rel_time);
+    }
+
+    return compute_bspline_cubic_section_at<T>(ctrl_points.subspan(time_fragment - 2), rel_time);
+}
+
 } // namespace slk
+
+#define SB_DEFINE_CURVE_BSPLINE(type)                                                                                                                \
+    namespace slk {                                                                                                                                  \
+        template type compute_bspline_cubic_section_at<type>(std::span<type const> ctrl_points, f32 time);                                           \
+        template type compute_bspline_cubic_spline_at(std::span<type const> ctrl_points, f32 time);                                                  \
+        template type compute_bspline_cubic_spline_extended_at(std::span<type const> ctrl_points, f32 time);                                         \
+    }
 
 #define SB_DEFINE_CURVE_BEZIER(type)                                                                                                                 \
     namespace slk {                                                                                                                                  \
-        template type compute_bezier_at<type>(std::span<type const> ctrl_points, std::span<f32 const> ctrl_weights, f32 time);                       \
-        template type compute_bezier_at<type>(std::span<type const> ctrl_points, f32 time);                                                          \
+        template type compute_bezier_curve_at<type>(std::span<type const> ctrl_points, std::span<f32 const> ctrl_weights, f32 time);                 \
+        template type compute_bezier_curve_at<type>(std::span<type const> ctrl_points, f32 time);                                                    \
         template type compute_bezier_quadratic_spline_at<type>(std::span<type const> ctrl_points, std::span<f32 const> weights, f32 time);           \
         template type compute_bezier_cubic_spline_at<type>(std::span<type const> ctrl_points, f32 time);                                             \
         template type compute_bezier_quadratic_spline_at<type>(std::span<type const> ctrl_points, f32 time);                                         \
         template type compute_bezier_spline_at<type>(std::span<type const> ctrl_points, std::span<f32 const> weights, u32 degree, f32 time);         \
         template type compute_bezier_spline_at<type>(std::span<type const> ctrl_points, u32 degree, f32 time);                                       \
-        template type compute_bezier_cubic_at<type>(std::span<type const> ctrl_points, std::span<f32 const> weights, f32 time);                      \
-        template type compute_bezier_cubic_at<type>(std::span<type const> ctrl_points, f32 time);                                                    \
-        template type compute_bezier_quadratic_at<type>(std::span<type const> ctrl_points, std::span<f32 const> weights, f32 time);                  \
-        template type compute_bezier_quadratic_at<type>(std::span<type const> ctrl_points, f32 time);                                                \
+        template type compute_bezier_cubic_curve_at<type>(std::span<type const> ctrl_points, std::span<f32 const> weights, f32 time);                \
+        template type compute_bezier_cubic_curve_at<type>(std::span<type const> ctrl_points, f32 time);                                              \
+        template type compute_bezier_quadratic_curve_at<type>(std::span<type const> ctrl_points, std::span<f32 const> weights, f32 time);            \
+        template type compute_bezier_quadratic_curve_at<type>(std::span<type const> ctrl_points, f32 time);                                          \
     }
 
 #define SB_DEFINE_CURVE_HERMITE(type)                                                                                                                \
     namespace slk {                                                                                                                                  \
         template type compute_hermite_spline_at<type>(std::span<type const> data, f32 time);                                                         \
-        template type compute_hermite_at<type>(std::span<type const> data, f32 time);                                                                \
-        template type compute_hermite_at<type>(std::span<type const> points, std::span<type const> tangeants, f32 time);                             \
+        template type compute_hermite_curve_at<type>(std::span<type const> data, f32 time);                                                          \
+        template type compute_hermite_curve_at<type>(std::span<type const> points, std::span<type const> tangeants, f32 time);                       \
         template type compute_hermite_spline_at<type>(std::span<type const> points, std::span<type const> tangeants, f32 time);                      \
     }
 
 #define SB_DEFINE_CURVE_CARDINAL(type)                                                                                                               \
     namespace slk {                                                                                                                                  \
-        template type compute_cardinal_at(std::span<type const> data, f32 tension, f32 time);                                                        \
+        template type compute_cardinal_curve_at(std::span<type const> data, f32 tension, f32 time);                                                  \
         template type compute_cardinal_spline_at(std::span<type const> points, f32 tension, f32 time);                                               \
-        template type compute_cardinal_extended_spline_at(std::span<type const> points, f32 tension, f32 time);                                      \
+        template type compute_cardinal_spline_extended_at(std::span<type const> points, f32 tension, f32 time);                                      \
     }
 
 #define SB_DEFINE_CURVE_CONVERSIONS(type)                                                                                                            \
     namespace slk {                                                                                                                                  \
-        template void convert_cardinal_to_hermite(std::span<type const> points, std::span<type> hermite_data, f32 tension, b8 extended);             \
-        template void convert_cardinal_to_hermite(std::span<type const> points, std::span<type> hermite_points,                                      \
-                                                  std::span<type> const hermite_tangeants, f32 tension, b8 extended);                                \
-        template void convert_hermite_to_bezier(std::span<type const> data, std::span<type> bezier_data);                                            \
-        template void convert_hermite_to_bezier(std::span<type const> points, std::span<type const> tangeants, std::span<type> bezier_data);         \
+        template void convert_cardinal_spline_to_hermite(std::span<type const> points, std::span<type> hermite_data, f32 tension, b8 extended);      \
+        template void convert_cardinal_spline_to_hermite(std::span<type const> points, std::span<type> hermite_points,                               \
+                                                         std::span<type> const hermite_tangeants, f32 tension, b8 extended);                         \
+        template void convert_hermite_spline_to_bezier(std::span<type const> data, std::span<type> bezier_data);                                     \
+        template void convert_hermite_spline_to_bezier(std::span<type const> points, std::span<type const> tangeants, std::span<type> bezier_data);  \
     }

@@ -113,8 +113,11 @@ int main()
 
             BeginMode3D(camera);
 
-                graphics::render_grid(grid_hdl, cell_size, grid_size, view_proj, camera.position, thin_color, thick_color);
                 Demos::draw3d(delta_time_ms, camera);
+
+                // The grid does not write to the depth buffer but is reading it
+                // This means it must be rendered after opaque objects but before transparent ones
+                graphics::render_grid(grid_hdl, cell_size, grid_size, view_proj, camera.position, thin_color, thick_color);
 
             EndMode3D();
 

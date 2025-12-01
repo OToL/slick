@@ -1,6 +1,7 @@
 #include "graphics.hpp"
 
 #include <raylib/raymath.h>
+#include <raylib/rlgl.h>
 
 #include <cassert>
 #include <cstdlib>
@@ -126,6 +127,9 @@ void graphics::render_grid(GridHdl * grid, float cell_size, float grid_size, Mat
     SetShaderValueMatrix(grid->shader, grid->view_proj_loc, view_proj);
     SetShaderValueMatrix(grid->shader, grid->world_xform_loc, grid_world_transform);
 
+    // Disable depth writing for transparent grid
+    rlDisableDepthMask();
     DrawMesh(grid->mesh, grid->material, MatrixIdentity());
+    rlEnableDepthMask();
 }
 
