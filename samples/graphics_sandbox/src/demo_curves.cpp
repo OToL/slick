@@ -1,8 +1,8 @@
 #include "demo_curves.hpp"
 
-#include <core/math/math.hpp>
-#include <core/math/curves.hpp>
-#include <core/math/vector3.hpp>
+#include <slk/math/math.hpp>
+#include <slk/math/curves.hpp>
+#include <slk/math/vector3.hpp>
 
 #include <raylib_utils/conversions.hpp>
 
@@ -17,10 +17,6 @@
 #include <ranges>
 
 using namespace std::string_view_literals;
-
-// TODO
-// - Picking
-// - Translation handle
 
 // Transforms a Vector3 by a given Matrix
 Vector4 Vector4Transform(Vector4 v, Matrix mat)
@@ -284,7 +280,7 @@ slk::b8 init() {
     g_state->curr_test_idx = std::to_underlying(Test::BSPLINE_SECTION);
 
     char* dbg_buffer_iter = std::begin(g_state->dbg_test_names);
-    char* const dbg_buffer_end = std::end(g_state->dbg_test_names);
+    [[maybe_unused]] char* const dbg_buffer_end = std::end(g_state->dbg_test_names);
     for (TestDesc const& info : g_state->test_data)
     {
         assert(std::distance(dbg_buffer_iter, dbg_buffer_end) > static_cast<std::ptrdiff_t>(info.name.size()));
@@ -361,7 +357,7 @@ slk::b8 draw3d(slk::f32 frame_delta_ms, Camera3D const& /* cam3d */) {
         {
             conversion_type = CurveType::BEZIER;
             slk::HermiteSplineInfo const hermite_info = slk::get_hermite_spline_info_from_points(test_data.ctrl_points.size()/2);
-            slk::u32 const bezier_point_cnt = slk::get_bezier_spline_info_from_points(hermite_info.section_cnt).ctrl_point_cnt;
+            slk::u32 const bezier_point_cnt = slk::get_bezier_spline_info(slk::CurveFeaturePoint, hermite_info.section_cnt).ctrl_point_cnt;
 
             curve_conversion.resize(bezier_point_cnt);
 

@@ -4,10 +4,10 @@
 #include "ennemy.hpp"
 #include "rlib_utils.hpp"
 
-#include <core/core.hpp>
-#include <core/color.hpp>
-#include <core/math/math.hpp>
-#include <core/math/matrix2.hpp>
+#include <slk/core.hpp>
+#include <slk/color.hpp>
+#include <slk/math/math.hpp>
+#include <slk/math/matrix2.hpp>
 
 #include <raylib/raylib.h>
 
@@ -179,14 +179,14 @@ int main() {
                     slk::Vector2f{0.f, 1.f},
                 };
 
-                auto diff_max = slk::max_components(ennemy_world_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
+                auto diff_max = slk::max(ennemy_world_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
                 ennemy.position -= diff_max;
 
                 for (slk::u32 i = 0; i != 2; ++i) {
                     normal += plane_normals[i] * (float)(diff_max.values[i] > 0);
                 }
 
-                auto diff_min = slk::min_components(ennemy_world_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
+                auto diff_min = slk::min(ennemy_world_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
                 ennemy.position -= diff_min;
 
                 for (slk::u32 i = 2; i != 4; ++i) {
@@ -297,10 +297,10 @@ int main() {
         for (auto & ennemy : game_state.ennemies) {
             slk::AABB2f ennemy_aabb = ennemy.extents.displaced(ennemy.position);
 
-            auto diff_max = slk::max_components(ennemy_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
+            auto diff_max = slk::max(ennemy_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
             ennemy.position -= diff_max;
 
-            auto diff_min = slk::min_components(ennemy_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
+            auto diff_min = slk::min(ennemy_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
             ennemy.position -= diff_min;
         }
 
@@ -345,18 +345,18 @@ int main() {
         ClearBackground(RAYWHITE);
 
         // Draw environment
-        draw_aabb(WND_CTX, ENV_AABB, slk::Vector2f::zero(), slk::ColorU32{0, 0, 0, 255});
+        draw_aabb(WND_CTX, ENV_AABB, slk::Vector2f::zero(), slk::ColorU32{slk::RGBA, 0, 0, 0, 255});
 
         // Draw canon
         draw_triangle(WND_CTX, game_state.cannon.getPos(), game_state.cannon.getRotation(), game_state.cannon.getWidth(),
-                      game_state.cannon.getHeight(), slk::ColorU32{0, 0, 0, 255});
+                      game_state.cannon.getHeight(), slk::ColorU32{slk::RGBA, 0, 0, 0, 255});
 
         // Compute ennemies' clock rotations
         auto const wall_clock_time = std::chrono::system_clock::now();
         auto const time = std::chrono::system_clock::to_time_t(wall_clock_time);
         auto const actual_time = std::localtime(&time);
 
-        const slk::f32 curr_hour_angle = -(actual_time->tm_hour / 24.f) * 2 * slk::PI_F32;
+        const slk::f32 curr_hour_angle = -((actual_time->tm_hour % 12) / 12.f) * 2 * slk::PI_F32;
         const slk::f32 curr_min_angle = -(actual_time->tm_min / 60.f) * 2 * slk::PI_F32;
         const slk::f32 curr_sec_angle = -(actual_time->tm_sec / 60.f) * 2 * slk::PI_F32;
 
@@ -366,14 +366,14 @@ int main() {
 
         // Render ennemies
         for (auto const & ennemy : game_state.ennemies) {
-            draw_aabb(WND_CTX, ennemy.extents, ennemy.position, slk::ColorU32{255, 0, 0, 255});
+            draw_aabb(WND_CTX, ennemy.extents, ennemy.position, slk::ColorU32{slk::RGBA, 255, 0, 0, 255});
 
             DrawLineEx(to_rvec2(WND_CTX, ennemy.position),
-                       to_rvec2(WND_CTX, ennemy.position + slk::Vector2f::unitY() * hour_rot * ennemy.extents.width() * 0.2f), 2, RED);
+                       to_rvec2(WND_CTX, ennemy.position + hour_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.2f), 2, RED);
             DrawLineEx(to_rvec2(WND_CTX, ennemy.position),
-                       to_rvec2(WND_CTX, ennemy.position + slk::Vector2f::unitY() * min_rot * ennemy.extents.width() * 0.4f), 2, GREEN);
+                       to_rvec2(WND_CTX, ennemy.position + min_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.4f), 2, GREEN);
             DrawLineEx(to_rvec2(WND_CTX, ennemy.position),
-                       to_rvec2(WND_CTX, ennemy.position + slk::Vector2f::unitY() * sec_rot * ennemy.extents.width() * 0.3f), 2, BLUE);
+                       to_rvec2(WND_CTX, ennemy.position + sec_rot * slk::Vector2f::unitY() *  ennemy.extents.width() * 0.3f), 2, BLUE);
         }
 
         // Render projectiles

@@ -2,8 +2,8 @@
     "version": 3,
     "configurePresets": [
         {
-            "name": "macos-debug",
-            "displayName": "macOS Debug",
+            "name": "darwin-debug",
+            "displayName": "Darwin Debug",
             "generator": "Ninja",
             "binaryDir": "_build/${presetName}",
             "condition": {
@@ -12,8 +12,26 @@
                 "rhs": "Darwin"
             },
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "scripts/make/cmake_toolchain_darwin.cmake",
+                "CMAKE_TOOLCHAIN_FILE": "scripts/cmake/toolchain_darwin.cmake",
                 "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_SUPPRESS_DEVELOPER_WARNINGS": "ON",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "1"
+            }
+        },
+        {
+            "name": "darwin-relwithdebinfo",
+            "displayName": "darwin Release With Debug Info",
+            "generator": "Ninja",
+            "binaryDir": "_build/${presetName}",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "scripts/cmake/toolchain_darwin.cmake",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_SUPPRESS_DEVELOPER_WARNINGS": "ON",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "1"
             }
         },
@@ -23,8 +41,9 @@
             "generator": "Ninja",
             "binaryDir": "_build/${presetName}",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "scripts/make/cmake_toolchain_ps3.cmake",
+                "CMAKE_TOOLCHAIN_FILE": "scripts/cmake/toolchain_ps3.cmake",
                 "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_SUPPRESS_DEVELOPER_WARNINGS": "ON",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "1"
             }
         }

@@ -8,8 +8,7 @@
 #include <cstring>
 #include <memory>
 
-struct graphics::GridHdl
-{
+struct graphics::GridHdlImpl {
     Mesh mesh;
     Shader shader;
     Material material;
@@ -21,11 +20,11 @@ struct graphics::GridHdl
     int camera_world_pos_loc;
     int thin_color_loc;
     int thick_color_loc;
+    int dbg_visualize_loc;
 };
 
-graphics::GridHdl * graphics::create_grid()
-{
-    GridHdl * hdl = nullptr;
+graphics::GridHdlImpl* graphics::create_grid() {
+    GridHdlImpl* hdl = nullptr;
     Shader shader = LoadShader("samples/graphics_sandbox/data/shaders/grid_vs.glsl", "samples/graphics_sandbox/data/shaders/grid_fs.glsl");
 
     if (!IsShaderValid(shader))
@@ -39,10 +38,10 @@ graphics::GridHdl * graphics::create_grid()
     const int camera_world_pos_loc = GetShaderLocation(shader, "u_cameraWorldPos");
     const int thin_color_loc = GetShaderLocation(shader, "u_thin_color");
     const int thick_color_loc = GetShaderLocation(shader, "u_thick_color");
+    const int dbg_visualize_loc = GetShaderLocation(shader, "u_dbg_viz");
 
     if (grid_size_loc < 0 || cell_size_loc < 0 || view_proj_loc < 0 || world_xform_loc < 0 || camera_world_pos_loc < 0 || thin_color_loc < 0 ||
-        thick_color_loc < 0)
-    {
+        thick_color_loc < 0) {
         UnloadShader(shader);
         return nullptr;
     }
@@ -54,8 +53,8 @@ graphics::GridHdl * graphics::create_grid()
     mesh.triangleCount = 2;
 
     // Allocate memory
-    mesh.vertices = (float *)RL_MALLOC(mesh.vertexCount * 3 * sizeof(float));
-    mesh.indices = (unsigned short *)RL_MALLOC(mesh.triangleCount * 3 * sizeof(unsigned short));
+    mesh.vertices = (float*)RL_MALLOC(mesh.vertexCount * 3 * sizeof(float));
+    mesh.indices = (unsigned short*)RL_MALLOC(mesh.triangleCount * 3 * sizeof(unsigned short));
 
     // Vertex positions (quad from -1 to 1)
     constexpr float vertices[] = {1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f};
@@ -72,7 +71,7 @@ graphics::GridHdl * graphics::create_grid()
     // Upload to GPU
     UploadMesh(&mesh, false);
 
-    hdl = static_cast<GridHdl *>(malloc(sizeof(GridHdl)));
+    hdl = static_cast<GridHdlImpl*>(malloc(sizeof(GridHdlImpl)));
 
     hdl->grid_size_loc = grid_size_loc;
     hdl->cell_size_loc = cell_size_loc;
@@ -81,6 +80,7 @@ graphics::GridHdl * graphics::create_grid()
     hdl->camera_world_pos_loc = camera_world_pos_loc;
     hdl->thin_color_loc = thin_color_loc;
     hdl->thick_color_loc = thick_color_loc;
+    hdl->dbg_visualize_loc = dbg_visualize_loc;
 
     hdl->mesh = std::move(mesh);
     hdl->shader = std::move(shader);
@@ -90,8 +90,7 @@ graphics::GridHdl * graphics::create_grid()
     return hdl;
 }
 
-void graphics::destroy_grid(GridHdl * grid)
-{
+void graphics::destroy_grid(GridHdl grid) {
     assert(grid);
 
     UnloadMesh(grid->mesh);
@@ -100,9 +99,8 @@ void graphics::destroy_grid(GridHdl * grid)
     free(grid);
 }
 
-void graphics::render_grid(GridHdl * grid, float cell_size, float grid_size, Matrix const & view_proj, Vector3 camera_world_pos,
-                           Color const & thin_color, Color const & thick_color)
-{
+void graphics::render_grid(GridHdl grid, float cell_size, float grid_half_size, Matrix const& view_proj, Vector3 camera_world_pos,
+                           Color const& thin_color, Color const& thick_color, bool debug_visualize) {
     assert(grid);
 
     Matrix const grid_world_transform = MatrixIdentity();
@@ -119,7 +117,9 @@ void graphics::render_grid(GridHdl * grid, float cell_size, float grid_size, Mat
         .w = static_cast<float>(thick_color.a) / 255,
     };
 
-    SetShaderValue(grid->shader, grid->grid_size_loc, &grid_size, SHADER_UNIFORM_FLOAT);
+    int const dbg_viz = debug_visualize;
+    SetShaderValue(grid->shader, grid->dbg_visualize_loc, &dbg_viz, SHADER_UNIFORM_INT);
+    SetShaderValue(grid->shader, grid->grid_size_loc, &grid_half_size, SHADER_UNIFORM_FLOAT);
     SetShaderValue(grid->shader, grid->cell_size_loc, &cell_size, SHADER_UNIFORM_FLOAT);
     SetShaderValue(grid->shader, grid->camera_world_pos_loc, &camera_world_pos, SHADER_UNIFORM_VEC3);
     SetShaderValue(grid->shader, grid->thin_color_loc, &thin_colorf, SHADER_UNIFORM_VEC4);
@@ -127,9 +127,13 @@ void graphics::render_grid(GridHdl * grid, float cell_size, float grid_size, Mat
     SetShaderValueMatrix(grid->shader, grid->view_proj_loc, view_proj);
     SetShaderValueMatrix(grid->shader, grid->world_xform_loc, grid_world_transform);
 
-    // Disable depth writing for transparent grid
-    rlDisableDepthMask();
-    DrawMesh(grid->mesh, grid->material, MatrixIdentity());
-    rlEnableDepthMask();
-}
+    // Enable alpha blending so the shader's alpha value is used
+    // Use additive blending or different blend mode to properly combine with existing colors
+    rlSetBlendMode(BLEND_ALPHA);
+    rlDisableBackfaceCulling();
 
+    DrawMesh(grid->mesh, grid->material, MatrixIdentity());
+    rlEnableBackfaceCulling();
+
+    rlSetBlendMode(BLEND_ALPHA);
+}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/core.hpp>
+#include <slk/core.hpp>
 
 #include <span>
 #include <string_view>
@@ -10,7 +10,8 @@ struct Camera3D;
 
 enum class DemoId : slk::u32 { 
     EMPTY,
-    CURVES
+    CURVES,
+    PICKING
 };
 
 enum class DemoCaps : slk::u32 {

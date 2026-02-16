@@ -3,14 +3,15 @@ add_executable(graphics_sandbox
     src/demos.cpp
     src/demo_empty.cpp
     src/demo_curves.cpp
+    src/demo_picking.cpp
     src/main.cpp)
 
 target_link_libraries(graphics_sandbox 
-    slk::core
-    slk::utl-raylib
-    slk::ext-raylib
-    slk::ext-imgui
-    slk::ext-rlimgui)
+    slk
+    raylib-utils
+    ext-raylib
+    ext-imgui
+    ext-rlimgui)
 
 target_compile_options(graphics_sandbox PRIVATE
     -Werror

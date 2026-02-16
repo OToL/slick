@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/core.hpp>
+#include <slk/core.hpp>
 
 // TODO(ebeau): Change to constexpr
 #define PS3LOAD_VERSION_MAYOR 0

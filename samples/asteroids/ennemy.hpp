@@ -1,7 +1,7 @@
 #pragma once
 
-#include <core/math/vector2.hpp>
-#include <core/math/aabb2.hpp>
+#include <slk/math/vector2.hpp>
+#include <slk/math/aabb2.hpp>
 
 struct Ennemy {
     slk::Vector2f prev_position;

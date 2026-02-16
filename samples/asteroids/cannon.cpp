@@ -1,6 +1,6 @@
 #include "cannon.hpp"
 
-#include <core/math/matrix2.hpp>
+#include <slk/math/matrix2.hpp>
 
 #include <algorithm>
 
@@ -49,5 +49,5 @@ void Cannon::turn(slk::f32 rot_rad) {
 
 slk::Vector2f Cannon::getAimingDir() const {
     const slk::Matrix2f xform = slk::Matrix2f::make_rotation(_rot_curr_rad);
-    return slk::Vector2f::unitY() * xform;
+    return xform * slk::Vector2f::unitY();
 }

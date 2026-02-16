@@ -11,4 +11,4 @@ target_include_directories(ps3_uploader PRIVATE
     ${SLK_EXTERN_INCLUDE_DIR})
 
 target_link_libraries(ps3_uploader PRIVATE 
-    slk::ext-zlib)
+    ext-zlib)

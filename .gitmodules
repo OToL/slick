@@ -10,3 +10,9 @@
 [submodule "extern/src/rlimgui"]
 	path = extern/src/rlimgui
 	url = https://github.com/OToL/rlImGui.git
+[submodule "extern/src/bgfx.cmake"]
+	path = extern/src/bgfx.cmake
+	url = https://github.com/bkaradzic/bgfx.cmake
+[submodule "extern/src/sokol"]
+	path = extern/src/sokol
+	url = https://github.com/floooh/sokol

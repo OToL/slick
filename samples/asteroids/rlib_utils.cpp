@@ -1,8 +1,8 @@
 #include "rlib_utils.hpp"
 #include "graphics.hpp"
 
-#include <core/math/vector2.hpp>
-#include <core/color.hpp>
+#include <slk/math/vector2.hpp>
+#include <slk/color.hpp>
 
 Color to_rcolor(slk::ColorU32 const& color) {
     return {

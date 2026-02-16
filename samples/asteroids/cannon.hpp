@@ -1,7 +1,7 @@
 #pragma once
 
-#include <core/core.hpp>
-#include <core/math/vector2.hpp>
+#include <slk/core.hpp>
+#include <slk/math/vector2.hpp>
 #include "projectile.hpp"
 
 #include <optional>

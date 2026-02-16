@@ -1,6 +1,7 @@
 #include "demos.hpp"
 #include "demo_empty.hpp"
 #include "demo_curves.hpp"
+#include "demo_picking.hpp"
 
 #include <raylib/raylib.h>
 
@@ -26,10 +27,12 @@ slk::b8 Demos::init(DemoId default_demo_id) {
     g_demos_state->demos_fn = {
         DemoEmpty::getFn(),
         DemoCurves::getFn(),
+        DemoPicking::getFn(),
     };
     g_demos_state->demos_info = {
         DemoEmpty::getInfo(),
         DemoCurves::getInfo(),
+        DemoPicking::getInfo(),
     };
     g_demos_state->curr_demo_id = default_demo_id;
 

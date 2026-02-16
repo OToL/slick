@@ -5,7 +5,7 @@
 -- Detect current platform
 local function get_current_platform()
   if vim.fn.has("macunix") == 1 then
-    return "macos"
+    return "darwin"
   elseif vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
     return "windows"
   elseif vim.fn.has("unix") == 1 then
@@ -91,18 +91,21 @@ function GetLaunchCommand(project)
     ["ps3_upload"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader"),
     ["cpp_sandbox"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/cpp_sandbox/cpp_sandbox"),
     ["graphics_sandbox"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/graphics_sandbox/graphics_sandbox"),
+    ["test_bgfx"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/test_bgfx/test_bgfx"),
     ["asteroids"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/asteroids/asteroids"),
   }
   return commands[project] or commands["default"]
 end
 
 -- Launch active program using the workspace root as current directory
-function LaunchActiveProject()
+function LaunchActiveProject(show_term)
     local command = GetLaunchCommand(vim.g.active_project)
     local workspace_dir = GetWorkspaceRootDirPath()
     -- Change to workspace directory first, then run command
     vim.cmd(string.format('!tmux send-keys -t 2 C-u "cd %s && %s" Enter', workspace_dir, command))
-    vim.cmd('!tmux resize-pane')
+    if show_term then
+        vim.cmd('!tmux resize-pane')
+    end
 end
 
 -- User command to set active program
@@ -111,8 +114,19 @@ vim.api.nvim_create_user_command('SetActiveProject', function(opts)
   vim.notify("Active program set to: " .. opts.args)
 end, { nargs = 1 })
 
-vim.api.nvim_set_keymap("n", "<M-F6>", '<cmd>lua LaunchActiveProject()<cr>', {noremap = true, silent = true})
-vim.api.nvim_set_keymap("n", "<M-F7>", '<cmd>Build<cr>', {noremap = true, silent = true})
+vim.api.nvim_create_user_command('ActiveProject', function(opts)
+    vim.notify("Active Project: " .. vim.g.active_project, vim.log.levels.INFO)
+
+    -- Force Noice plugin update because otherwise notification is shown next time cmd mode is entered
+    local ok, router = pcall(require, "noice.message.router")
+    if ok and router.update then
+        require("noice.message.router").update()
+    end
+end, { })
+
+vim.api.nvim_set_keymap("n", "<F6>", '<cmd>lua LaunchActiveProject(false)<cr>', {noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<M-F6>", '<cmd>lua LaunchActiveProject(true)<cr>', {noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<F7>", '<cmd>Build<cr>', {noremap = true, silent = true})
 
 --%-GIn\ file\ include\ %.%#
 vim.cmd([[
@@ -189,17 +203,17 @@ vim.api.nvim_create_user_command('BuildPs3', function()
     vim.cmd('Build')
 end, {})
 
-vim.api.nvim_create_user_command('BuildMacos', function()
+vim.api.nvim_create_user_command('BuildDarwin', function()
   local build_dir_path = GetBuildDirPath()
-  vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "macos-debug")
+  vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "darwin-debug")
     vim.cmd('Build')
   -- vim.cmd('silent! wall')  -- Save all, ignore errors
   -- vim.cmd('make')          -- Use make instead of Build
 end, {})
 
--- vim.api.nvim_create_user_command('BuildMacos', function()
+-- vim.api.nvim_create_user_command('BuildDarwin', function()
 --     local build_dir_path = GetBuildDirPath()
---     vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "macos-debug")
+--     vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "darwin-debug")
 --     print(vim.o.makeprg)
 --     vim.cmd('Build')
 -- end, {})
@@ -214,11 +228,11 @@ vim.api.nvim_create_user_command('LSPPs3', function()
     vim.cmd('LspRestart')
 end, {})
 
-vim.api.nvim_create_user_command('LSPMacos', function()
+vim.api.nvim_create_user_command('LSPDarwin', function()
     local workspace_root = GetWorkspaceRootDirPath()
     local clangd_path = vim.fs.joinpath(workspace_root, ".clangd")
-    local clangd_macos_path = vim.fs.joinpath(workspace_root, ".clangd_macos")
+    local clangd_darwin_path = vim.fs.joinpath(workspace_root, ".clangd_darwin")
 
-    copy_file(clangd_macos_path, clangd_path)
+    copy_file(clangd_darwin_path, clangd_path)
     vim.cmd('LspRestart')
 end, {})

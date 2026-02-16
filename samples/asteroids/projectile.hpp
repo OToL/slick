@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/math/vector2.hpp>
+#include <slk/math/vector2.hpp>
 
 struct Projectile {
     slk::Vector2f velocity;

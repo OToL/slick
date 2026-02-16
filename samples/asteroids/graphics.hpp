@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/core.hpp>
+#include <slk/core.hpp>
 
 #include "fwd.hpp"
 #include <raylib/raylib.h>

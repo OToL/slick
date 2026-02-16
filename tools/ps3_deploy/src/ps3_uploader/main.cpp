@@ -15,7 +15,7 @@
 
 #include <zlib/zlib.h>
 
-#include <core/core.hpp>
+#include <slk/core.hpp>
 
 #include "../common.h"
 

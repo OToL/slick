@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdlib>
-#include <core/math/fwd.hpp>
+#include <slk/math/fwd.hpp>
 
 namespace math {
 

@@ -3,10 +3,13 @@
 in vec3 v_view_dir;         // vector between the camera and the corresponing grid point
 in vec2 v_grid_position;    // fragment position in grid space [-grid_size; gridsize]
 
+uniform mat4 u_worldTransform;
+uniform vec4 u_thin_color;
+uniform vec4 u_thick_color;
 uniform float u_gridSize;
 uniform float u_cell_size;
-uniform vec4 u_thin_color; 
-uniform vec4 u_thick_color;  
+uniform int u_dbg_viz;
+uniform int u_distance_fade_mode;
 
 // Output
 out vec4 finalColor;
@@ -70,7 +73,7 @@ void main() {
     // i.e. if within 1 pixel must be colored according to the line and more, it is transparent
     // use a inverted V pattern peaking 1 pixel from grid stage/line boundaries
     // - mod(uv, thin_cs): how far we are in grid space from the previous thin line
-    // - prev/dudv: how many pixels this distance represents on scree 
+    // - prev/dudv: how many pixels this distance represents on screen 
     // - saturate(prev): we are only interested in the 0-1 distance i.e. 1 pixel away from the grid stage boundaries
     // - 1- abs(prev*2 -1): inverted V transformation
     // because we use the distance from grid stage boundary/line, the line starts from the grid stage boundaries instead of being around it
@@ -87,25 +90,42 @@ void main() {
     // Blend between falloff colors to handle LOD transition [4]
     vec4 color = thick_cs_a > 0 ? u_thick_color : mid_cs_a > 0 ? mix(u_thick_color, u_thin_color, lod_fade) : u_thin_color;
 
+    // Extract grid normal from world transform (Y-axis)
+    vec3 grid_normal = normalize(vec3(u_worldTransform[1].x, u_worldTransform[1].y, u_worldTransform[1].z));
     // Calculate opacity falloff based on distance to grid extents and gracing angle
     vec3 view_dir = normalize(v_view_dir);
+
     // how much the vector from the camera to the current grid point in space is along grid up i.e. how much we are facing the grid
     // apply an inverted power function to it and invert i.e. more it is align the highest the alpha value will be --> more opaque
-    // NOTE: by hardcoding UP vector, we assume the grid is not rotated
-    float op_gracing = 1.f - pow(1.f - abs(dot(view_dir, vec3(0.0, 1.0, 0.0) )), 16);
-    // TODO: parametrize because it is only in cpp
-    float op_distance = (1.f - saturate(length(uv) / u_gridSize));
+    float op_gracing = 1.f - pow(1.f - abs(dot(view_dir, grid_normal )), 16);
+
+    float op_distance = 0;
+    // distance from projected camera position onto the grid plane
+    if (u_distance_fade_mode == 0)
+    {
+        vec3 view_dir_on_plane = v_view_dir - dot(v_view_dir, grid_normal) * grid_normal;
+        float distance_from_camera = length(view_dir_on_plane);
+        // TODO: try something more sophisticated than a lerp on the half grid size
+        op_distance = (1.f - saturate(distance_from_camera / u_gridSize));
+
+    }
+    // distance from grid center
+    else {
+        op_distance = (1.f - saturate(length(uv) / u_gridSize));
+    }
+
     float op = op_distance * op_gracing;
-    // float op = op_distance;
 
     // Blend between LOD level alphas and scale with opacity falloff. [6]
-    color.a *= (thick_cs_a > 0 ? thick_cs_a : mid_cs_a > 0 ? mid_cs_a : (thin_cs_a * (1-lod_fade))) * op;
+    color.a *= (thick_cs_a > 0 ? thick_cs_a : mid_cs_a > 0 ? mid_cs_a : (thin_cs_a * saturate(1-lod_fade))) * op;
+
+    // Visualize LOD levels with different colors (for debugging)
+    if (u_dbg_viz == 1) 
+    {
+        if (thick_cs_a > 0) color.rgb = vec3(thick_cs_a, 0, 0);  // Red for thick
+        else if (mid_cs_a > 0) color.rgb = vec3(0, mid_cs_a, 0);  // Green for mid
+        else if (thin_cs_a > 0) color.rgb = vec3(0, 0, thin_cs_a);  // Blue for thin
+    }
 
     finalColor = color;
-
-    // vec3 view_dir = normalize(v_view_dir) * vec3(v_grid_position, 1.0);
-    // vec2 remapped = vec2(20) - v_grid_position;
-    // view_dir = vec3((normalize(remapped)), 0.0);
-    // finalColor = vec4(view_dir, 1.0);
-    // finalColor = vec4(0.5, 0.5, 0.5 , 1.0);
 }

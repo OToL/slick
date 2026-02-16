@@ -1,3 +1,4 @@
 add_subdirectory(cpp_sandbox)
 add_subdirectory(graphics_sandbox)
 add_subdirectory(asteroids)
+add_subdirectory(test_bgfx)

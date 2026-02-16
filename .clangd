@@ -1,4 +1,4 @@
 CompileFlags:
-   CompilationDatabase: _build/macos-debug
+   CompilationDatabase: _build/darwin-debug
    Add: [-Wno-unused-macros]
    Remove: [-fmodules-ts, -fmodule-mapper=*, -fdeps-format=*]  
