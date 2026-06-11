@@ -297,12 +297,14 @@ slk::b8 shutdown() {
     return true;
 }
 
-slk::b8 update(slk::f32 /* frame_delta_ms */, Camera3D& /* cam3d */) {
+slk::b8 update(slk::f32 /* frame_delta_ms */, Camera3D&  cam3d) {
 
+    cam3d.position.y = 30.f;
+    cam3d.position.z = 5.f;
     return true;
 }
 
-slk::b8 draw3d(slk::f32 frame_delta_ms, Camera3D const& /* cam3d */) {
+slk::b8 draw3d(slk::f32 frame_delta_ms, [[maybe_unused]] Camera3D const& cam3d) {
 
     ImGui::Begin("Curves", nullptr);
 

@@ -2,6 +2,8 @@
 --                                         Utilities                                                  --
 --------------------------------------------------------------------------------------------------------
 
+local utils = require("utils")
+
 -- Detect current platform
 local function get_current_platform()
   if vim.fn.has("macunix") == 1 then
@@ -15,15 +17,8 @@ local function get_current_platform()
   end
 end
 
-function GetWorkspaceRootDirPath()
-    -- local current_file_path = debug.getinfo(1, "S").source:sub(2)
-    -- local current_dir = vim.fn.fnamemodify(current_file_path, ':h')
-    local ws = require('workspaces')
-    return ws.path()
-end
-
 function GetBuildDirPath()
-    return vim.fs.joinpath(GetWorkspaceRootDirPath(), "_build")
+    return vim.fs.joinpath(vim.fn.getcwd(), "_build")
 end
 
 local function file_exists(path)
@@ -60,13 +55,26 @@ local function get_mtime(path)
 end
 
 local function escape_pattern_case_insensitive(str)
-  -- Escape pattern characters first
-  str = str:gsub("([^%w])", "%%%1")
-  -- Replace each letter with [Aa] style pattern
-  str = str:gsub("%a", function(letter)
-    return string.format("[%s%s]", letter:lower(), letter:upper())
-  end)
-  return str
+    -- Escape pattern characters first
+    str = str:gsub("([^%w])", "%%%1")
+    -- Replace each letter with [Aa] style pattern
+    str = str:gsub("%a", function(letter)
+        return string.format("[%s%s]", letter:lower(), letter:upper())
+    end)
+    return str
+end
+
+local function get_wezterm_path()
+    local wz_path = os.getenv("WEZTERM_EXECUTABLE")
+    if not wz_path then
+        return nil
+    end
+    local wz_dir = vim.fn.fnamemodify(wz_path, ":h")
+    if vim.g.active_platform == "windows" then
+        return utils.joinPaths(wz_dir, "wezterm.exe")
+    else
+       return utils.joinPaths(wz_dir, "wezterm")
+    end
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -76,43 +84,75 @@ end
 vim.g.active_project = vim.g.active_project or "default"
 vim.g.active_platform = vim.g.active_platform or get_current_platform()
 
--- Load vscode launch description
-require('dap.ext.vscode').load_launchjs("launch.json", { codelldb = { 'cpp' } })
-
 --------------------------------------------------------------------------------------------------------
 --                                      Quick app launch                                              --
 --------------------------------------------------------------------------------------------------------
 
 -- Project launch configurations
+local function get_project_commands()
+    local curr_platform = get_current_platform()
+    local build_dir = GetBuildDirPath()
+    return {
+        ["ps3_upload"]      = vim.fs.joinpath(build_dir, curr_platform .. "-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader"),
+        ["cpp_sandbox"]     = vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/cpp_sandbox/cpp_sandbox"),
+        ["graphics_sandbox"]= vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/graphics_sandbox/graphics_sandbox"),
+        ["test_bgfx"]       = vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/test_bgfx/test_bgfx"),
+        ["asteroids"]       = vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/asteroids/asteroids"),
+    }
+end
+
 function GetLaunchCommand(project)
-  local curr_platform = get_current_platform()
-  local commands = {
-    ["default"] = "echo 'No project selected'",
-    ["ps3_upload"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader"),
-    ["cpp_sandbox"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/cpp_sandbox/cpp_sandbox"),
-    ["graphics_sandbox"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/graphics_sandbox/graphics_sandbox"),
-    ["test_bgfx"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/test_bgfx/test_bgfx"),
-    ["asteroids"] = vim.fs.joinpath(GetBuildDirPath(), curr_platform .. "-debug/samples/asteroids/asteroids"),
-  }
-  return commands[project] or commands["default"]
+    local commands = get_project_commands()
+    return commands[project] or "echo 'No project selected'"
+end
+
+local WEZTERM = get_wezterm_path()
+if not WEZTERM then
+    vim.notify("WEZTERM_EXECUTABLE env var is not defined", vim.log.levels.ERROR)
+    return
 end
 
 -- Launch active program using the workspace root as current directory
 function LaunchActiveProject(show_term)
     local command = GetLaunchCommand(vim.g.active_project)
-    local workspace_dir = GetWorkspaceRootDirPath()
-    -- Change to workspace directory first, then run command
-    vim.cmd(string.format('!tmux send-keys -t 2 C-u "cd %s && %s" Enter', workspace_dir, command))
+    local workspace_dir = vim.fn.getcwd()
+
     if show_term then
-        vim.cmd('!tmux resize-pane')
+        local height = math.floor(vim.api.nvim_win_get_height(0) / 4)
+        vim.cmd('belowright ' .. height .. 'new')
+        vim.fn.jobstart(command, { cwd = workspace_dir, term = true })
+        vim.cmd('wincmd p')
+    else
+        vim.fn.jobstart(command, { cwd = workspace_dir, detach = true })
     end
 end
 
 -- User command to set active program
-vim.api.nvim_create_user_command('SetActiveProject', function(opts)
-  vim.g.active_project = opts.args
-  vim.notify("Active program set to: " .. opts.args)
-end, { nargs = 1 })
+vim.api.nvim_create_user_command('SetActiveProject', function()
+    local pickers     = require("telescope.pickers")
+    local finders     = require("telescope.finders")
+    local conf        = require("telescope.config").values
+    local actions     = require("telescope.actions")
+    local action_state = require("telescope.actions.state")
+
+    local projects = vim.tbl_keys(get_project_commands())
+    table.sort(projects)
+
+    pickers.new({}, {
+        prompt_title = "Set Active Project",
+        finder = finders.new_table({ results = projects }),
+        sorter = conf.generic_sorter({}),
+        attach_mappings = function(prompt_bufnr)
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                vim.g.active_project = selection[1]
+                vim.notify("Active project set to: " .. selection[1])
+            end)
+            return true
+        end,
+    }):find()
+end, { nargs = 0 })
 
 vim.api.nvim_create_user_command('ActiveProject', function(opts)
     vim.notify("Active Project: " .. vim.g.active_project, vim.log.levels.INFO)
@@ -125,8 +165,11 @@ vim.api.nvim_create_user_command('ActiveProject', function(opts)
 end, { })
 
 vim.api.nvim_set_keymap("n", "<F6>", '<cmd>lua LaunchActiveProject(false)<cr>', {noremap = true, silent = true})
-vim.api.nvim_set_keymap("n", "<M-F6>", '<cmd>lua LaunchActiveProject(true)<cr>', {noremap = true, silent = true})
 vim.api.nvim_set_keymap("n", "<F7>", '<cmd>Build<cr>', {noremap = true, silent = true})
+
+vim.api.nvim_set_keymap("n", "<M-F6>", '<cmd>lua LaunchActiveProject(true)<cr>', {noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<F54>", '<cmd>lua LaunchActiveProject(true)<cr>', {noremap = true, silent = true})
+
 
 --%-GIn\ file\ include\ %.%#
 vim.cmd([[
@@ -136,7 +179,6 @@ vim.cmd([[
 --------------------------------------------------------------------------------------------------------
 --                                  LSP platform switch                                               --
 --------------------------------------------------------------------------------------------------------
-
 
 local function patch_ps3_commands()
     local ps3_sdk_root = os.getenv("PSL1GHT")
@@ -194,8 +236,9 @@ local function patch_ps3_commands()
 
 end
 
--- Build Commands
--- TODO: support target config as optional paramter e.g. release, debug, etc.
+--------------------------------------------------------------------------------------------------------
+--                                      BUILD COMMANDS                                                --
+--------------------------------------------------------------------------------------------------------
 
 vim.api.nvim_create_user_command('BuildPs3', function()
     local build_dir_path = GetBuildDirPath()
@@ -211,15 +254,8 @@ vim.api.nvim_create_user_command('BuildDarwin', function()
   -- vim.cmd('make')          -- Use make instead of Build
 end, {})
 
--- vim.api.nvim_create_user_command('BuildDarwin', function()
---     local build_dir_path = GetBuildDirPath()
---     vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "darwin-debug")
---     print(vim.o.makeprg)
---     vim.cmd('Build')
--- end, {})
-
 vim.api.nvim_create_user_command('LSPPs3', function()
-    local workspace_root = GetWorkspaceRootDirPath()
+    local workspace_root = vim.fn.getcwd()
     local clangd_path = vim.fs.joinpath(workspace_root, ".clangd")
     local clangd_ps3_path = vim.fs.joinpath(workspace_root, ".clangd_ps3")
 
@@ -229,7 +265,7 @@ vim.api.nvim_create_user_command('LSPPs3', function()
 end, {})
 
 vim.api.nvim_create_user_command('LSPDarwin', function()
-    local workspace_root = GetWorkspaceRootDirPath()
+    local workspace_root = vim.fn.getcwd()
     local clangd_path = vim.fs.joinpath(workspace_root, ".clangd")
     local clangd_darwin_path = vim.fs.joinpath(workspace_root, ".clangd_darwin")
 

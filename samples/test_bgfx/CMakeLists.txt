@@ -1,25 +1,25 @@
-include(${SLK_EXTERN_EXTRA_DIR}/bgfx/scripts/bgfx_tool_utils.cmake)
+include(${SLICK_EXTERN_EXTRA_DIR}/bgfx/scripts/bgfx_tool_utils.cmake)
 
 bgfx_compile_shaders(
 	TYPE VERTEX
     VARYING_DEF ${CMAKE_CURRENT_LIST_DIR}/data/shaders/varying.def.sc
     OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/_build/shaders
-    INCLUDE_DIRS ${SLK_EXTERN_EXTRA_DIR}/bgfx/shaders
+    INCLUDE_DIRS ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders
 	SHADERS data/shaders/grid_vs.sc
     DEPENDS 
-        ${SLK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx.sh 
-        ${SLK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx_shader_lib.sh 
-        ${SLK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx_shader.sh)
+        ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx.sh 
+        ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx_shader_lib.sh 
+        ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx_shader.sh)
 
 bgfx_compile_shaders(
     TYPE FRAGMENT
     VARYING_DEF ${CMAKE_CURRENT_LIST_DIR}/data/shaders/varying.def.sc
     OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/_build/shaders
-    INCLUDE_DIRS ${SLK_EXTERN_EXTRA_DIR}/bgfx/shaders
+    INCLUDE_DIRS ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders
 	SHADERS data/shaders/grid_fs.sc
     DEPENDS
-        ${SLK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx.sh ${SLK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx_shader_lib.sh 
-        ${SLK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx_shader.sh)
+        ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx.sh ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx_shader_lib.sh 
+        ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders/bgfx_shader.sh)
 
 add_executable(test_bgfx
     src/app.cpp
@@ -50,8 +50,8 @@ target_compile_options(test_bgfx PRIVATE
 
 # specify extern libs as System includes to avoid/silent compilation warnings
 target_include_directories(test_bgfx SYSTEM PRIVATE
-    ${SLK_EXTERN_INCLUDE_DIR}
-    "${SLK_EXTERN_INCLUDE_DIR}/bgfx/3rdparty")
+    ${SLICK_EXTERN_INCLUDE_DIR}
+    "${SLICK_EXTERN_INCLUDE_DIR}/bgfx/3rdparty")
 
 set_target_properties(test_bgfx PROPERTIES
     CXX_STANDARD 26

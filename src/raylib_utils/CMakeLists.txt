@@ -12,10 +12,10 @@ target_compile_options(raylib-utils PRIVATE
 
 # specify extern libs as System includes to avoid/silent compilation warnings
 target_include_directories(raylib-utils SYSTEM PUBLIC
-    ${SLK_EXTERN_INCLUDE_DIR})
+    ${SLICK_EXTERN_INCLUDE_DIR})
 
 target_include_directories(raylib-utils PUBLIC
-    ${SLK_UTILS_DIR})
+    ${SLICK_UTILS_DIR})
 
 target_link_libraries(raylib-utils PUBLIC
     ext-raylib

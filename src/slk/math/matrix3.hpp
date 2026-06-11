@@ -65,7 +65,7 @@ struct Matrix3 {
         };
     }
 
-    void setIdentity() {
+    void set_identity() {
         column0 = {1, 0, 0};
         column1 = {0, 1, 0};
         column2 = {0, 0, 1};
@@ -79,39 +79,39 @@ struct Matrix3 {
         return &values[0];
     }
 
-    ColumnType getColumn(u32 idx) const {
+    ColumnType column(u32 idx) const {
         return columns[idx];
     }
 
-    ColumnType getColumn(u32 idx) {
+    ColumnType column(u32 idx) {
         return columns[idx];
     }
 
-    RowType getRow(u32 idx) const {
+    RowType row(u32 idx) const {
         return {columns[0][idx], columns[1][idx], columns[2][idx]};
     }
 
-    RowType getRow(u32 idx) {
+    RowType row(u32 idx) {
         return {columns[0][idx], columns[1][idx], columns[2][idx]};
     }
 
-    ScalarType getValue(u32 row_idx, u32 col_idx) const {
+    ScalarType value(u32 row_idx, u32 col_idx) const {
         return columns[col_idx][row_idx];
     }
 
-    ColumnType xAxis() const {
+    ColumnType x_axis() const {
         return column0;
     }
 
-    ColumnType yAxis() const {
+    ColumnType y_axis() const {
         return column1;
     }
 
-    ColumnType zAxis() const {
+    ColumnType z_axis() const {
         return column2;
     }
 
-    void setValue(u32 row_idx, u32 col_idx, ScalarType val) const {
+    void set_value(u32 row_idx, u32 col_idx, ScalarType val) const {
         columns[col_idx][row_idx] = val;
     }
 
@@ -123,6 +123,13 @@ struct Matrix3 {
     //
     ScalarType determinant() const {
        return m00*(m11*m22 - m21*m12) - m10*(m01*m22 - m21*m02) + m20*(m01*m12 - m11*m02); 
+    }
+
+    Matrix3 inversed() const {
+        Matrix3 mat_inv = *this;
+        mat_inv.inverse();
+
+        return mat_inv;
     }
 
     void inverse() {
@@ -152,7 +159,7 @@ struct Matrix3 {
 		values[8] = +(_m00*_m11 - _m10*_m01) * invDet;
     }
 
-    void setRotationX(float rot_rad)
+    void set_rotation_x(float rot_rad)
 	{
 		const auto sx = std::sin(rot_rad);
 		const auto cx = std::cos(rot_rad);
@@ -170,7 +177,7 @@ struct Matrix3 {
 		values[ 8] = cx;
 	}
 
-	void setRotationY(float rot_rad)
+	void set_rotation_y(float rot_rad)
 	{
 		const float sy = std::sin(rot_rad);
 		const float cy = std::cos(rot_rad);
@@ -188,7 +195,7 @@ struct Matrix3 {
 		values[8] = cy;
 	}
 
-	void setRotationZ(float rot_rad)
+	void set_rotation_z(float rot_rad)
 	{
 		const float sz = sin(rot_rad);
 		const float cz = cos(rot_rad);
@@ -206,7 +213,7 @@ struct Matrix3 {
 		values[8] = 1.0f;
 	}
 
-	void setRotationXY(float rotx_rad, float roty_rad)
+	void set_rotation_xy(float rotx_rad, float roty_rad)
 	{
 		const float sx = sin(rotx_rad);
 		const float cx = cos(rotx_rad);
@@ -226,7 +233,7 @@ struct Matrix3 {
 		values[8] = cx*cy;
 	}
 
-	void setRotationXYZ(float rotx_rad, float roty_rad, float rotz_rad)
+	void set_rotation_xyz(float rotx_rad, float roty_rad, float rotz_rad)
 	{
 		const float sx = sin(rotx_rad);
 		const float cx = cos(rotx_rad);
@@ -248,7 +255,7 @@ struct Matrix3 {
 		values[8] = cx*cy;
 	}
 
-	void setRotationZYX(float rotx_rad, float roty_rad, float rotz_rad)
+	void set_rotation_zyx(float rotx_rad, float roty_rad, float rotz_rad)
 	{
 		const float sx = sin(rotx_rad);
 		const float cx = cos(rotx_rad);

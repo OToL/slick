@@ -13,19 +13,26 @@ struct InputEvent {
         MOUSE_MOVE,
         MOUSE_SCROLL,
 
+        // TODO: implement actual gestures e.g. swipe, magnify, etc.
+        GESTURE_TOUCH_POINTS_UPDATE,
+
         KEYBOARD_KEY_UP,
         KEYBOARD_KEY_DOWN,
-        // KEYBOARD_KEY_CHAR, --> update forward evt
+        // TODO: KEYBOARD_KEY_CHAR, --> update forward evt
 
-        // Keyboard
-        // Touch
-        // GamePad
+        // TODO: GamePad
 
         _LAST
     };
 
     Type type;
     // TODO: put common stuff there e.g. modifiers
+};
+
+struct GestureEvent : InputEvent {
+    using InputEvent::type;
+
+    slk::u8 point_count;
 };
 
 struct MouseEvent : InputEvent {

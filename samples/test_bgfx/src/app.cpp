@@ -20,6 +20,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cassert>
+#include <chrono>
 
 using namespace slk::literals;
 
@@ -113,19 +114,26 @@ struct Grid {
     bgfx::UniformHandle thick_color_u_hdl;
 };
 
-struct State {
+struct AppState {
+    using Timer = std::chrono::high_resolution_clock;
+
     bgfx::VertexBufferHandle vert_buff_hdl;
     bgfx::IndexBufferHandle idx_buff_hdl;
     bgfx::ProgramHandle prg_hdl;
     bgfx::VertexLayout vert_decl;
 
     Grid grid;
+    slk::Camera camera;
 
-    slk::Matrix3f camera_rotation;
-    slk::Vector4f camera_position;
-} g_state;
+    Timer::time_point last_frame_time_point;
+    slk::f32 last_frame_time_ms;
+
+    slk::b8 imgui_wnd_focused;
+} g_app_state;
 
 void app_init(void) {
+    g_app_state = {};
+
     bgfx::Init bgfx_init;
     bgfx_init.type = bgfx::RendererType::Count;
     bgfx_init.resolution.width = sapp_width();
@@ -137,18 +145,18 @@ void app_init(void) {
 
     bgfx::ShaderHandle vs_hdl = loadShader("samples/test_bgfx/_build/shaders/metal/vs_cubes.bin");
     bgfx::ShaderHandle fs_hdl = loadShader("samples/test_bgfx/_build/shaders/metal/fs_cubes.bin");
-    g_state.prg_hdl = bgfx::createProgram(vs_hdl, fs_hdl, true);
+    g_app_state.prg_hdl = bgfx::createProgram(vs_hdl, fs_hdl, true);
 
-    assert(isValid(vs_hdl) && isValid(fs_hdl) && isValid(g_state.prg_hdl));
+    assert(isValid(vs_hdl) && isValid(fs_hdl) && isValid(g_app_state.prg_hdl));
 
-    g_state.vert_decl.begin()
+    g_app_state.vert_decl.begin()
         .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
         .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
         .end();
 
-    g_state.vert_buff_hdl = bgfx::createVertexBuffer(bgfx::makeRef(CUBE_VERTICES, sizeof(CUBE_VERTICES)), g_state.vert_decl);
-    g_state.idx_buff_hdl = bgfx::createIndexBuffer(bgfx::makeRef(CUBE_INDICES, sizeof(CUBE_INDICES)));
-    assert(isValid(g_state.vert_buff_hdl) && isValid(g_state.idx_buff_hdl));
+    g_app_state.vert_buff_hdl = bgfx::createVertexBuffer(bgfx::makeRef(CUBE_VERTICES, sizeof(CUBE_VERTICES)), g_app_state.vert_decl);
+    g_app_state.idx_buff_hdl = bgfx::createIndexBuffer(bgfx::makeRef(CUBE_INDICES, sizeof(CUBE_INDICES)));
+    assert(isValid(g_app_state.vert_buff_hdl) && isValid(g_app_state.idx_buff_hdl));
 
     Grid grid;
     grid.vert_decl.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
@@ -160,7 +168,7 @@ void app_init(void) {
     vs_hdl = loadShader("samples/test_bgfx/_build/shaders/metal/grid_vs.sc.bin");
     fs_hdl = loadShader("samples/test_bgfx/_build/shaders/metal/grid_fs.sc.bin");
     grid.prg_hdl = bgfx::createProgram(vs_hdl, fs_hdl, true);
-    assert(isValid(vs_hdl) && isValid(fs_hdl) && isValid(g_state.prg_hdl));
+    assert(isValid(vs_hdl) && isValid(fs_hdl) && isValid(g_app_state.prg_hdl));
 
     grid.grid_scalar_params_u_hdl = bgfx::createUniform("u_grid_scalar_params", bgfx::UniformType::Vec4);
     grid.thin_color_u_hdl = bgfx::createUniform("u_thin_color", bgfx::UniformType::Vec4);
@@ -168,26 +176,29 @@ void app_init(void) {
 
     assert(isValid(grid.thin_color_u_hdl) && isValid(grid.thick_color_u_hdl) && isValid(grid.grid_scalar_params_u_hdl));
 
-    g_state.grid = grid;
+    g_app_state.grid = grid;
 
-    slk::Matrix4f view;
+    // slk::Matrix4f view;
     const slk::Vector3f at = {0.0f, 0.0f, 0.0f};
-    const slk::Vector3f eye = {10.0f, 10.0f, 10.0f};
-    view.setLookAt(eye, at, slk::Vector3f::UNITY);
-    view.inverse(); // view matrix transforms world into camera space i.e. camera transform is the inverse
+    const slk::Vector3f eye = {10.0f, 10.0f, 0.0f};
 
-    g_state.camera_position = view.getTranslation();
-    g_state.camera_rotation = view.getRotation();
+    // g_state.camera = {
+    //     .eye_pos = {10.f, 10.f, 10.f},
+    //     .target_pos = {0.f, 0.f, 0.f}
+    // };
+    g_app_state.camera.set_look_at(eye, at);
+    g_app_state.last_frame_time_point = std::chrono::high_resolution_clock::now();
+    g_app_state.last_frame_time_ms = 0.f;
 
     imguiCreate();
 
     slk::InputAPI::init();
 }
 
-void renderSlickWindow() {
-    slk::Vector2f const mouse_pos = slk::InputAPI::getMousePosition();
-    slk::Vector2f const mouse_scroll = slk::InputAPI::getMouseScroll();
-    slk::MouseButton::Type const mouse_buttons_state = slk::InputAPI::getMouseButtonsState();
+void render_slick_dbg_window() {
+    slk::Vector2f const mouse_pos = slk::InputAPI::get_mouse_position();
+    slk::Vector2f const mouse_scroll = slk::InputAPI::get_mouse_scroll();
+    slk::MouseButton::Type const mouse_buttons_state = slk::InputAPI::get_mouse_buttons_state();
     slk::u8 const imgui_button_state = (mouse_buttons_state & slk::MouseButton::mask(slk::MouseButton::LEFT) ? IMGUI_MBUT_LEFT : 0) |
                                        (mouse_buttons_state & slk::MouseButton::mask(slk::MouseButton::RIGHT) ? IMGUI_MBUT_RIGHT : 0) |
                                        (mouse_buttons_state & slk::MouseButton::mask(slk::MouseButton::MIDDLE) ? IMGUI_MBUT_MIDDLE : 0);
@@ -196,40 +207,60 @@ void renderSlickWindow() {
                       mouse_scroll.y, // wheel status
                       sapp_width(), sapp_height());
 
+    static bool initialized = false;
+
     // Main body of the Demo window starts here.
-    ImGui::Begin("Slick Debug", nullptr, 0);
+    ImGui::Begin("Slick Debug", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
+
+    // Hack because, even with ImGuiWindowFlags_NoFocusOnAppearing, the window is focused
+    if (!initialized) {
+      ImGui::SetWindowFocus(nullptr); // unfocus all windows
+      initialized = true; // set to true once you want to stop doing this
+    }
+
+    g_app_state.imgui_wnd_focused |= ImGui::IsWindowFocused();
+
+    ImGui::Text("Frame Time: %.2f ms", g_app_state.last_frame_time_ms);
 
     if (ImGui::CollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Text("Mouse Position: %.2f %.2f", mouse_pos.x, mouse_pos.y);
         ImGui::Text("Mouse button state: %d", mouse_buttons_state);
-        ImGui::Text("Mouse buttons state: %d %d %d", slk::InputAPI::isMouseButtonDown(slk::MouseButton::LEFT),
-                    slk::InputAPI::isMouseButtonDown(slk::MouseButton::MIDDLE), slk::InputAPI::isMouseButtonDown(slk::MouseButton::RIGHT));
+        ImGui::Text("Mouse buttons state: %d %d %d", slk::InputAPI::is_mouse_button_down(slk::MouseButton::LEFT),
+                    slk::InputAPI::is_mouse_button_down(slk::MouseButton::MIDDLE), slk::InputAPI::is_mouse_button_down(slk::MouseButton::RIGHT));
         ImGui::Text("Mouse Scroll: %.2f %.2f", mouse_scroll.x, mouse_scroll.y);
 
-        ImGui::Text("Keyboard SPACE key state: %d", slk::InputAPI::isKeyboardKeyDown(slk::EVirtualKey::SPACE));
-
+        ImGui::Text("Keyboard SPACE key state: %d", slk::InputAPI::is_keyboard_key_down(slk::EVirtualKey::SPACE));
 
         ImGui::Text("Modifiers State:");
-        ImGui::Text("   CTRL: %d", slk::InputAPI::hasModifier(slk::InputModifier::CTRL));
-        ImGui::Text("   SHIFT %d", slk::InputAPI::hasModifier(slk::InputModifier::SHIFT));
-        ImGui::Text("   ALT %d", slk::InputAPI::hasModifier(slk::InputModifier::ALT));
-        ImGui::Text("   LMB: %d", slk::InputAPI::hasModifier(slk::InputModifier::LMB));
-        ImGui::Text("   MMB %d", slk::InputAPI::hasModifier(slk::InputModifier::MMB));
-        ImGui::Text("   RMB %d", slk::InputAPI::hasModifier(slk::InputModifier::RMB));
+        ImGui::Text("   CTRL: %d", slk::InputAPI::has_modifier(slk::InputModifier::CTRL));
+        ImGui::Text("   SHIFT %d", slk::InputAPI::has_modifier(slk::InputModifier::SHIFT));
+        ImGui::Text("   ALT %d", slk::InputAPI::has_modifier(slk::InputModifier::ALT));
+        ImGui::Text("   LMB: %d", slk::InputAPI::has_modifier(slk::InputModifier::LMB));
+        ImGui::Text("   MMB %d", slk::InputAPI::has_modifier(slk::InputModifier::MMB));
+        ImGui::Text("   RMB %d", slk::InputAPI::has_modifier(slk::InputModifier::RMB));
+
+        ImGui::Text("Touch in progress: %d", slk::InputAPI::get_touch_point_count());
     }
 
     ImGui::End();
-
     imguiEndFrame();
 }
+
+const slk::f32 CAMERA_ROTATE_SPEED_TOUCH = 0.001f;
+const slk::f32 CAMERA_ROTATE_SPEED_MOUSE = 0.0001f;
+const slk::f32 CAMERA_TRANSLATE_SPEED_MOUSE = 0.05f;
 
 void app_frame(void) {
     slk::InputAPI::update();
 
-    if (slk::InputAPI::isKeyboardKeyDown(slk::EVirtualKey::ESCAPE)) {
+    if (slk::InputAPI::is_keyboard_key_down(slk::EVirtualKey::ESCAPE)) {
         sapp_request_quit();
         return;
     }
+
+    auto const time_point = AppState::Timer::now();
+    g_app_state.last_frame_time_ms = std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state.last_frame_time_point).count()/1000.f;
+    g_app_state.last_frame_time_point = time_point;
 
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xDDDDDDFF, 1.0f, 0);
     bgfx::setViewRect(0, 0, 0, sapp_width(), sapp_height());
@@ -238,22 +269,60 @@ void app_frame(void) {
     // if no other draw calls are submitted to view 0.
     bgfx::touch(0);
 
-    slk::Matrix4f view, proj;
-    const slk::Vector3f at = {0.0f, 0.0f, 0.0f};
-    const slk::Vector3f eye = {10.0f, 10.0f, 10.0f};
-    view.setLookAt(eye, at, slk::Vector3f::UNITY);
-    proj.setPerspectiveProj(45.0_deg, sapp_widthf() / sapp_heightf(), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+    // Update camera
+    if (0 && !g_app_state.imgui_wnd_focused) {
+        slk::Vector2f const mouse_scroll = slk::InputAPI::get_mouse_scroll();
+        slk::Vector2f const mouse_movement = slk::InputAPI::get_mouse_movement();
+        if (slk::InputAPI::get_touch_point_count() == 2 ) {
+            if ( (mouse_scroll.x != 0.f) || (mouse_scroll.y != 0.f)) {
+                slk::Vector2f const camera_rot = mouse_scroll * CAMERA_ROTATE_SPEED_TOUCH * g_app_state.last_frame_time_ms;
+                g_app_state.camera.rotate(camera_rot.x, camera_rot.y);
+            }
+        }
+        else if (slk::InputAPI::are_mouse_buttons_down(slk::MouseButton::mask(slk::EMouseButton::RIGHT, slk::EMouseButton::LEFT)) ||
+                slk::InputAPI::is_mouse_button_down(slk::EMouseButton::MIDDLE)) {
+            if ( mouse_movement.x != 0.f || mouse_movement.y != 0.f) {
+                g_app_state.camera.pan(mouse_movement.x*CAMERA_TRANSLATE_SPEED_MOUSE, mouse_movement.y*CAMERA_TRANSLATE_SPEED_MOUSE);
+            }
 
-    bgfx::setViewTransform(0, view.data(), proj.data());
+        }
+        else if (slk::InputAPI::is_mouse_button_down(slk::EMouseButton::RIGHT)) {
+            if ( (mouse_movement.x != 0.f) || (mouse_movement.y != 0.f)) {
+                slk::Vector2f const camera_rot = mouse_movement * CAMERA_ROTATE_SPEED_MOUSE * g_app_state.last_frame_time_ms;
+                g_app_state.camera.rotate(camera_rot.x, camera_rot.y);
+            }
+        }
+        else if (slk::InputAPI::is_mouse_button_down(slk::EMouseButton::LEFT)) {
+            if ( mouse_movement.y != 0.f) {
+                g_app_state.camera.translate(slk::Vector3f{0.f, 0.f, mouse_movement.y*CAMERA_TRANSLATE_SPEED_MOUSE});
+            }
+        }
+    }
+
+    slk::Matrix4f proj, view;
+    g_app_state.camera.get_view_matrix(view);
+
+    // const slk::Vector3f at = {0.0f, 0.0f, 0.0f};
+    // const slk::Vector3f eye = {10.0f, 10.0f, 0.0f};
+
+
+    float _viewMtx[16];
+    const bx::Vec3 eye{10.0f, 10.0f, 0.0f};
+    const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
+    const bx::Vec3 up = {0.0f, 1.0f, 0.0f};
+    bx::mtxLookAt(_viewMtx, eye, at, up);
+
+    proj.set_perspective_projection(45.0_deg, sapp_widthf() / sapp_heightf(), 0.1f, 10000.0f, bgfx::getCaps()->homogeneousDepth);
+    bgfx::setViewTransform(0, view.data() /* view.data() */, proj.data());
 
     // submit cube
     {
-        bgfx::setVertexBuffer(0, g_state.vert_buff_hdl);
-        bgfx::setIndexBuffer(g_state.idx_buff_hdl);
+        bgfx::setVertexBuffer(0, g_app_state.vert_buff_hdl);
+        bgfx::setIndexBuffer(g_app_state.idx_buff_hdl);
 
         bgfx::setState(BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z);
 
-        bgfx::submit(0, g_state.prg_hdl);
+        bgfx::submit(0, g_app_state.prg_hdl);
     }
 
     // sumbit grid
@@ -270,20 +339,21 @@ void app_frame(void) {
 
         bgfx::setTransform(slk::Matrix4f::IDENTITY.data());
 
-        bgfx::setUniform(g_state.grid.grid_scalar_params_u_hdl, grid_scalar_params);
-        bgfx::setUniform(g_state.grid.thin_color_u_hdl, thin_color);
-        bgfx::setUniform(g_state.grid.thick_color_u_hdl, thick_color);
+        bgfx::setUniform(g_app_state.grid.grid_scalar_params_u_hdl, grid_scalar_params);
+        bgfx::setUniform(g_app_state.grid.thin_color_u_hdl, thin_color);
+        bgfx::setUniform(g_app_state.grid.thick_color_u_hdl, thick_color);
 
-        bgfx::setVertexBuffer(0, g_state.grid.vert_buff_hdl);
-        bgfx::setIndexBuffer(g_state.grid.idx_buff_hdl);
+        bgfx::setVertexBuffer(0, g_app_state.grid.vert_buff_hdl);
+        bgfx::setIndexBuffer(g_app_state.grid.idx_buff_hdl);
 
         const uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_BLEND_ALPHA;
         bgfx::setState(state);
 
-        bgfx::submit(0, g_state.grid.prg_hdl);
+        bgfx::submit(0, g_app_state.grid.prg_hdl);
     }
 
-    renderSlickWindow();
+    g_app_state.imgui_wnd_focused = false;
+    render_slick_dbg_window();
 
     bgfx::frame();
 }
@@ -293,17 +363,17 @@ void app_cleanup(void) {
 
     imguiDestroy();
 
-    bgfx::destroy(g_state.prg_hdl);
-    bgfx::destroy(g_state.vert_buff_hdl);
-    bgfx::destroy(g_state.idx_buff_hdl);
+    bgfx::destroy(g_app_state.prg_hdl);
+    bgfx::destroy(g_app_state.vert_buff_hdl);
+    bgfx::destroy(g_app_state.idx_buff_hdl);
 
-    bgfx::destroy(g_state.grid.prg_hdl);
-    bgfx::destroy(g_state.grid.vert_buff_hdl);
-    bgfx::destroy(g_state.grid.idx_buff_hdl);
+    bgfx::destroy(g_app_state.grid.prg_hdl);
+    bgfx::destroy(g_app_state.grid.vert_buff_hdl);
+    bgfx::destroy(g_app_state.grid.idx_buff_hdl);
 
-    bgfx::destroy(g_state.grid.grid_scalar_params_u_hdl);
-    bgfx::destroy(g_state.grid.thin_color_u_hdl);
-    bgfx::destroy(g_state.grid.thick_color_u_hdl);
+    bgfx::destroy(g_app_state.grid.grid_scalar_params_u_hdl);
+    bgfx::destroy(g_app_state.grid.thin_color_u_hdl);
+    bgfx::destroy(g_app_state.grid.thick_color_u_hdl);
 
     bgfx::shutdown();
 }
@@ -312,16 +382,35 @@ static_assert(SAPP_MOUSEBUTTON_LEFT == (slk::i32)slk::MouseButton::LEFT);
 static_assert(SAPP_MOUSEBUTTON_RIGHT == (slk::i32)slk::MouseButton::RIGHT);
 static_assert(SAPP_MOUSEBUTTON_MIDDLE == (slk::i32)slk::MouseButton::MIDDLE);
 
-// TODO: modifiers
+void app_set_touch_point_count(int count) {
+    slk::GestureEvent slk_event;
+    slk_event.type = slk::InputEvent::GESTURE_TOUCH_POINTS_UPDATE;
+    slk_event.point_count = count;
+    slk::InputAPI::forward_event(slk_event);
+}
+
 // TODO: Key Char
 void app_event(const sapp_event* evt) {
     switch (evt->type) {
+        // SAPP_EVENTTYPE_TOUCHES_MOVED,
+        /* case SAPP_EVENTTYPE_TOUCHES_BEGAN:
+            {
+                g_dbg_touch_inprogress = true;
+                break;
+            }
+        case SAPP_EVENTTYPE_TOUCHES_ENDED:
+            [[fallthrough]];
+        case SAPP_EVENTTYPE_TOUCHES_CANCELLED:
+            {
+                g_dbg_touch_inprogress = false;
+                break;
+            } */
         case SAPP_EVENTTYPE_MOUSE_MOVE: {
             slk::MouseEvent slk_event;
             slk_event.type = slk::InputEvent::MOUSE_MOVE;
             slk_event.postion = slk::Vector2f{evt->mouse_x, evt->mouse_y};
 
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputAPI::forward_event(slk_event);
 
             break;
         }
@@ -329,7 +418,7 @@ void app_event(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.type = slk::InputEvent::MOUSE_BUTTON_DOWN;
             slk_event.button = static_cast<slk::EMouseButton>(evt->mouse_button);
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputAPI::forward_event(slk_event);
 
             break;
         }
@@ -337,7 +426,7 @@ void app_event(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.type = slk::InputEvent::MOUSE_BUTTON_UP;
             slk_event.button = static_cast<slk::EMouseButton>(evt->mouse_button);
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputAPI::forward_event(slk_event);
 
             break;
         }
@@ -346,7 +435,7 @@ void app_event(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.type = slk::InputEvent::MOUSE_SCROLL;
             slk_event.scroll = {evt->scroll_x, evt->scroll_y};
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputAPI::forward_event(slk_event);
 
             break;
         }
@@ -359,7 +448,7 @@ void app_event(const sapp_event* evt) {
             slk_event.type = slk::InputEvent::KEYBOARD_KEY_DOWN;
             slk_event.key_repeat = evt->key_repeat;
             slk_event.vkey = static_cast<slk::EVirtualKey>(evt->key_code);
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputAPI::forward_event(slk_event);
 
             break;
         }
@@ -369,7 +458,7 @@ void app_event(const sapp_event* evt) {
             slk_event.type = slk::InputEvent::KEYBOARD_KEY_UP;
             slk_event.key_repeat = evt->key_repeat;
             slk_event.vkey = static_cast<slk::EVirtualKey>(evt->key_code);
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputAPI::forward_event(slk_event);
 
             break;
         }

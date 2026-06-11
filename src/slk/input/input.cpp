@@ -21,8 +21,11 @@ struct MouseState {
     slk::u8 data_state;
 };
 
-struct KeyboardState {
+struct GestureState {
+    slk::u8 point_count;
+};
 
+struct KeyboardState {
     static constexpr slk::u32 VKEY_COUNT = slk::VirtualKey::_LAST;
     static constexpr slk::u32 VKEY_SIZE_BYTE = (VKEY_COUNT + 7U) >> 3U;
 
@@ -43,6 +46,8 @@ struct KeyboardState {
 struct InputAPIState {
     MouseState mouse_state;
     KeyboardState keyboard_state;
+    GestureState gesture_state;
+    std::vector<slk::GestureEvent> gesture_events;
     std::vector<slk::MouseEvent> mouse_events;
     std::vector<slk::KeyboardEvent> keyboard_events;
     slk::InputModifier::Mask modififers;
@@ -55,6 +60,7 @@ slk::b8 slk::InputAPI::init() {
     g_state = new InputAPIState{};
     g_state->mouse_events.reserve(128);
     g_state->keyboard_events.reserve(128);
+    g_state->gesture_events.reserve(5);
 
     return true;
 }
@@ -76,6 +82,10 @@ static_assert((MB_MODIFIER_OFFSET + slk::EMouseButton::MIDDLE) == slk::InputModi
 static_assert((MB_MODIFIER_OFFSET + slk::EMouseButton::RIGHT) == slk::InputModifier::RMB);
 
 void processEvents() {
+    GestureState& gesture_state = g_state->gesture_state;
+    for (slk::GestureEvent const& evt : g_state->gesture_events) {
+        gesture_state.point_count = evt.point_count;
+    }
 
     MouseState& mouse_state = g_state->mouse_state;
     for (slk::MouseEvent const& evt : g_state->mouse_events) {
@@ -99,8 +109,7 @@ void processEvents() {
     KeyboardState& keyboard_state = g_state->keyboard_state;
     for (slk::KeyboardEvent const& evt : g_state->keyboard_events) {
         slk::i8 modifier_val = 1;
-        if (evt.type == slk::InputEvent::KEYBOARD_KEY_DOWN) 
-        {
+        if (evt.type == slk::InputEvent::KEYBOARD_KEY_DOWN) {
             slk::u32 const byte_idx = KeyboardState::getVKeyByteIndex(evt.vkey);
             slk::u8 const byte_offset = KeyboardState::getVKeyByteIndex(evt.vkey);
 
@@ -113,8 +122,7 @@ void processEvents() {
 
             keyboard_state.curr_key_states[byte_idx] &= ~(1U << byte_offset);
             modifier_val = -1;
-        }
-        else {
+        } else {
             assert(false);
         }
 
@@ -132,20 +140,19 @@ void processEvents() {
         }
     }
 
-    for (slk::u8 idx = 0 ; idx != KB_MODIFIERS_COUNT ; ++idx) {
+    for (slk::u8 idx = 0; idx != KB_MODIFIERS_COUNT; ++idx) {
         slk::i8 const mod = keyboard_modifiers[idx];
         if (mod < 0) {
             g_state->modififers &= ~(slk::InputModifier::mask(idx));
-        }
-        else if (mod > 0) {
+        } else if (mod > 0) {
             g_state->modififers |= slk::InputModifier::mask(idx);
         }
     }
 
     g_state->keyboard_events.clear();
     g_state->mouse_events.clear();
+    g_state->gesture_events.clear();
 }
-
 
 void slk::InputAPI::update() {
     assert(g_state);
@@ -161,22 +168,28 @@ void slk::InputAPI::update() {
     processEvents();
 }
 
-slk::MouseButton::Mask slk::InputAPI::getMouseButtonsState() {
+slk::MouseButton::Mask slk::InputAPI::get_mouse_buttons_state() {
     assert(g_state);
     return g_state->mouse_state.curr_buttons_state;
 }
 
-slk::b8 slk::InputAPI::isMouseButtonDown(EMouseButton button) {
+slk::b8 slk::InputAPI::are_mouse_buttons_down(slk::MouseButton::Mask buttons) {
+    assert(g_state);
+
+    return (g_state->mouse_state.curr_buttons_state & buttons) == buttons;
+}
+
+slk::b8 slk::InputAPI::is_mouse_button_down(EMouseButton button) {
     assert(g_state);
     return (g_state->mouse_state.curr_buttons_state & (1 << button)) != 0;
 }
 
-slk::Vector2f slk::InputAPI::getMousePosition() {
+slk::Vector2f slk::InputAPI::get_mouse_position() {
     assert(g_state);
     return g_state->mouse_state.curr_postion;
 }
 
-slk::Vector2f slk::InputAPI::getMouseMovement() {
+slk::Vector2f slk::InputAPI::get_mouse_movement() {
     assert(g_state);
 
     MouseState& mouse_state = g_state->mouse_state;
@@ -186,12 +199,17 @@ slk::Vector2f slk::InputAPI::getMouseMovement() {
     return {};
 }
 
-slk::Vector2f slk::InputAPI::getMouseScroll() {
+slk::Vector2f slk::InputAPI::get_mouse_scroll() {
     assert(g_state);
     return g_state->mouse_state.scroll;
 }
 
-slk::b8 slk::InputAPI::isKeyboardKeyDown(EVirtualKey key_code) {
+slk::u8 slk::InputAPI::get_touch_point_count() {
+    assert(g_state);
+    return g_state->gesture_state.point_count;
+}
+
+slk::b8 slk::InputAPI::is_keyboard_key_down(EVirtualKey key_code) {
     assert(g_state);
 
     u32 const byte_idx = KeyboardState::getVKeyByteIndex(key_code);
@@ -201,36 +219,39 @@ slk::b8 slk::InputAPI::isKeyboardKeyDown(EVirtualKey key_code) {
     return 0 != (g_state->keyboard_state.curr_key_states[byte_idx] & (1U << byte_offset));
 }
 
-void slk::InputAPI::forwardEvent(InputEvent const& evt) {
+void slk::InputAPI::forward_event(InputEvent const& evt) {
     assert(g_state);
 
-    if ((evt.type >= MouseEvent::MOUSE_BUTTON_UP) && (evt.type <= MouseEvent::MOUSE_SCROLL)) {
+    if ((evt.type >= InputEvent::MOUSE_BUTTON_UP) && (evt.type <= InputEvent::MOUSE_SCROLL)) {
         MouseEvent const& spec_evt = static_cast<MouseEvent const&>(evt);
         g_state->mouse_events.emplace_back(spec_evt);
-    } else if ((evt.type >= MouseEvent::KEYBOARD_KEY_UP) && (evt.type <= MouseEvent::KEYBOARD_KEY_DOWN)) {
+    } else if ((evt.type >= InputEvent::KEYBOARD_KEY_UP) && (evt.type <= InputEvent::KEYBOARD_KEY_DOWN)) {
         KeyboardEvent const& spec_evt = static_cast<KeyboardEvent const&>(evt);
         g_state->keyboard_events.emplace_back(spec_evt);
+    } 
+    else if (evt.type == InputEvent::GESTURE_TOUCH_POINTS_UPDATE) {
+        GestureEvent const& spec_evt = static_cast<GestureEvent const&>(evt);
+        g_state->gesture_events.emplace_back(spec_evt);
+    }
+    else {
+        assert(false);
     }
 }
 
-slk::InputModifier::Mask slk::InputAPI::getModifiersState() {
+slk::InputModifier::Mask slk::InputAPI::get_modifiers_state() {
     assert(g_state);
 
     return g_state->modififers;
-} 
+}
 
-
-slk::b8 slk::InputAPI::hasModifiers(InputModifier::Mask mod_mask) {
+slk::b8 slk::InputAPI::has_modifiers(InputModifier::Mask mod_mask) {
     assert(g_state);
 
     return 0 != (g_state->modififers & mod_mask);
 }
 
-slk::b8 slk::InputAPI::hasModifier(EInputModifier mod_key) {
+slk::b8 slk::InputAPI::has_modifier(EInputModifier mod_key) {
     assert(g_state);
 
-    return hasModifiers(InputModifier::mask(mod_key));
+    return has_modifiers(InputModifier::mask(mod_key));
 }
-
-
-

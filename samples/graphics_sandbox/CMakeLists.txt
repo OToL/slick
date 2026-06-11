@@ -25,7 +25,7 @@ target_compile_options(graphics_sandbox PRIVATE
 
 # specify extern libs as System includes to avoid/silent compilation warnings
 target_include_directories(graphics_sandbox SYSTEM PRIVATE
-    ${SLK_EXTERN_INCLUDE_DIR})
+    ${SLICK_EXTERN_INCLUDE_DIR})
 
 set_target_properties(graphics_sandbox PROPERTIES
     CXX_STANDARD 26

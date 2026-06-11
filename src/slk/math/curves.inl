@@ -100,7 +100,13 @@ inline T compute_bezier_cubic_curve_at(std::span<T const> ctrl_points, f32 time)
     //                      [  1    0    0   0 ]  [P4]
 
     Vector4f const time_vec = {time * time * time, time * time, time, 1};
-    Matrix4f const coeffs_mat = {-1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0};
+    Matrix4f const coeffs_mat = 
+    {
+        -1, 3, -3, 1, 
+        3, -6, 3, 0, 
+        -3, 3, 0, 0, 
+        1, 0, 0, 0
+    };
     Vector4f const time_coeffs_vec =  coeffs_mat * time_vec;
 
     return ctrl_points[0] * time_coeffs_vec.x + ctrl_points[1] * time_coeffs_vec.y + ctrl_points[2] * time_coeffs_vec.z +

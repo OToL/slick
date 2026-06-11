@@ -1,4 +1,4 @@
-if(${SLK_TARGET_PLATFORM_ID} STREQUAL "ps3")
+if(${SLICK_TARGET_PLATFORM_ID} STREQUAL "ps3")
     add_subdirectory(src/ps3_loader)
 else()
     add_subdirectory(src/ps3_uploader)

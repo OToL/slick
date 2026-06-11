@@ -123,7 +123,6 @@ int main() {
 
     slk::f32 delta_time_ms = 0.f;
     auto start_time_point = std::chrono::high_resolution_clock::now();
-
     while (!WindowShouldClose()) {
         game_state.cannon.update(delta_time_ms);
 

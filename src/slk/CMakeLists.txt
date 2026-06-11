@@ -1,7 +1,9 @@
 add_library(slk
     color.cpp
+    camera.cpp
     input/input.cpp
     math/curves.cpp
+    math/math_graphics.cpp
     math/math_constants.cpp)
 
 target_compile_options(slk PRIVATE
@@ -15,10 +17,10 @@ target_compile_options(slk PRIVATE
 
 # specify extern libs as System includes to avoid/silent compilation warnings
 target_include_directories(slk SYSTEM PRIVATE
-    ${SLK_EXTERN_INCLUDE_DIR})
+    ${SLICK_EXTERN_INCLUDE_DIR})
 
 target_include_directories(slk PUBLIC
-    ${SLK_SRC_DIR})
+    ${SLICK_SRC_DIR})
 
 set_target_properties(slk PROPERTIES
     CXX_STANDARD 26

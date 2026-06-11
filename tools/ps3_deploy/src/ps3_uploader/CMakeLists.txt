@@ -7,8 +7,8 @@ set_target_properties(ps3_uploader PROPERTIES
     CXX_EXTENSIONS OFF)
 
 target_include_directories(ps3_uploader PRIVATE 
-    ${SLK_SRC_DIR}
-    ${SLK_EXTERN_INCLUDE_DIR})
+    ${SLICK_SRC_DIR}
+    ${SLICK_EXTERN_INCLUDE_DIR})
 
 target_link_libraries(ps3_uploader PRIVATE 
     ext-zlib)

@@ -15,12 +15,6 @@ void * app_get_window_hdl() {
     return g_metal_layer;
 }
 
-// NSWindow* wnd = (__bridge NSWindow*) sapp_get_native_window();
-// NSView* view = wnd.contentView;
-//
-// view.layer = nil;     // remove our CAMetalLayer
-// view.wantsLayer = NO; // optional
-
 void darwin_init_wrapper()
 {
     NSWindow* wnd = (__bridge NSWindow*) sapp_macos_get_window();
@@ -36,6 +30,21 @@ void darwin_init_wrapper()
     view.layer = g_metal_layer;
 
     app_init();
+
+    // Enable resting touches on the view so the system generates gesture events
+    // for fingers that are placed but not yet moving.
+    view.allowedTouchTypes = NSTouchTypeMaskDirect | NSTouchTypeMaskIndirect;
+    view.wantsRestingTouches = YES;
+
+    // Intercept gesture events at the application level, before Sokol sees them.
+    // NSEventMaskGesture covers raw trackpad touch events and supports
+    // touchesMatchingPhase:inView: (unlike scroll wheel events).
+    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskGesture
+                                          handler:^NSEvent*(NSEvent* event) {
+        NSSet<NSTouch*>* all = [event touchesMatchingPhase:NSTouchPhaseTouching inView:nil];
+        app_set_touch_point_count((int)all.count);
+        return event;
+    }];
 }
 
 void darwin_cleanup_wrapper() {

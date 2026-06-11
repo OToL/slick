@@ -1,8 +1,8 @@
-set(SLK_TARGET_PLATFORM_ID darwin)
-set(SLK_HOST_PLATFORM_ID darwin)
+set(SLICK_TARGET_PLATFORM_ID darwin)
+set(SLICK_HOST_PLATFORM_ID darwin)
 
 # When setting this variable to gcc, remove -nostdinc++ from .clangd
-set(SLK_TOOLCHAIN_NAME "clang" CACHE STRING "")
+set(SLICK_TOOLCHAIN_NAME "clang" CACHE STRING "")
 
 # Locate the macOS SDK path dynamically
 execute_process(
@@ -11,17 +11,18 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-if(${SLK_TOOLCHAIN_NAME} STREQUAL "clang")
+if(${SLICK_TOOLCHAIN_NAME} STREQUAL "clang")
     # Set the compilers to Homebrew LLVM clang/clang++
     set(CMAKE_C_COMPILER /usr/local/bin/clang)
     set(CMAKE_CXX_COMPILER /usr/local/bin/clang++)
 
     set(COMPILER_COMMON_FLAGS "-isystem /opt/homebrew/opt/llvm/include/c++/v1 -isysroot ${MACOS_SDK_PATH}")
     set(COMPILER_CXX_FLAGS "-stdlib=libc++")
+    set(CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS /opt/homebrew/opt/llvm/bin/clang-scan-deps)
 
     # Use homebrew lib c++ because the one from macos is outdated
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++")
-elseif(${SLK_TOOLCHAIN_NAME} STREQUAL "gcc")
+elseif(${SLICK_TOOLCHAIN_NAME} STREQUAL "gcc")
     # Set the compilers to Homebrew gcc/g++
     set(CMAKE_C_COMPILER "/opt/homebrew/opt/gcc/bin/gcc-15")
     set(CMAKE_CXX_COMPILER "/opt/homebrew/opt/gcc/bin/g++-15")
@@ -30,7 +31,7 @@ elseif(${SLK_TOOLCHAIN_NAME} STREQUAL "gcc")
     set(COMPILER_COMMON_FLAGS "-isystem /opt/homebrew/opt/gcc/include/c++/15 -isystem /opt/homebrew/opt/gcc/include/c++/15/aarch64-apple-darwin25")
     set(COMPILER_CXX_FLAGS)
 else()
-    message(FATAL_ERROR "Unsupported compiler: ${SLK_TOOLCHAIN_NAME}")
+    message(FATAL_ERROR "Unsupported compiler: ${SLICK_TOOLCHAIN_NAME}")
 endif()
 
 # Apply compile flags globally (can be overridden per target)

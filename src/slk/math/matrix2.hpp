@@ -40,7 +40,7 @@ struct Matrix2 {
         , m01(_m01), m11(_m11)
     {}
 
-    void setRotation(slk::f32 rot_rad) {
+    void set_rotation(slk::f32 rot_rad) {
         auto const cos_val = std::cos(rot_rad);
         auto const sin_val = std::sin(rot_rad);
 
@@ -48,7 +48,7 @@ struct Matrix2 {
         column1 = {-sin_val, cos_val};
     }
 
-    void setIdentity() {
+    void set_identity() {
         column0 = {1, 0};
         column1 = {0, 1};
     }
@@ -61,27 +61,27 @@ struct Matrix2 {
         return &values[0];
     }
 
-    ColumnType getColumn(u32 idx) const {
+    ColumnType column(u32 idx) const {
         return columns[idx];
     }
 
-    ColumnType getColumn(u32 idx) {
+    ColumnType column(u32 idx) {
         return columns[idx];
     }
 
-    RowType getRow(u32 idx) const {
+    RowType row(u32 idx) const {
         return {columns[0][idx], columns[1][idx]};
     }
 
-    RowType getRow(u32 idx) {
+    RowType row(u32 idx) {
         return {columns[0][idx], columns[1][idx]};
     }
 
-    ScalarType getValue(u32 row_idx, u32 col_idx) const {
+    ScalarType value(u32 row_idx, u32 col_idx) const {
         return columns[col_idx][row_idx];
     }
 
-    void setValue(u32 row_idx, u32 col_idx, ScalarType val) const {
+    void set_value(u32 row_idx, u32 col_idx, ScalarType val) const {
         columns[col_idx][row_idx] = val;
     }
 
@@ -104,7 +104,7 @@ struct Matrix2 {
 
     static Matrix2 make_rotation(slk::f32 rot_rad) {
         Matrix2 rot_matrix;
-        rot_matrix.setRotation(rot_rad);
+        rot_matrix.set_rotation(rot_rad);
 
         return rot_matrix;
     }

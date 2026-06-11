@@ -1,16 +1,16 @@
 # [slk] BEGIN - when not building bgfx/bx/bimg from source, use prebuilt binaries from extern folder
-if(NOT SLK_ENABLE_BUILD_EXTERN)
+if(NOT SLICK_ENABLE_BUILD_EXTERN)
   add_executable(bgfx::bin2c IMPORTED)
   set_target_properties(bgfx::bin2c PROPERTIES
-      IMPORTED_LOCATION "${SLK_EXTERN_HOST_BIN_DIR}/bgfx-bin2c")
+      IMPORTED_LOCATION "${SLICK_EXTERN_HOST_BIN_DIR}/bgfx-bin2c")
 
   add_executable(bgfx::texturec IMPORTED)
   set_target_properties(bgfx::texturec PROPERTIES
-      IMPORTED_LOCATION "${SLK_EXTERN_HOST_BIN_DIR}/bgfx-texturec")
+      IMPORTED_LOCATION "${SLICK_EXTERN_HOST_BIN_DIR}/bgfx-texturec")
 
   add_executable(bgfx::shaderc IMPORTED)
   set_target_properties(bgfx::shaderc PROPERTIES
-      IMPORTED_LOCATION "${SLK_EXTERN_HOST_BIN_DIR}/bgfx-shaderc")
+      IMPORTED_LOCATION "${SLICK_EXTERN_HOST_BIN_DIR}/bgfx-shaderc")
 endif()
 # [slk] END
 

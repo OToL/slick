@@ -1,39 +1,39 @@
-set(SLK_TARGET_PLATFORM_ID ps3)
+set(SLICK_TARGET_PLATFORM_ID ps3)
 
 # Locate PS3 SDK
-set(SLK_PS3_SDK_ROOT_DIR_PATH $ENV{PSL1GHT})
-if(NOT SLK_PS3_SDK_ROOT_DIR_PATH)
+set(SLICK_PS3_SDK_ROOT_DIR_PATH $ENV{PSL1GHT})
+if(NOT SLICK_PS3_SDK_ROOT_DIR_PATH)
     message(FATAL_ERROR "Cannot find 'PSL1GHT' environment variable")
 endif()
 
 # PS3 tools
-set (SLK_PS3_TOOL_C_COMPILER    ${SLK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-gcc)
-set (SLK_PS3_TOOL_CXX_COMPILER  ${SLK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-c++)
-set (SLK_PS3_TOOL_AR            ${SLK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-ar)
-set (SLK_PS3_TOOL_LINKER        ${SLK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-ld)
-set (SLK_PS3_TOOL_STRIP         ${SLK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-strip)
-set (SLK_PS3_TOOL_OBJCOPY       ${SLK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-objcopy)
-set (SLK_PS3_TOOL_SPRXLINKER    ${SLK_PS3_SDK_ROOT_DIR_PATH}/bin/sprxlinker)
-set (SLK_PS3_TOOL_MAKESELF      ${SLK_PS3_SDK_ROOT_DIR_PATH}/bin/make_self)
+set (SLICK_PS3_TOOL_C_COMPILER    ${SLICK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-gcc)
+set (SLICK_PS3_TOOL_CXX_COMPILER  ${SLICK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-c++)
+set (SLICK_PS3_TOOL_AR            ${SLICK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-ar)
+set (SLICK_PS3_TOOL_LINKER        ${SLICK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-ld)
+set (SLICK_PS3_TOOL_STRIP         ${SLICK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-strip)
+set (SLICK_PS3_TOOL_OBJCOPY       ${SLICK_PS3_SDK_ROOT_DIR_PATH}/ppu/bin/ppu-objcopy)
+set (SLICK_PS3_TOOL_SPRXLINKER    ${SLICK_PS3_SDK_ROOT_DIR_PATH}/bin/sprxlinker)
+set (SLICK_PS3_TOOL_MAKESELF      ${SLICK_PS3_SDK_ROOT_DIR_PATH}/bin/make_self)
 
 # Common library & include PS3 SDK directories
-set(SLK_PS3_SDK_LIB_DIRS_PATH 
-    ${SLK_PS3_SDK_ROOT_DIR_PATH}/ppu/lib 
-    ${SLK_PS3_SDK_ROOT_DIR_PATH}/portlibs/ppu/lib)
-set(SLK_PS3_SDK_INCLUDE_DIRS_PATH 
-    ${SLK_PS3_SDK_ROOT_DIR_PATH}/ppu/include 
-    ${SLK_PS3_SDK_ROOT_DIR_PATH}/portlibs/ppu/include)
+set(SLICK_PS3_SDK_LIB_DIRS_PATH 
+    ${SLICK_PS3_SDK_ROOT_DIR_PATH}/ppu/lib 
+    ${SLICK_PS3_SDK_ROOT_DIR_PATH}/portlibs/ppu/lib)
+set(SLICK_PS3_SDK_INCLUDE_DIRS_PATH 
+    ${SLICK_PS3_SDK_ROOT_DIR_PATH}/ppu/include 
+    ${SLICK_PS3_SDK_ROOT_DIR_PATH}/portlibs/ppu/include)
 
 # CMake system information
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR ppu) 
 
 # Set CMake tools from PS3 SDK
-set(CMAKE_AR ${SLK_PS3_TOOL_AR})
-set(CMAKE_ASM_COMPILER ${SLK_PS3_TOOL_AR})
-set(CMAKE_C_COMPILER ${SLK_PS3_TOOL_C_COMPILER})
-set(CMAKE_CXX_COMPILER ${SLK_PS3_TOOL_CXX_COMPILER})
-set(CMAKE_LINKER ${SLK_PS3_TOOL_LINKER})
+set(CMAKE_AR ${SLICK_PS3_TOOL_AR})
+set(CMAKE_ASM_COMPILER ${SLICK_PS3_TOOL_AR})
+set(CMAKE_C_COMPILER ${SLICK_PS3_TOOL_C_COMPILER})
+set(CMAKE_CXX_COMPILER ${SLICK_PS3_TOOL_CXX_COMPILER})
+set(CMAKE_LINKER ${SLICK_PS3_TOOL_LINKER})
 
 # Instruct CMake to skip compiler tests
 set(CMAKE_C_COMPILER_WORKS TRUE CACHE INTERNAL "C compiler works")
