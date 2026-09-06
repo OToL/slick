@@ -2,4 +2,6 @@
 .luarc.json
 .rgignore
 imgui.ini
+extern/redist/bin/
+extern/redist/lib/
 _build/
