@@ -4,27 +4,30 @@
 
 #include <span>
 #include <string_view>
-#include <utility>
 
 struct Camera3D;
 
-enum class DemoId : slk::u32 { 
-    EMPTY,
-    CURVES,
-    PICKING
+struct DemoIdEnum {
+    enum Type : slk::u32 { 
+        EMPTY,
+        CURVES,
+        PICKING
+    };
 };
+using EDemoId = DemoIdEnum::Type;
 
-enum class DemoCaps : slk::u32 {
-    NONE = 0,
-    DEFAULT_CAMERA_CONTROL = 1 << 0,
+struct DemoCapsFlag {
+    enum Type : slk::u32 {
+        NONE = 0,
+        DEFAULT_CAMERA_CONTROL = 1 << 0,
+    };
 };
-
-SB_DECLARE_ENUM_MASK(DemoCaps);
+using FDemoCaps = DemoCapsFlag::Type;
 
 struct DemoInfo {
     std::string_view name;
     std::string_view description;
-    DemoCaps caps;
+    FDemoCaps caps;
 };
 
 struct DemoFn {
@@ -36,11 +39,11 @@ struct DemoFn {
 };
 
 struct Demos {
-    static slk::b8 init(DemoId default_demo_id = DemoId::EMPTY);
+    static slk::b8 init(EDemoId default_demo_id = EDemoId::EMPTY);
     static slk::b8 shutdown();
 
-    static DemoId  current();
-    static slk::b8 set_current(DemoId id);
+    static EDemoId  current();
+    static slk::b8 set_current(EDemoId id);
 
     static slk::b8 update(slk::f32 frame_delta_ms, Camera3D& cam3d);
     static slk::b8 draw3d(slk::f32 frame_delta_ms, Camera3D const& cam3d);

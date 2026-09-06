@@ -45,46 +45,18 @@ using Matrix4Param = Matrix4<T> const&;
 inline constexpr f32 PI_F32 = 3.14159265f;
 inline constexpr f64 PI_F64 = 3.14159265358979323846;
 
-struct Handedness
+enum class Handedness : u8
 {
-    enum Enum : u8
-    {
-        Left,
-        Right,
-    };
+    LEFT,
+    RIGHT,
+
+    DEFAULT = LEFT
 };
-using EHandedness = Handedness::Enum;
 
-template <typename T>
-constexpr T min(T lval, T rval) {
-    return lval < rval ? lval : rval;
-}
-
-template <typename T> 
-constexpr T max(T lval, T rval) {
-    return lval > rval ? lval : rval;
-}
-
-inline float toRad(float _deg)
+enum class Projection : u8
 {
-    return _deg * PI_F32 / 180.0f;
-}
-
-inline float toDeg(float _rad)
-{
-    return _rad * 180.0f / PI_F32;
-}
-
-namespace literals {
-    constexpr slk::f32 operator""_deg(long double degrees)
-    {
-        return toRad(degrees);
-    }
-
-    constexpr slk::f32 operator""_rad(long double radians)
-    {
-        return static_cast<float>(radians);
-    }
-} // namespace literals
+    PERSPECTIVE,
+    ORTHO,
+};
 
 } // namespace slk

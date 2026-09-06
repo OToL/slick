@@ -6,7 +6,7 @@ DemoInfo DemoEmpty::getInfo() {
     return {
         .name = "Empty"sv,
         .description = "Empty Test Demo"sv,
-        .caps = DemoCaps::DEFAULT_CAMERA_CONTROL,
+        .caps = FDemoCaps::DEFAULT_CAMERA_CONTROL,
     };
 }
 DemoFn DemoEmpty::getFn() {

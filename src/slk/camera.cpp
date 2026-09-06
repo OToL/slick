@@ -1,46 +1,123 @@
 #include "camera.hpp"
 #include <slk/math/graphics.hpp>
+#include <slk/math/utils.hpp>
 
-void slk::Camera::set_look_at(Vector3f const& eye, Vector3f const& target) {
-    slk::Matrix4f view = make_look_at(eye, target, slk::Vector3f::UNITY);;
+using namespace slk::literals;
+
+namespace slk {
+
+Camera::Camera(EnumTag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset) :
+    m_orientation(Matrix3f::IDENTITY),
+    m_pos(0.f, 0.f, 0.f),
+    m_near(near),
+    m_far(far),
+    m_projection(Projection::ORTHO),
+    m_left(left),
+    m_right(right),
+    m_top(top),
+    m_bottom(bottom),
+    m_offset(offset)
+{
+}
+
+Camera::Camera(EnumTag<Projection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect) :
+    m_orientation(Matrix3f::IDENTITY),
+    m_pos(0.f, 0.f, 0.f),
+    m_near(near),
+    m_far(far),
+    m_projection(Projection::PERSPECTIVE),
+    m_fovy(fovy),
+    m_aspect(aspect)
+{
+}
+
+
+Camera::Camera() :
+    m_orientation(Matrix3f::IDENTITY),
+    m_pos(0.f, 0.f, 0.f),
+    m_near(0.1f),
+    m_far(10000.f),
+    m_projection(Projection::PERSPECTIVE),
+    m_fovy(45.0_deg),
+    m_aspect(1.77777779) // 16:9
+{
+}
+
+void Camera::setLookAt(Vector3f eye, Vector3f target) {
+    Matrix4f view = makeLookAtMatrix(eye, target, Vector3f::UNITY);
+    ;
     view.inverse();
 
-    orientation = view.rotation();
-    pos = eye;
+    m_orientation = view.rotation();
+    m_pos = eye;
 }
 
-void slk::Camera::rotate(f32 delta_yaw, f32 delta_pitch) {
+void Camera::rotate(f32 delta_yaw, f32 delta_pitch) {
     Matrix3f roty, rotx;
-    roty.set_rotation_y(delta_yaw);
-    rotx.set_rotation_x(delta_pitch);
-    orientation = roty * orientation * rotx;
+    roty.setRotationY(delta_yaw);
+    rotx.setRotationX(delta_pitch);
+    m_orientation = roty * m_orientation * rotx;
 }
 
-slk::Vector3f slk::Camera::get_right() const {
-    return orientation.x_axis();
+Vector3f Camera::right() const {
+    return m_orientation.xAxis();
 }
 
-slk::Vector3f slk::Camera::get_up() const {
-    return orientation.y_axis();
+Vector3f Camera::up() const {
+    return m_orientation.yAxis();
 }
 
-slk::Vector3f slk::Camera::get_forward() const {
-    return orientation.z_axis();
+Vector3f Camera::forward() const {
+    return m_orientation.zAxis();
 }
 
-void slk::Camera::translate(Vector3f const& vec) {
-    pos += get_right() * vec.x + get_up() * vec.y + get_forward() * vec.z;
+void Camera::translate(Vector3f const& vec) {
+    m_pos += right() * vec.m_x + up() * vec.m_y + forward() * vec.m_z;
 }
 
-void slk::Camera::pan(float delta_x, float delta_y) {
-    pos += get_right() * delta_x + Vector3f{0.f, delta_y, 0.f};
+void Camera::pan(float delta_x, float delta_y) {
+    m_pos += right() * delta_x + Vector3f{0.f, delta_y, 0.f};
 }
 
-void slk::Camera::get_view_matrix(Matrix4f& view_mat) const {
-    // Matrix3f const inv_rot = rotation.inversed();
-    // view_mat.setRotation(inv_rot);
-    // view_mat.setTranslation(inv_rot * (-pos));
-    view_mat.set_translation(pos);
-    view_mat.set_rotation(orientation);
+Matrix4f Camera::viewMatrix() const {
+    Matrix4f view_mat;
+    view_mat.setTranslation(m_pos);
+    view_mat.setRotation(m_orientation);
     view_mat.inverse();
+
+    return view_mat;
 }
+
+void Camera::setPerspectiveProjection(f32 near, f32 far, f32 fovy, f32 aspect)
+{
+    m_near = near;
+    m_far = far;
+    m_aspect = aspect;
+    m_fovy = fovy;
+    m_projection = Projection::PERSPECTIVE;
+}
+
+void Camera::setOrthoProjection(f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset)
+{
+    m_near = near;
+    m_far = far;
+    m_left = left;
+    m_right = right;
+    m_top = top;
+    m_bottom = bottom;
+    m_offset = offset;
+    m_projection = Projection::ORTHO;
+}
+
+Matrix4f Camera::projectionMatrix(Handedness hand, bool homogeneous_ndc) const {
+
+    if (m_projection == Projection::ORTHO) {
+        return makeOrthoProjectionMatrix(m_left, m_right, m_bottom, m_top, m_near, m_far, m_offset, homogeneous_ndc, hand);
+    }
+    else {
+        return makePerspectiveProjectionMatrix(m_fovy, m_aspect, m_near, m_far, homogeneous_ndc, hand);
+    }
+}
+
+
+} // namespace slk

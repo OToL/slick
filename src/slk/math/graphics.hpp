@@ -1,14 +1,15 @@
 #pragma once
 
-#include "math.hpp"
 #include "matrix4.hpp"
 #include "fwd.hpp"
 
 namespace slk {
 
-Matrix4f make_ortho_projection(f32 _left, f32 _right, f32 _bottom, f32 _top, f32 _near, f32 _far, f32 _offset, bool _homogeneousNdc,
-                               EHandedness _handedness = EHandedness::Left);
+Matrix4f makeOrthoProjectionMatrix(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far, f32 offset, bool homogeneous_ndc,
+                               Handedness handedness = Handedness::LEFT);
 
-Matrix4f make_look_at(const Vector3f& eye, const Vector3f& at, const Vector3f& ref_up, EHandedness handedness = EHandedness::Left);
+Matrix4f makeLookAtMatrix(const Vector3f& eye, const Vector3f& at, const Vector3f& ref_up, Handedness handedness = Handedness::LEFT);
+
+Matrix4f makePerspectiveProjectionMatrix(f32 fovy_rad, f32 aspect, f32 near, f32 far, bool homogeneousNdc, Handedness handedness = Handedness::LEFT);
 
 } // namespace slk

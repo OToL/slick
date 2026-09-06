@@ -14,108 +14,108 @@ struct Vector2 {
 
     union {
         struct {
-            ScalarType x;
-            ScalarType y;
+            ScalarType m_x;
+            ScalarType m_y;
         };
-        ScalarType values[2];
+        ScalarType m_values[2];
     };
 
-    Vector2() = default;
+    constexpr Vector2() = default;
 
-    explicit Vector2(ScalarType val)
-        : x(val)
-        , y(val) { }
+    constexpr explicit Vector2(ScalarType val)
+        : m_x(val)
+        , m_y(val) { }
 
-    Vector2(ScalarType _x, ScalarType _y)
-        : x(_x)
-        , y(_y) { }
+    constexpr Vector2(ScalarType x, ScalarType y)
+        : m_x(x)
+        , m_y(y) { }
 
-    ScalarType dot(ParamType v) const {
-        return x * v.x + y * v.y;
+    constexpr ScalarType dot(ParamType v) const {
+        return m_x * v.m_x + m_y * v.m_y;
     }
 
-    Vector2& mul(ScalarType v) {
-        x *= v;
-        y *= v;
+    constexpr Vector2& mul(ScalarType v) {
+        m_x *= v;
+        m_y *= v;
 
         return *this;
     }
 
-    Vector2 multiplied(ScalarType v) const {
-        return {x * v, y * v};
+    constexpr Vector2 multiplied(ScalarType v) const {
+        return {m_x * v, m_y * v};
     }
 
-    Vector2& mul(ParamType v) {
-        x *= v.x;
-        y *= v.y;
+    constexpr Vector2& mul(ParamType v) {
+        m_x *= v.m_x;
+        m_y *= v.m_y;
 
         return *this;
     }
 
-    Vector2 multiplied(ParamType v) const {
-        return {x * v.x, y * v.y};
+    constexpr Vector2 multiplied(ParamType v) const {
+        return {m_x * v.m_x, m_y * v.m_y};
     }
 
-    Vector2& normalize() {
+    constexpr Vector2& normalize() {
         auto const length_val = length();
-        x /= length_val;
-        y /= length_val;
+        m_x /= length_val;
+        m_y /= length_val;
 
         return *this;
     }
 
-    Vector2 normalized() const {
+    constexpr Vector2 normalized() const {
         auto const length_val = length();
         return {
-            x /= length_val,
-            y /= length_val,
+            m_x /= length_val,
+            m_y /= length_val,
         };
     }
 
-    ScalarType length() const {
-        return std::sqrt(x * x + y * y);
+    constexpr ScalarType length() const {
+        return std::sqrt(m_x * m_x + m_y * m_y);
     }
 
-    ScalarType length2() const {
-        return x * x + y * y;
+    constexpr ScalarType length2() const {
+        return m_x * m_x + m_y * m_y;
     }
 
-    ScalarType* data() {
-        return &values[0];
+    constexpr ScalarType* data() {
+        return &m_values[0];
     }
 
-    ScalarType const* data() const {
-        return &values[0];
+    constexpr ScalarType const* data() const {
+        return &m_values[0];
     }
 
     // Operators
 
-    Vector2& operator*=(ScalarType val) {
-        x *= val;
-        y *= val;
+    constexpr Vector2& operator*=(ScalarType val) {
+        m_x *= val;
+        m_y *= val;
 
         return *this;
     }
 
-    Vector2& operator-=(ParamType const& v) {
-        x -= v.x;
-        y -= v.y;
+    constexpr Vector2& operator-=(ParamType const& v) {
+        m_x -= v.m_x;
+        m_y -= v.m_y;
         return *this;
     }
 
-    Vector2& operator+=(ParamType const& v) {
-        x += v.x;
-        y += v.y;
+    constexpr Vector2& operator+=(ParamType const& v) {
+        m_x += v.m_x;
+        m_y += v.m_y;
         return *this;
     }
 
-    Vector2 operator-() const {
-        return {-x, -y};
+    constexpr Vector2 operator-() const {
+        return {-m_x, -m_y};
     }
 
-    ScalarType operator[](slk::u32 idx) const {
+    constexpr ScalarType operator[](u32 idx) const {
         // TODO: add assertion on idx value
-        return values[idx];
+        return m_values[idx];
     }
 
     // Constants
@@ -136,17 +136,17 @@ struct Vector2 {
 
 // forward declaration required by Clang and MSVC
 template <>
-const Vector2<slk::f32> Vector2<slk::f32>::ZERO;
+const Vector2<f32> Vector2<f32>::ZERO;
 template <>
-const Vector2<slk::f32> Vector2<slk::f32>::UNITX;
+const Vector2<f32> Vector2<f32>::UNITX;
 template <>
-const Vector2<slk::f32> Vector2<slk::f32>::UNITY;
+const Vector2<f32> Vector2<f32>::UNITY;
 template <>
-const Vector2<slk::i32> Vector2<slk::i32>::ZERO;
+const Vector2<i32> Vector2<i32>::ZERO;
 template <>
-const Vector2<slk::i32> Vector2<slk::i32>::UNITX;
+const Vector2<i32> Vector2<i32>::UNITX;
 template <>
-const Vector2<slk::i32> Vector2<slk::i32>::UNITY;
+const Vector2<i32> Vector2<i32>::UNITY;
 
 template <typename T>
 inline Vector2<T> operator*(Vector2Param<T> v1, Vector2Param<T> v2) {
@@ -155,57 +155,57 @@ inline Vector2<T> operator*(Vector2Param<T> v1, Vector2Param<T> v2) {
 
 template <typename T>
 inline Vector2<T> operator*(Vector2Param<T> v, T val) {
-    return {v.x * val, v.y * val};
+    return {v.m_x * val, v.m_y * val};
 }
 
 template <typename T>
 inline Vector2<T> operator/(Vector2Param<T> v, T val) {
-    return {v.x / val, v.y / val};
+    return {v.m_x / val, v.m_y / val};
 }
 
 template <typename T>
 inline Vector2<T> operator+(Vector2Param<T> v, T val) {
-    return {v.x + val, v.y + val};
+    return {v.m_x + val, v.m_y + val};
 }
 
 template <typename T>
 inline Vector2<T> operator+(Vector2Param<T> v, Vector2Param<T> val) {
-    return {v.x + val.x, v.y + val.y};
+    return {v.m_x + val.m_x, v.m_y + val.m_y};
 }
 
 template <typename T>
 inline Vector2<T> operator-(Vector2Param<T> v, Vector2Param<T> val) {
-    return {v.x - val.x, v.y - val.y};
+    return {v.m_x - val.m_x, v.m_y - val.m_y};
 }
 
 template <typename T>
-bool operator<(slk::Vector2Param<T> const& v1, slk::Vector2Param<T> const& v2) {
-    return v1.x < v2.x && v1.y < v2.y;
+bool operator<(Vector2Param<T> const& v1, Vector2Param<T> const& v2) {
+    return v1.m_x < v2.m_x && v1.m_y < v2.m_y;
 }
 
 template <typename T>
-bool operator>(slk::Vector2Param<T> const& v1, slk::Vector2Param<T> const& v2) {
-    return v1.x > v2.x && v1.y > v2.y;
+bool operator>(Vector2Param<T> const& v1, Vector2Param<T> const& v2) {
+    return v1.m_x > v2.m_x && v1.m_y > v2.m_y;
 }
 
 // component wise min/max
 template <typename T>
-constexpr slk::Vector2<T> min(slk::Vector2Param<T> lval, slk::Vector2Param<T> rval) {
+constexpr Vector2<T> min(Vector2Param<T> lval, Vector2Param<T> rval) {
     return {
-        lval.x < rval.x ? lval.x : rval.x,
-        lval.y < rval.y ? lval.y : rval.y,
+        lval.m_x < rval.m_x ? lval.m_x : rval.m_x,
+        lval.m_y < rval.m_y ? lval.m_y : rval.m_y,
     };
 }
 
 template <typename T>
-constexpr slk::Vector2<T> max(slk::Vector2Param<T> lval, slk::Vector2Param<T> rval) {
+constexpr Vector2<T> max(Vector2Param<T> lval, Vector2Param<T> rval) {
     return {
-        lval.x > rval.x ? lval.x : rval.x,
-        lval.y > rval.y ? lval.y : rval.y,
+        lval.m_x > rval.m_x ? lval.m_x : rval.m_x,
+        lval.m_y > rval.m_y ? lval.m_y : rval.m_y,
     };
 }
 
-using Vector2i = Vector2<slk::i32>;
-using Vector2f = Vector2<slk::f32>;
+using Vector2i = Vector2<i32>;
+using Vector2f = Vector2<f32>;
 
 } // namespace slk

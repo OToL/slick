@@ -4,6 +4,8 @@
 #include <slk/math/vector2.hpp>
 #include "key_codes.hpp"
 
+import std;
+
 namespace slk {
 
 struct InputEvent;
@@ -12,31 +14,35 @@ struct InputEvent;
 struct InputAPI {
     InputAPI() = delete;
 
-    static b8 init();
+    static b8 initialize();
     static b8 shutdown();
     static void update();
 
     // Modifiers
-    static InputModifier::Mask get_modifiers_state(); 
-    static b8 has_modifiers(InputModifier::Mask mod_mask);
-    static b8 has_modifier(EInputModifier mod_key);
+    static InputModifierMask modifiersState(); 
+    static b8 hasAnyModifier(InputModifierMask mod_mask);
+    static b8 hasModifier(InputModifier mod_key);
 
     // Mouse
-    static Vector2f get_mouse_position();
-    static Vector2f get_mouse_movement();
-    static Vector2f get_mouse_scroll();
-    static b8 is_mouse_button_down(EMouseButton button);
-    static b8 are_mouse_buttons_down(MouseButton::Mask buttons);
-    static MouseButton::Mask get_mouse_buttons_state();
+    static Vector2f mousePosition();
+    static Vector2f mouseMovement();
+    static Vector2f mouseScroll();
+    static b8 isMouseButtonDown(MouseButton button);
+    static b8 areMouseButtonsDown(MouseButtonMask buttons);
+    static MouseButtonMask mouseButtonsState();
 
     // Gesture & Touchpad
-    static u8 get_touch_point_count();
+    static u8 gestureTouchCount();
+    static Vector2f gestureScrollState();
 
     // Keyboard
     // TODO: pressed & released
-    static b8 is_keyboard_key_down(EVirtualKey key_code);
+    static b8 isKeyboardKeyDown(KeyboardVKey key_code);
+    static b8 isAnyKeyboardKeyDown(std::span<KeyboardVKey const> key_codes);
+    static b8 areKeyboardKeysDown(std::span<KeyboardVKey const> key_codes);
 
-    static void forward_event(InputEvent const& evt);
+    // External input events injection
+    static void forwardEvent(InputEvent const& evt);
 };
 
 } // namespace slk

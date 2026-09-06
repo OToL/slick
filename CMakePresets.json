@@ -15,7 +15,10 @@
                 "CMAKE_TOOLCHAIN_FILE": "scripts/cmake/toolchain_darwin.cmake",
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_SUPPRESS_DEVELOPER_WARNINGS": "ON",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "1"
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "1",
+                "CMAKE_EXPERIMENTAL_CXX_IMPORT_STD": "f35a9ac6-8463-4d38-8eec-5d6008153e7d",
+                "CMAKE_CXX_STDLIB_MODULES_JSON": "/Users/emmanuelbeau/Documents/dev/llvm-project/install/lib/libc++.modules.json",
+                "CMAKE_CXX_MODULE_STD" : "ON"
             }
         },
         {
@@ -32,7 +35,10 @@
                 "CMAKE_TOOLCHAIN_FILE": "scripts/cmake/toolchain_darwin.cmake",
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
                 "CMAKE_SUPPRESS_DEVELOPER_WARNINGS": "ON",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "1"
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "1",
+                "CMAKE_EXPERIMENTAL_CXX_IMPORT_STD": "f35a9ac6-8463-4d38-8eec-5d6008153e7d",
+                "CMAKE_CXX_STDLIB_MODULES_JSON": "/Users/emmanuelbeau/Documents/dev/llvm-project/install/lib/libc++.modules.json",
+                "CMAKE_CXX_MODULE_STD" : "ON"
             }
         },
         {

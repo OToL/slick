@@ -14,143 +14,142 @@ struct alignas(16) Vector4 {
 
     union {
         struct {
-            ScalarType x;
-            ScalarType y;
-            ScalarType z;
-            ScalarType w;
+            ScalarType m_x;
+            ScalarType m_y;
+            ScalarType m_z;
+            ScalarType m_w;
         };
         ScalarType values[4];
     };
 
-    Vector4() = default;
+    constexpr Vector4() = default;
 
     explicit Vector4(ScalarType val)
-        : x(val)
-        , y(val)
-        , z(val)
-        , w(val) { }
+        : m_x(val)
+        , m_y(val)
+        , m_z(val)
+        , m_w(val) { }
 
-    Vector4(ScalarType _x, ScalarType _y, ScalarType _z, ScalarType _w)
-        : x(_x)
-        , y(_y)
-        , z(_z)
-        , w(_w) { }
+    constexpr Vector4(ScalarType x, ScalarType y, ScalarType z, ScalarType w)
+        : m_x(x)
+        , m_y(y)
+        , m_z(z)
+        , m_w(w) { }
 
-    ScalarType dot(ParamType v) const {
-        return x * v.x + y * v.y + w * v.w;
+    constexpr ScalarType dot(ParamType v) const {
+        return m_x * v.m_x + m_y * v.m_y + m_w * v.m_w;
     }
 
-    Vector4 cross(ParamType v) const {
+    constexpr Vector4 cross(ParamType v) const {
 		return {
-			y*v.z - z*v.y,
-			z*v.w - w*v.z,
-			w*v.x - x*v.w,
-			x*v.y - y*v.x,
+			m_y*v.m_z - m_z*v.m_y,
+			m_z*v.m_w - m_w*v.m_z,
+			m_w*v.m_x - m_x*v.m_w,
+			m_x*v.m_y - m_y*v.m_x,
 		};
     }
 
-
-    Vector4& mul(ScalarType v) {
-        x *= v;
-        y *= v;
-        z *= v;
-        w *= v;
-
-        return *this;
-    }
-
-    Vector4 multiplied(ScalarType v) const {
-        return {x * v, y * v, z * v, w * v};
-    }
-
-    Vector4& mul(ParamType v) {
-        x *= v.x;
-        y *= v.y;
-        z *= v.z;
-        w *= v.w;
+    constexpr Vector4& mul(ScalarType v) {
+        m_x *= v;
+        m_y *= v;
+        m_z *= v;
+        m_w *= v;
 
         return *this;
     }
 
-    Vector4 multiplied(ParamType v) const {
-        return {x * v.x, y * v.y, z * v.z, w * v.w};
+    constexpr Vector4 multiplied(ScalarType v) const {
+        return {m_x * v, m_y * v, m_z * v, m_w * v};
     }
 
-    Vector4& normalize() {
+    constexpr Vector4& mul(ParamType v) {
+        m_x *= v.m_x;
+        m_y *= v.m_y;
+        m_z *= v.m_z;
+        m_w *= v.m_w;
+
+        return *this;
+    }
+
+    constexpr Vector4 multiplied(ParamType v) const {
+        return {m_x * v.m_x, m_y * v.m_y, m_z * v.m_z, m_w * v.m_w};
+    }
+
+    constexpr Vector4& normalize() {
         auto const length_val = length();
-        x /= length_val;
-        y /= length_val;
-        z /= length_val;
-        w /= length_val;
+        m_x /= length_val;
+        m_y /= length_val;
+        m_z /= length_val;
+        m_w /= length_val;
 
         return *this;
     }
 
-    Vector4 normalized() const {
+    constexpr Vector4 normalized() const {
         auto const length_val = length();
         return {
-            x /= length_val,
-            y /= length_val,
-            z /= length_val,
-            w /= length_val,
+            m_x /= length_val,
+            m_y /= length_val,
+            m_z /= length_val,
+            m_w /= length_val,
         };
     }
 
-    ScalarType length() const {
-        return std::sqrt(x * x + y * y + z * z + w * w);
+    constexpr ScalarType length() const {
+        return std::sqrt(m_x * m_x + m_y * m_y + m_z * m_z + m_w * m_w);
     }
 
-    ScalarType length2() const {
-        return x * x + y * y + z * z + w * w;
+    constexpr ScalarType length2() const {
+        return m_x * m_x + m_y * m_y + m_z * m_z + m_w * m_w;
     }
 
-    ScalarType* data() {
+    constexpr ScalarType* data() {
         return &values[0];
     }
 
-    ScalarType const* data() const {
+    constexpr ScalarType const* data() const {
         return &values[0];
     }
 
     // Operators
 
-    Vector4& operator*=(ScalarType val) {
-        x *= val;
-        y *= val;
-        z *= val;
-        w *= val;
+    constexpr Vector4& operator*=(ScalarType val) {
+        m_x *= val;
+        m_y *= val;
+        m_z *= val;
+        m_w *= val;
 
         return *this;
     }
 
-    Vector4& operator-=(ParamType v) {
-        x -= v.x;
-        y -= v.y;
-        z -= v.z;
-        w -= v.w;
+    constexpr Vector4& operator-=(ParamType v) {
+        m_x -= v.m_x;
+        m_y -= v.m_y;
+        m_z -= v.m_z;
+        m_w -= v.m_w;
 
         return *this;
     }
 
-    Vector4& operator+=(ParamType v) {
-        x += v.x;
-        y += v.y;
-        z += v.z;
-        w += v.w;
+    constexpr Vector4& operator+=(ParamType v) {
+        m_x += v.m_x;
+        m_y += v.m_y;
+        m_z += v.m_z;
+        m_w += v.m_w;
 
         return *this;
     }
 
-    Vector4 operator-() const {
-        return {-x, -y, -z, -w};
+    constexpr Vector4 operator-() const {
+        return {-m_x, -m_y, -m_z, -m_w};
     }
 
-    ScalarType operator[](slk::u32 idx) const {
+    constexpr ScalarType operator[](slk::u32 idx) const {
         // TODO: add assertion on idx value
         return values[idx];
     }
 
-    ScalarType& operator[](slk::u32 idx) {
+    constexpr ScalarType& operator[](slk::u32 idx) {
         // TODO: add assertion on idx value
         return values[idx];
     }
@@ -160,16 +159,16 @@ struct alignas(16) Vector4 {
     static constexpr Vector4 zero() {
         return {0, 0, 0, 0};
     }
-    static constexpr Vector4 unitY() {
+    static constexpr Vector4 unit_y() {
         return {0, 1, 0, 0};
     };
-    static constexpr Vector4 unitX() {
+    static constexpr Vector4 unit_x() {
         return {1, 0, 0, 0};
     };
-    static constexpr Vector4 unitZ() {
+    static constexpr Vector4 unit_z() {
         return {0, 0, 1, 0};
     };
-    static constexpr Vector4 unitW() {
+    static constexpr Vector4 unit_W() {
         return {0, 0, 0, 1};
     };
     static const Vector4 ZERO;
@@ -203,62 +202,62 @@ const Vector4<slk::i32> Vector4<slk::i32>::UNITW;
 
 template <typename T>
 inline Vector4<T> operator*(Vector4Param<T> v1, Vector4Param<T> v2) {
-    return {v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w};
+    return {v1.m_x * v2.m_x, v1.m_y * v2.m_y, v1.m_z * v2.m_z, v1.m_w * v2.m_w};
 }
 
 template <typename T>
 inline Vector4<T> operator*(Vector4Param<T> v, T val) {
-    return {v.x * val, v.y * val, v.z * val, v.w * val};
+    return {v.m_x * val, v.m_y * val, v.m_z * val, v.m_w * val};
 }
 
 template <typename T>
 inline Vector4<T> operator/(Vector4Param<T> v, T val) {
-    return {v.x / val, v.y / val, v.z / val, v.w / val};
+    return {v.m_x / val, v.m_y / val, v.m_z / val, v.m_w / val};
 }
 
 template <typename T>
 inline Vector4<T> operator+(Vector4Param<T> v, T val) {
-    return {v.x + val, v.y + val, v.z + val, v.w + val};
+    return {v.m_x + val, v.m_y + val, v.m_z + val, v.m_w + val};
 }
 
 template <typename T>
 inline Vector4<T> operator+(Vector4Param<T> v, Vector4Param<T> val) {
-    return {v.x + val.x, v.y + val.y, v.z + val.z, v.w + val.w};
+    return {v.m_x + val.m_x, v.m_y + val.m_y, v.m_z + val.m_z, v.m_w + val.m_w};
 }
 
 template <typename T>
 inline Vector4<T> operator-(Vector4Param<T> v, Vector4Param<T> val) {
-    return {v.x - val.x, v.y - val.y, v.z - val.z, v.w - val.w};
+    return {v.m_x - val.m_x, v.m_y - val.m_y, v.m_z - val.m_z, v.m_w - val.m_w};
 }
 
 template <typename T>
-bool operator<(slk::Vector4Param<T> v1, slk::Vector4Param<T> v2) {
-    return v1.x < v2.x && v1.y < v2.y && v1.z < v2.z && v1.w < v2.w;
+inline bool operator<(slk::Vector4Param<T> v1, slk::Vector4Param<T> v2) {
+    return v1.m_x < v2.m_x && v1.m_y < v2.m_y && v1.m_z < v2.m_z && v1.m_w < v2.m_w;
 }
 
 template <typename T>
-bool operator>(slk::Vector4Param<T> v1, slk::Vector4Param<T> v2) {
-    return v1.x > v2.x && v1.y > v2.y && v1.z > v2.z && v1.w > v2.w;
+inline bool operator>(slk::Vector4Param<T> v1, slk::Vector4Param<T> v2) {
+    return v1.m_x > v2.m_x && v1.m_y > v2.m_y && v1.m_z > v2.m_z && v1.m_w > v2.m_w;
 }
 
 // component wise min/max
 template <typename T>
-constexpr slk::Vector4<T> min(slk::Vector4Param<T> lval, slk::Vector4Param<T> rval) {
+inline constexpr slk::Vector4<T> min(slk::Vector4Param<T> lval, slk::Vector4Param<T> rval) {
     return {
-        lval.x < rval.x ? lval.x : rval.x,
-        lval.y < rval.y ? lval.y : rval.y,
-        lval.z < rval.z ? lval.z : rval.z,
-        lval.w < rval.w ? lval.w : rval.w,
+        lval.m_x < rval.m_x ? lval.m_x : rval.m_x,
+        lval.m_y < rval.m_y ? lval.m_y : rval.m_y,
+        lval.m_z < rval.m_z ? lval.m_z : rval.m_z,
+        lval.m_w < rval.m_w ? lval.m_w : rval.m_w,
     };
 }
 
 template <typename T>
-constexpr slk::Vector4<T> max(slk::Vector4Param<T> lval, slk::Vector4Param<T> rval) {
+inline constexpr slk::Vector4<T> max(slk::Vector4Param<T> lval, slk::Vector4Param<T> rval) {
     return {
-        lval.x > rval.x ? lval.x : rval.x,
-        lval.y > rval.y ? lval.y : rval.y,
-        lval.z > rval.z ? lval.z : rval.z,
-        lval.w > rval.w ? lval.w : rval.w,
+        lval.m_x > rval.m_x ? lval.m_x : rval.m_x,
+        lval.m_y > rval.m_y ? lval.m_y : rval.m_y,
+        lval.m_z > rval.m_z ? lval.m_z : rval.m_z,
+        lval.m_w > rval.m_w ? lval.m_w : rval.m_w,
     };
 }
 

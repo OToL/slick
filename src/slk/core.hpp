@@ -23,27 +23,38 @@ using b8 = bool;
 
 } // namespace slk
 
-#define SB_DECLARE_TAG(tag_name)  inline constexpr struct tag_name ## Tag {} tag_name
+// Compile Time Features
+#define SB_FEATURE_ENABLED 2
+#define SB_FEATURE_DISABLED 1
 
-// MyValueTag My
+#define sb_feature_enabled(name) \
+    2 == ((SB_FEATURE_##name+1) / SB_FEATURE_##name)
 
-// requires inclusion of std utility (to_underlying)
-#define SB_DECLARE_ENUM_MASK(enum_type)                                                                                                              \
-    inline enum_type operator|(enum_type lval, enum_type rval) {                                                                                     \
-        return static_cast<enum_type>(std::to_underlying(lval) | std::to_underlying(rval));                                                          \
+#define sb_feature_disabled(name) \
+    2 != ((SB_FEATURE_##name+1) / SB_FEATURE_##name)
+
+// Enumeration used as mask
+#define sb_declare_enum_mask_operators(flag)                                                                                                         \
+    inline constexpr flag operator|(flag lval, flag rval) {                                                                                          \
+        return (flag)(static_cast<__underlying_type(flag)>(lval) | static_cast<__underlying_type(flag)>(rval));                                      \
     }                                                                                                                                                \
-    inline enum_type operator&(enum_type lval, enum_type rval) {                                                                                     \
-        return static_cast<enum_type>(std::to_underlying(lval) & std::to_underlying(rval));                                                          \
+    inline constexpr flag operator&(flag lval, flag rval) {                                                                                          \
+        return (flag)(static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval));                                      \
     }                                                                                                                                                \
-    inline enum_type& operator|=(enum_type& lval, enum_type rval) {                                                                                  \
+    inline constexpr void operator|=(flag& lval, flag rval) {                                                                                        \
         lval = lval | rval;                                                                                                                          \
-        return lval;                                                                                                                                 \
     }                                                                                                                                                \
-    inline enum_type operator&=(enum_type& lval, enum_type rval) {                                                                                   \
+    inline constexpr void operator&=(flag& lval, flag rval) {                                                                                        \
         lval = lval & rval;                                                                                                                          \
-        return lval;                                                                                                                                 \
     }                                                                                                                                                \
-    inline bool has_flag(enum_type lval, enum_type rval) {                                                                                           \
-        return (lval & rval) == rval;                                                                                                                \
+    inline constexpr flag operator~(flag val) {                                                                                                      \
+        return (flag)(~static_cast<__underlying_type(flag)>(val));                                                                                   \
     }
+
+// Toolchain specific macros
+#if defined(__clang__)
+#    define sb_force_inline [[clang::always_inline]]
+#else
+#    define sb_force_inline
+#endif
 

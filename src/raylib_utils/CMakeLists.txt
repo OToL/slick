@@ -5,7 +5,6 @@ target_compile_options(raylib-utils PRIVATE
     -Werror
     -Wall 
     -Wextra
-
     -Wno-gnu-anonymous-struct
     -Wno-nested-anon-types
     -Wno-unknown-pragmas)

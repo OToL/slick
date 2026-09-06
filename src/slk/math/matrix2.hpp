@@ -18,100 +18,108 @@ struct Matrix2 {
 
     union {
         struct {
-            ColumnType column0;
-            ColumnType column1;
+            ColumnType m_column0;
+            ColumnType m_column1;
         };
-        ColumnType columns[2];
-        ScalarType values[4];
+        ColumnType m_columns[2];
+        ScalarType m_values[4];
         struct {
-            ScalarType m00, m10;
-            ScalarType m01, m11;
+            ScalarType m_00, m_10;
+            ScalarType m_01, m_11;
         };
     };
 
-    Matrix2() = default;
+    constexpr Matrix2() = default;
 
-    Matrix2(ColumnParamType _col0, ColumnParamType _col1)
-        : column0(_col0)
-        , column1(_col1) { }
+    constexpr Matrix2(ColumnParamType col0, ColumnParamType col1)
+        : m_column0(col0)
+        , m_column1(col1) { }
 
-    Matrix2(ScalarType _m00, ScalarType _m01, ScalarType _m10, ScalarType _m11)
-        : m00(_m00), m10(_m10)
-        , m01(_m01), m11(_m11)
+    constexpr Matrix2(ScalarType s00, ScalarType s01, ScalarType s10, ScalarType s11)
+        : m_00(s00), m_10(s10)
+        , m_01(s01), m_11(s11)
     {}
 
-    void set_rotation(slk::f32 rot_rad) {
+    constexpr Matrix2& setRotation(slk::f32 rot_rad) {
         auto const cos_val = std::cos(rot_rad);
         auto const sin_val = std::sin(rot_rad);
 
-        column0 = {cos_val, sin_val};
-        column1 = {-sin_val, cos_val};
+        m_column0 = {cos_val, sin_val};
+        m_column1 = {-sin_val, cos_val};
+
+        return *this;
     }
 
-    void set_identity() {
-        column0 = {1, 0};
-        column1 = {0, 1};
+    constexpr Matrix2& setIdentity() {
+        m_column0 = {1, 0};
+        m_column1 = {0, 1};
+
+        return *this;
     }
 
-    ScalarType* data() {
-        return &values[0];
+    constexpr ScalarType* data() {
+        return &m_values[0];
     }
 
-    ScalarType const* data() const {
-        return &values[0];
+    constexpr ScalarType const* data() const {
+        return &m_values[0];
     }
 
-    ColumnType column(u32 idx) const {
-        return columns[idx];
+    constexpr ColumnType column(u32 idx) const {
+        return m_columns[idx];
     }
 
-    ColumnType column(u32 idx) {
-        return columns[idx];
+    constexpr ColumnType column(u32 idx) {
+        return m_columns[idx];
     }
 
-    RowType row(u32 idx) const {
-        return {columns[0][idx], columns[1][idx]};
+    constexpr RowType row(u32 idx) const {
+        return {m_columns[0][idx], m_columns[1][idx]};
     }
 
-    RowType row(u32 idx) {
-        return {columns[0][idx], columns[1][idx]};
+    constexpr RowType row(u32 idx) {
+        return {m_columns[0][idx], m_columns[1][idx]};
     }
 
-    ScalarType value(u32 row_idx, u32 col_idx) const {
-        return columns[col_idx][row_idx];
+    constexpr ScalarType value(u32 row_idx, u32 col_idx) const {
+        return m_columns[col_idx][row_idx];
     }
 
-    void set_value(u32 row_idx, u32 col_idx, ScalarType val) const {
-        columns[col_idx][row_idx] = val;
+    constexpr Matrix2& set_value(u32 row_idx, u32 col_idx, ScalarType val) const {
+        m_columns[col_idx][row_idx] = val;
+
+        return *this;
     }
 
-    ScalarType determinant() const {
-       return m00*m11 - m01*m10; 
+    constexpr ScalarType determinant() const {
+       return m_00*m_11 - m_01*m_10; 
     }
 
-    void inverse() {
+    constexpr Matrix2& inverse() {
         const ScalarType inv_det = 1.f/determinant();
 
-        const ScalarType tmp = m00;
-        m00 = m11 * inv_det;
-        m11 = tmp * inv_det;
+        const ScalarType tmp = m_00;
+        m_00 = m_11 * inv_det;
+        m_11 = tmp * inv_det;
 
-        m01 = -m01 * inv_det;
-        m10 = -m10 * inv_det;
+        m_01 = -m_01 * inv_det;
+        m_10 = -m_10 * inv_det;
+
+        return *this;
     }
 
     // Transforms factory
 
-    static Matrix2 make_rotation(slk::f32 rot_rad) {
+    static constexpr Matrix2 makeRotation(slk::f32 rot_rad) {
         Matrix2 rot_matrix;
-        rot_matrix.set_rotation(rot_rad);
+        rot_matrix.setRotation(rot_rad);
 
         return rot_matrix;
     }
 
     // Constants
 
-    static inline constexpr Matrix2 indentity() {
+    static constexpr Matrix2 indentity() {
         return {{1, 0}, {0, 1}};
     }
 
@@ -126,7 +134,7 @@ const Matrix2<slk::i32> Matrix2<slk::i32>::IDENTITY;
 
 template <typename T>
 slk::Vector2<T> operator*(slk::Matrix2<T> const& mat, slk::Vector2<T> const& v) {
-    return {v.x * mat.column0.x + v.y * mat.column1.x, v.x * mat.column0.y + v.y * mat.column1.y};
+    return {v.m_x * mat.m_column0.m_x + v.m_y * mat.m_column1.m_x, v.m_x * mat.m_column0.m_y + v.m_y * mat.m_column1.m_y};
 }
 template <typename T>
 slk::Matrix2<T> operator*(slk::Matrix2<T> const& lval, slk::Matrix2<T> const& rval) {
@@ -135,7 +143,6 @@ slk::Matrix2<T> operator*(slk::Matrix2<T> const& lval, slk::Matrix2<T> const& rv
         lval * rval.column1,
     };
 }
-
 
 using Matrix2f = Matrix2<slk::f32>;
 using Matrix2i = Matrix2<slk::i32>;

@@ -42,7 +42,56 @@ void darwin_init_wrapper()
     [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskGesture
                                           handler:^NSEvent*(NSEvent* event) {
         NSSet<NSTouch*>* all = [event touchesMatchingPhase:NSTouchPhaseTouching inView:nil];
-        app_set_touch_point_count((int)all.count);
+        app_notify_gesture_touch_count((int)all.count);
+        return event;
+    }];
+
+    // [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskSwipe
+    //                                       handler:^NSEvent*(NSEvent* event) {
+    //     NSSet<NSTouch*>* all = [event touchesMatchingPhase:NSTouchPhaseTouching inView:nil];
+    //     app_set_touch_point_count((int)all.count);
+    //     return event;
+    // }];
+
+    // NSEventMaskGesture API_AVAILABLE(macos(10.5))          = 1ULL << NSEventTypeGesture,
+    // NSEventMaskMagnify API_AVAILABLE(macos(10.5))          = 1ULL << NSEventTypeMagnify,
+    // NSEventMaskSwipe API_AVAILABLE(macos(10.5))            = 1ULL << NSEventTypeSwipe,
+    // NSEventMaskRotate API_AVAILABLE(macos(10.5))           = 1ULL << NSEventTypeRotate,
+
+    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel
+                                          handler:^NSEvent*(NSEvent* event) {
+
+        // Once fingers leave the trackpad, macOS keeps synthesizing scroll
+        // events with decaying deltas to produce the "coasting" inertia
+        // effect. Those carry a non-zero momentumPhase, unlike events driven
+        // directly by finger movement (momentumPhase == NSEventPhaseNone).
+        // Drop them so drags stop the instant the user lifts their fingers.
+        if (event.momentumPhase != NSEventPhaseNone) {
+            return event;
+        }
+
+        float deltax = static_cast<float>(event.scrollingDeltaX);
+        float deltay = static_cast<float>(event.scrollingDeltaY);
+
+        // STANDARD MOUSE WHEEL (Logitech, Razer, etc.)
+        // Apple scales a standard wheel click down to roughly 0.1 to 1.0.
+        // Multiply by a fixed scalar to restore standard hardware wheel "ticks".
+        // Cross-platform frameworks (like GLFW) use a multiplier of ~0.1 to 1.0 
+        // depending on how they define 1 "tick", but if you want it to feel like Windows:
+        if (!event.hasPreciseScrollingDeltas) {
+            float const WHEEL_TICK_MULTIPLIER = 30.f; 
+            deltax *= WHEEL_TICK_MULTIPLIER;
+            deltay *= WHEEL_TICK_MULTIPLIER;
+        }
+
+        app_notify_gesture_scroll(2, deltax, deltay);
+        return event;
+    }];
+
+    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMagnify
+                                          handler:^NSEvent*(NSEvent* event) {
+        NSSet<NSTouch*>* all = [event touchesMatchingPhase:NSTouchPhaseTouching inView:nil];
+        app_notify_gesture_touch_count((int)all.count);
         return event;
     }];
 }

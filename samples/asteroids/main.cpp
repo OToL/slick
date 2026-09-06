@@ -8,6 +8,7 @@
 #include <slk/color.hpp>
 #include <slk/math/math.hpp>
 #include <slk/math/matrix2.hpp>
+#include <slk/math/utils.hpp>
 
 #include <raylib/raylib.h>
 
@@ -59,7 +60,7 @@ void resetRandom() {
 }
 
 slk::Vector2f get_rand_pos_in_abb(slk::AABB2f const & aabb) {
-    return aabb.min + slk::Vector2f{
+    return aabb.m_min + slk::Vector2f{
                           static_cast<slk::f32>(getRandom()) * aabb.width(),
                           static_cast<slk::f32>(getRandom()) * aabb.height(),
                       };
@@ -70,7 +71,7 @@ struct GameState {
 
     std::vector<Ennemy> ennemies;
     std::vector<Projectile> projectiles;
-    Cannon cannon = {ENV_AABB.min + slk::Vector2f(ENV_AABB.width() * 0.5f, 0) + slk::Vector2f(0, 50),
+    Cannon cannon = {ENV_AABB.m_min + slk::Vector2f(ENV_AABB.width() * 0.5f, 0) + slk::Vector2f(0, 50),
                      CANNON_SIZE,
                      CANNON_SIZE,
                      CANNON_MAX_ANGLE,
@@ -90,9 +91,9 @@ struct GameState {
         const slk::Vector2f SPAWN_MARGIN = slk::Vector2f{5.f, 5.f};
 
         // define the sub area where ennemies must be spawned
-        slk::Vector2f const spawn_margin = NEW_ENEMY_EXTENTS.max + SPAWN_MARGIN;
-        slk::AABB2f env_spawn_space{slk::Vector2f(env_aabb.min + slk::Vector2f(0, env_aabb.height() * 0.444f)),
-                                    env_aabb.max - slk::Vector2f(env_aabb.width() * .5f, 0)};
+        slk::Vector2f const spawn_margin = NEW_ENEMY_EXTENTS.m_max + SPAWN_MARGIN;
+        slk::AABB2f env_spawn_space{slk::Vector2f(env_aabb.m_min + slk::Vector2f(0, env_aabb.height() * 0.444f)),
+                                    env_aabb.m_max - slk::Vector2f(env_aabb.width() * .5f, 0)};
         env_spawn_space.shrink(spawn_margin);
 
         slk::f32 const ennemy1_ang = getRandom() * slk::PI_F32 * 2;
@@ -150,7 +151,7 @@ int main() {
             proj.curr_pos = proj.prev_pos + proj.velocity * delta_time_ms;
 
             // out of environment bound
-            if (!game_state.env_aabb.is_inside(proj.curr_pos)) {
+            if (!game_state.env_aabb.isInside(proj.curr_pos)) {
                 removeSwap(game_state.projectiles, proj_iter);
             } else {
                 ++proj_iter;
@@ -166,7 +167,7 @@ int main() {
             auto ennemy_world_aabb = ennemy.extents.displaced(ennemy.position);
 
             // the ennemy is exiting the environment
-            if (!game_state.env_aabb.is_inside(ennemy_world_aabb)) {
+            if (!game_state.env_aabb.isInside(ennemy_world_aabb)) {
                 slk::Vector2f normal = slk::Vector2f::ZERO;
 
                 // simple snapping
@@ -178,18 +179,18 @@ int main() {
                     slk::Vector2f{0.f, 1.f},
                 };
 
-                auto diff_max = slk::max(ennemy_world_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
+                auto diff_max = slk::max(ennemy_world_aabb.m_max - game_state.env_aabb.m_max, slk::Vector2f::zero());
                 ennemy.position -= diff_max;
 
                 for (slk::u32 i = 0; i != 2; ++i) {
-                    normal += plane_normals[i] * (float)(diff_max.values[i] > 0);
+                    normal += plane_normals[i] * (float)(diff_max.m_values[i] > 0);
                 }
 
-                auto diff_min = slk::min(ennemy_world_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
+                auto diff_min = slk::min(ennemy_world_aabb.m_min - game_state.env_aabb.m_min, slk::Vector2f::zero());
                 ennemy.position -= diff_min;
 
                 for (slk::u32 i = 2; i != 4; ++i) {
-                    normal += plane_normals[i] * (float)(diff_min.values[i & 1] < 0);
+                    normal += plane_normals[i] * (float)(diff_min.m_values[i & 1] < 0);
                 }
 
                 // plane equation
@@ -253,27 +254,27 @@ int main() {
                         // 1. deduce the collision normal
                         // 2. cancel out the penetration (only on first ennemy to simplify)
 
-                        if (prev_world_ennemy1_aabb.min.x >= prev_world_ennemy2_aabb.max.x && world_ennemy1_aabb.min.x < world_ennemy2_aabb.max.x) {
-                            ennemy_iter->position.x += (world_ennemy2_aabb.max.x - world_ennemy1_aabb.min.x) + std::numeric_limits<float>::epsilon();
+                        if (prev_world_ennemy1_aabb.m_min.m_x >= prev_world_ennemy2_aabb.m_max.m_x && world_ennemy1_aabb.m_min.m_x < world_ennemy2_aabb.m_max.m_x) {
+                            ennemy_iter->position.m_x += (world_ennemy2_aabb.m_max.m_x - world_ennemy1_aabb.m_min.m_x) + std::numeric_limits<float>::epsilon();
                             normal += slk::Vector2f(1, 0);
                         }
 
-                        if (prev_world_ennemy1_aabb.min.y >= prev_world_ennemy2_aabb.max.y && world_ennemy1_aabb.min.y < world_ennemy2_aabb.max.y) {
-                            ennemy_iter->position.y += (world_ennemy2_aabb.max.y - world_ennemy1_aabb.min.y) + std::numeric_limits<float>::epsilon();
+                        if (prev_world_ennemy1_aabb.m_min.m_y >= prev_world_ennemy2_aabb.m_max.m_y && world_ennemy1_aabb.m_min.m_y < world_ennemy2_aabb.m_max.m_y) {
+                            ennemy_iter->position.m_y += (world_ennemy2_aabb.m_max.m_y - world_ennemy1_aabb.m_min.m_y) + std::numeric_limits<float>::epsilon();
                             normal += slk::Vector2f(0, 1);
                         }
 
-                        if (prev_world_ennemy1_aabb.max.x <= prev_world_ennemy2_aabb.min.x && world_ennemy1_aabb.max.x > world_ennemy2_aabb.min.x) {
-                            ennemy_iter->position.x += (world_ennemy2_aabb.min.x - world_ennemy1_aabb.max.x) - std::numeric_limits<float>::epsilon();
+                        if (prev_world_ennemy1_aabb.m_max.m_x <= prev_world_ennemy2_aabb.m_min.m_x && world_ennemy1_aabb.m_max.m_x > world_ennemy2_aabb.m_min.m_x) {
+                            ennemy_iter->position.m_x += (world_ennemy2_aabb.m_min.m_x - world_ennemy1_aabb.m_max.m_x) - std::numeric_limits<float>::epsilon();
                             normal += slk::Vector2f(-1, 0);
                         }
-                        if (prev_world_ennemy1_aabb.max.y <= prev_world_ennemy2_aabb.min.y && world_ennemy1_aabb.max.y > world_ennemy2_aabb.min.y) {
-                            ennemy_iter->position.y += (world_ennemy2_aabb.min.y - world_ennemy1_aabb.max.y) - std::numeric_limits<float>::epsilon();
+                        if (prev_world_ennemy1_aabb.m_max.m_y <= prev_world_ennemy2_aabb.m_min.m_y && world_ennemy1_aabb.m_max.m_y > world_ennemy2_aabb.m_min.m_y) {
+                            ennemy_iter->position.m_y += (world_ennemy2_aabb.m_min.m_y - world_ennemy1_aabb.m_max.m_y) - std::numeric_limits<float>::epsilon();
                             normal += slk::Vector2f(0, -1);
                         }
 
                         // this could happen if the frame time is too long and the penetration too important
-                        if (normal.x == 0 && normal.y == 0) {
+                        if (normal.m_x == 0 && normal.m_y == 0) {
                             continue;
                         }
 
@@ -296,10 +297,10 @@ int main() {
         for (auto & ennemy : game_state.ennemies) {
             slk::AABB2f ennemy_aabb = ennemy.extents.displaced(ennemy.position);
 
-            auto diff_max = slk::max(ennemy_aabb.max - game_state.env_aabb.max, slk::Vector2f::zero());
+            auto diff_max = slk::max(ennemy_aabb.m_max - game_state.env_aabb.m_max, slk::Vector2f::zero());
             ennemy.position -= diff_max;
 
-            auto diff_min = slk::min(ennemy_aabb.min - game_state.env_aabb.min, slk::Vector2f::zero());
+            auto diff_min = slk::min(ennemy_aabb.m_min - game_state.env_aabb.m_min, slk::Vector2f::zero());
             ennemy.position -= diff_min;
         }
 
@@ -308,12 +309,12 @@ int main() {
             slk::b8 has_hit = false;
             for (auto ennemy_iter = begin(game_state.ennemies); ennemy_iter != end(game_state.ennemies); ++ennemy_iter) {
                 slk::AABB2f world_aabb = ennemy_iter->extents.displaced(ennemy_iter->position);
-                if (world_aabb.is_inside(proj_iter->curr_pos)) {
+                if (world_aabb.isInside(proj_iter->curr_pos)) {
                     const slk::f32 curr_width = ennemy_iter->extents.width();
                     if (curr_width >= 32) {
                         const slk::AABB2f new_extents = ennemy_iter->extents * 0.5f;
-                        const slk::Vector2f new_ennemy1 = ennemy_iter->position + new_extents.max;
-                        const slk::Vector2f new_ennemy2 = ennemy_iter->position + new_extents.min;
+                        const slk::Vector2f new_ennemy1 = ennemy_iter->position + new_extents.m_max;
+                        const slk::Vector2f new_ennemy2 = ennemy_iter->position + new_extents.m_min;
 
                         new_ennemies.emplace_back(new_ennemy1, new_ennemy1, ennemy_iter->velocity, new_extents);
                         new_ennemies.emplace_back(new_ennemy2, new_ennemy2, -ennemy_iter->velocity, new_extents);
@@ -344,11 +345,11 @@ int main() {
         ClearBackground(RAYWHITE);
 
         // Draw environment
-        draw_aabb(WND_CTX, ENV_AABB, slk::Vector2f::zero(), slk::ColorU32{slk::RGBA, 0, 0, 0, 255});
+        draw_aabb(WND_CTX, ENV_AABB, slk::Vector2f::zero(), slk::ColorU32{slk::RgbaTag{}, 0, 0, 0, 255});
 
         // Draw canon
         draw_triangle(WND_CTX, game_state.cannon.getPos(), game_state.cannon.getRotation(), game_state.cannon.getWidth(),
-                      game_state.cannon.getHeight(), slk::ColorU32{slk::RGBA, 0, 0, 0, 255});
+                      game_state.cannon.getHeight(), slk::ColorU32{slk::RgbaTag{}, 0, 0, 0, 255});
 
         // Compute ennemies' clock rotations
         auto const wall_clock_time = std::chrono::system_clock::now();
@@ -359,13 +360,13 @@ int main() {
         const slk::f32 curr_min_angle = -(actual_time->tm_min / 60.f) * 2 * slk::PI_F32;
         const slk::f32 curr_sec_angle = -(actual_time->tm_sec / 60.f) * 2 * slk::PI_F32;
 
-        const slk::Matrix2f hour_rot = slk::Matrix2f::make_rotation(curr_hour_angle);
-        const slk::Matrix2f min_rot = slk::Matrix2f::make_rotation(curr_min_angle);
-        const slk::Matrix2f sec_rot = slk::Matrix2f::make_rotation(curr_sec_angle);
+        const slk::Matrix2f hour_rot = slk::Matrix2f::makeRotation(curr_hour_angle);
+        const slk::Matrix2f min_rot = slk::Matrix2f::makeRotation(curr_min_angle);
+        const slk::Matrix2f sec_rot = slk::Matrix2f::makeRotation(curr_sec_angle);
 
         // Render ennemies
         for (auto const & ennemy : game_state.ennemies) {
-            draw_aabb(WND_CTX, ennemy.extents, ennemy.position, slk::ColorU32{slk::RGBA, 255, 0, 0, 255});
+            draw_aabb(WND_CTX, ennemy.extents, ennemy.position, slk::ColorU32{slk::RgbaTag{}, 255, 0, 0, 255});
 
             DrawLineEx(to_rvec2(WND_CTX, ennemy.position),
                        to_rvec2(WND_CTX, ennemy.position + hour_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.2f), 2, RED);
@@ -377,8 +378,8 @@ int main() {
 
         // Render projectiles
         for (auto & proj : game_state.projectiles) {
-            const Vector2 vert1 = {.x = proj.prev_pos.x, .y = WND_CTX.height - proj.prev_pos.y};
-            const Vector2 vert2 = {.x = proj.curr_pos.x, .y = WND_CTX.height - proj.curr_pos.y};
+            const Vector2 vert1 = {.x = proj.prev_pos.m_x, .y = WND_CTX.height - proj.prev_pos.m_y};
+            const Vector2 vert2 = {.x = proj.curr_pos.m_x, .y = WND_CTX.height - proj.curr_pos.m_y};
 
             DrawLineEx(vert1, vert2, 2, BLACK);
         }

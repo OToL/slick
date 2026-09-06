@@ -128,7 +128,7 @@ int main()
 
     rlImGuiSetup(true);
 
-    Demos::init(DemoId::PICKING);
+    Demos::init(EDemoId::PICKING);
     std::span<DemoInfo const> demos_info = Demos::getDemosInfo();
     slk::i32 curr_demo_idx = std::to_underlying(Demos::current());
 
@@ -169,7 +169,7 @@ int main()
 
         DemoInfo const& curr_demo_info = demos_info[curr_demo_idx];
 
-        if (has_flag(curr_demo_info.caps, DemoCaps::DEFAULT_CAMERA_CONTROL) && IsKeyDown(KEY_LEFT_ALT))
+        if ((curr_demo_info.caps &  FDemoCaps::DEFAULT_CAMERA_CONTROL) && IsKeyDown(KEY_LEFT_ALT))
             UpdateCamera2(&camera, CAMERA_FREE);
 
         if (!Demos::update(delta_time_ms, camera))
@@ -197,7 +197,7 @@ int main()
 
                 if (next_demo_idx != curr_demo_idx)
                 {
-                    Demos::set_current(static_cast<DemoId>(next_demo_idx));
+                    Demos::set_current(static_cast<EDemoId>(next_demo_idx));
                     curr_demo_idx = std::to_underlying(Demos::current());
                 }
                 ImGui::Checkbox("Debug grid visualize", &dbg_grid_viz);

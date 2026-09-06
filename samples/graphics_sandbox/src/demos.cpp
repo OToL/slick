@@ -9,14 +9,14 @@
 #include <vector>
 
 struct DemosState {
-    DemoId curr_demo_id = DemoId::EMPTY;
+    EDemoId curr_demo_id = EDemoId::EMPTY;
     std::vector<DemoInfo> demos_info;
     std::vector<DemoFn> demos_fn;
 };
 
 DemosState * g_demos_state = nullptr;
 
-slk::b8 Demos::init(DemoId default_demo_id) {
+slk::b8 Demos::init(EDemoId default_demo_id) {
     if (g_demos_state)
     {
         assert(false);
@@ -36,7 +36,7 @@ slk::b8 Demos::init(DemoId default_demo_id) {
     };
     g_demos_state->curr_demo_id = default_demo_id;
 
-    return g_demos_state->demos_fn[std::to_underlying(g_demos_state->curr_demo_id)].init();
+    return g_demos_state->demos_fn[g_demos_state->curr_demo_id].init();
 }
 
 slk::b8 Demos::shutdown() {
@@ -46,7 +46,7 @@ slk::b8 Demos::shutdown() {
         return false;
     }
 
-    g_demos_state->demos_fn[std::to_underlying(g_demos_state->curr_demo_id)].shutdown();
+    g_demos_state->demos_fn[g_demos_state->curr_demo_id].shutdown();
 
     delete g_demos_state;
     g_demos_state = nullptr;
@@ -54,24 +54,24 @@ slk::b8 Demos::shutdown() {
     return true;
 }
 
-DemoId Demos::current() {
+EDemoId Demos::current() {
     if (!g_demos_state)
     {
         assert(false);
-        return DemoId::EMPTY;
+        return EDemoId::EMPTY;
     }
 
     return g_demos_state->curr_demo_id;
 }
 
-slk::b8 Demos::set_current(DemoId id) {
+slk::b8 Demos::set_current(EDemoId id) {
     if (!g_demos_state)
     {
         assert(false);
         return false;
     }
 
-    DemoFn const& prev_demo_fn = g_demos_state->demos_fn[std::to_underlying(g_demos_state->curr_demo_id)];
+    DemoFn const& prev_demo_fn = g_demos_state->demos_fn[g_demos_state->curr_demo_id];
     if (!prev_demo_fn.shutdown())
     {
         assert(false);
@@ -79,7 +79,7 @@ slk::b8 Demos::set_current(DemoId id) {
     }
 
     g_demos_state->curr_demo_id = id;
-    DemoFn const& new_demo_fn = g_demos_state->demos_fn[std::to_underlying(id)];
+    DemoFn const& new_demo_fn = g_demos_state->demos_fn[id];
 
     return new_demo_fn.init();
 }
@@ -91,7 +91,7 @@ slk::b8 Demos::update(slk::f32 frame_delta_ms, Camera3D& cam3d) {
         return false;
     }
 
-    return g_demos_state->demos_fn[std::to_underlying(g_demos_state->curr_demo_id)].update(frame_delta_ms, cam3d);
+    return g_demos_state->demos_fn[g_demos_state->curr_demo_id].update(frame_delta_ms, cam3d);
 }
 
 slk::b8 Demos::draw3d(slk::f32 frame_delta_ms, Camera3D const& cam3d) {
@@ -101,7 +101,7 @@ slk::b8 Demos::draw3d(slk::f32 frame_delta_ms, Camera3D const& cam3d) {
         return false;
     }
 
-    DemoFn const& demo_fn = g_demos_state->demos_fn[std::to_underlying(g_demos_state->curr_demo_id)];
+    DemoFn const& demo_fn = g_demos_state->demos_fn[g_demos_state->curr_demo_id];
     if (demo_fn.draw3d)
         return demo_fn.draw3d(frame_delta_ms, cam3d);
 
@@ -115,7 +115,7 @@ slk::b8 Demos::draw2d(slk::f32 frame_delta_ms) {
         return false;
     }
 
-    DemoFn const& demo_fn = g_demos_state->demos_fn[std::to_underlying(g_demos_state->curr_demo_id)];
+    DemoFn const& demo_fn = g_demos_state->demos_fn[g_demos_state->curr_demo_id];
     if (demo_fn.draw2d)
         return demo_fn.draw2d(frame_delta_ms);
 

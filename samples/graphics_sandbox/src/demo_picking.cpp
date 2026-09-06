@@ -82,7 +82,7 @@ DemoInfo DemoPicking::getInfo() {
     return {
         .name = "Picking"sv,
         .description = "Pixel Perfect Picking Test"sv,
-        .caps = DemoCaps::DEFAULT_CAMERA_CONTROL,
+        .caps = FDemoCaps::DEFAULT_CAMERA_CONTROL,
     };
 }
 

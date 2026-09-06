@@ -8,95 +8,95 @@ namespace slk {
 template <typename T>
 struct AABB2 {
     using ParamType = AABB2Param<T>;
-    using ScalarType = typename slk::Vector2<T>::ScalarType;
-    using ExtentType = typename slk::Vector2<T>::ParamType;
+    using ScalarType = typename Vector2<T>::ScalarType;
+    using ExtentType = typename Vector2<T>::ParamType;
     using ExtentParamType = typename ExtentType::ParamType;
 
-    ExtentType min;
-    ExtentType max;
+    ExtentType m_min;
+    ExtentType m_max;
 
-    AABB2() = default;
+    constexpr AABB2() = default;
 
-    AABB2(ExtentType min_val, ExtentType max_val)
-        : min(min_val)
-        , max(max_val) { }
+    constexpr AABB2(ExtentType min_val, ExtentType max_val)
+        : m_min(min_val)
+        , m_max(max_val) { }
 
-    [[nodiscard]] ScalarType width() const {
-        return max.x - min.x;
+    constexpr ScalarType width() const {
+        return m_max.m_x - m_min.m_x;
     }
 
-    [[nodiscard]] ScalarType height() const {
-        return max.y - min.y;
+    constexpr ScalarType height() const {
+        return m_max.m_y - m_min.m_y;
     }
 
-    [[nodiscard]] slk::Vector2<ScalarType> size() const {
-        return max - min;
+    constexpr Vector2<ScalarType> size() const {
+        return m_max - m_min;
     }
 
-    [[nodiscard]] slk::Vector2<ScalarType> half_size() const {
+    constexpr Vector2<ScalarType> half_size() const {
         return size() * 0.5;
     }
 
-    [[nodiscard]] ExtentType center() const {
-        return min + half_size();
+    constexpr ExtentType center() const {
+        return m_min + half_size();
     }
 
-    AABB2& shrink(ExtentParamType v) {
-        min += v;
-        max -= v;
+    constexpr AABB2& shrink(ExtentParamType v) {
+        m_min += v;
+        m_max -= v;
 
         return *this;
     }
 
-    AABB2& displace(ExtentParamType v) {
-        min += v;
-        max += v;
+    constexpr AABB2& displace(ExtentParamType v) {
+        m_min += v;
+        m_max += v;
         return *this;
     }
 
-    [[nodiscard]] AABB2 displaced(ExtentParamType v) const {
+    constexpr AABB2 displaced(ExtentParamType v) const {
         AABB2 aabb = *this;
         aabb.displace(v);
 
         return aabb;
     }
 
-    AABB2& scale(ExtentParamType v) {
+    constexpr AABB2& scale(ExtentParamType v) {
         ExtentType const new_half_diag = size() * v * 0.5;
         ExtentType const center = center();
 
-        min = center - new_half_diag;
-        min = center + new_half_diag;
+        m_min = center - new_half_diag;
+        m_min = center + new_half_diag;
 
         return *this;
     }
 
-    [[nodiscard]] AABB2 centered_at_origin() const {
+    constexpr AABB2 centeredAtOrigin() const {
         ExtentType const half_val = half_size() * 0.5f;
         return {-half_val, half_val};
     }
 
-    [[nodiscard]] bool is_inside(slk::Vector2<ScalarType> const& v) const {
-        return min < v && v < max;
+    constexpr bool isInside(slk::Vector2<ScalarType> const& v) const {
+        return m_min < v && v < m_max;
     }
 
-    [[nodiscard]] bool is_inside(ParamType aabb) const {
-        return min < aabb.min && max > aabb.max;
+    constexpr bool isInside(ParamType aabb) const {
+        return m_min < aabb.m_min && m_max > aabb.m_max;
     }
 
-    [[nodiscard]] bool overlaps(ParamType aabb) const {
-        return (aabb.max.x > min.x && aabb.max.y > min.y) && (aabb.min.x < max.x && aabb.min.y < max.y);
+    constexpr bool overlaps(ParamType aabb) const {
+        return (aabb.m_max.m_x > m_min.m_x && aabb.m_max.m_y > m_min.m_y) && (aabb.m_min.m_x < m_max.m_x && aabb.m_min.m_y < m_max.m_y);
     }
 };
 
 template <typename T>
-[[nodiscard]] AABB2<T> operator*(AABB2Param<T> aabb, slk::f32 val) {
-    return {aabb.min * val, aabb.max * val};
+constexpr AABB2<T> operator*(AABB2Param<T> aabb, slk::f32 val) {
+    return {aabb.m_min * val, aabb.m_max * val};
 }
 
 template <typename T>
-[[nodiscard]] AABB2<T> operator*(AABB2Param<T> aabb, typename AABB2<T>::ExtentType const& v) {
-    return {aabb.min * v, aabb.max * v};
+constexpr AABB2<T> operator*(AABB2Param<T> aabb, typename AABB2<T>::ExtentType const& v) {
+    return {aabb.m_min * v, aabb.m_max * v};
 }
 
 using AABB2i = AABB2<slk::i32>;

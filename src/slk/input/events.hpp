@@ -5,56 +5,56 @@
 
 namespace slk {
 
+// Order of enum values is used to determine event type (i.e. mouse, gesture, keyboard, etc.)
+enum class InputEventType : u8 {
+    MOUSE_BUTTON_UP,
+    MOUSE_BUTTON_DOWN,
+    MOUSE_MOVE,
+    MOUSE_SCROLL,
+
+    // TODO: implement magnify
+    GESTURE_TOUCH_COUNT_UPDATE,
+    GESTURE_SCROLL,
+
+    KEYBOARD_KEY_UP,
+    KEYBOARD_KEY_DOWN,
+    // TODO: KEYBOARD_KEY_CHAR, --> update forward evt
+
+    // TODO: GamePad
+
+    _COUNT
+};
+
 struct InputEvent {
-    // Order of enum values is used to determine event type
-    enum Type : u8 {
-        MOUSE_BUTTON_UP,
-        MOUSE_BUTTON_DOWN,
-        MOUSE_MOVE,
-        MOUSE_SCROLL,
-
-        // TODO: implement actual gestures e.g. swipe, magnify, etc.
-        GESTURE_TOUCH_POINTS_UPDATE,
-
-        KEYBOARD_KEY_UP,
-        KEYBOARD_KEY_DOWN,
-        // TODO: KEYBOARD_KEY_CHAR, --> update forward evt
-
-        // TODO: GamePad
-
-        _LAST
-    };
-
-    Type type;
-    // TODO: put common stuff there e.g. modifiers
+    InputEventType m_type;
 };
 
 struct GestureEvent : InputEvent {
-    using InputEvent::type;
+    using InputEvent::m_type;
 
-    slk::u8 point_count;
+    u8 m_point_count;
+    Vector2f m_delta;
 };
 
 struct MouseEvent : InputEvent {
-    using InputEvent::type;
+    using InputEvent::m_type;
 
     union {
         // MOUSE_MOVE
-        Vector2f postion;
+        Vector2f m_postion;
         // MOUVE_SCROLL
-        Vector2f scroll;
+        Vector2f m_scroll;
         // MOUSE_BUTTON_UP/DOWN
-        EMouseButton button;
+        MouseButton m_button;
     };
 };
 
 struct KeyboardEvent : InputEvent {
-    using InputEvent::type;
+    using InputEvent::m_type;
 
-    EVirtualKey vkey;
+    KeyboardVKey m_vkey;
     // Not currently used
-    b8 key_repeat;
+    b8 m_key_repeat;
 };
 
-
-}
+} // namespace slk

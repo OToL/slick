@@ -15,6 +15,21 @@
 - Simplicity: Minimize encapsulation and avoid unnecessary generalizations.
 - Explicitness: Interfaces must be explicit in their name, parameters, intents, etc.
 
+# Naming convention
+
+- file extensions:
+    - c++ header/source: hpp/cpp
+    - c header/source: h/c
+    - hidden inline implementaton: inl
+- file names: snake case e.g. dispatch_tag.hpp
+- types (class, struct, enums, etc.): pascal case e.g. MyClass
+- struct/class methods: camel case e.g. setLookAt
+- constants and enum values: screaming snake case e.g. MY_CONSTANT
+- variables: \[scope specifier\]_ + snake case
+    - global : `g_` e.g. g_my_var
+    - struct/class with methods : `m_` e.g. m_my_member
+    - plain data struct (i.e. w/o method), parameter or local: no scope modifider e.g. my_member
+
 # Depot structure
 
 ```
@@ -61,3 +76,17 @@
 
 - Folders containing generated files (e.g. \_build) must have their name starting with '_'.
 - Simple projects, samples and tools can have all their sources stored directly under their root.
+
+# TODO
+
+- [x] Clean naming convention in slk
+- [ ] Remove PS3 (code, tools, cmake, etc.)
+- [ ] Remove raylib in favor of bgfx
+- [ ] Use singleton patten instead of global vars for InputApi and rename file form input.hpp to input_api.hpp
+- [ ] Replace `samples` by `projects`
+- [ ] Rework src folder e.g. utils, etc.
+- [ ] Update `Depot Structure`
+- [ ] Rework grphics sandbox e.g. `demos`, how demos are declared, etc.
+- [ ] Remove pre-built libs
+- [ ] Error managenebt (look at c++ contract)
+- [ ] Single file compilation

@@ -14,16 +14,16 @@
 void draw_aabb(WindowCtx const& wnd_ctx, slk::AABB2f const& aabb, slk::Vector2f const& pos, slk::ColorU32 const& color) {
 
     const Rectangle rrect = {
-        .x = aabb.min.x + pos.x,
-        .y = wnd_ctx.height - aabb.max.y - pos.y,
-        .width = aabb.max.x - aabb.min.x,
-        .height = aabb.max.y - aabb.min.y
+        .x = aabb.m_min.m_x + pos.m_x,
+        .y = wnd_ctx.height - aabb.m_max.m_y - pos.m_y,
+        .width = aabb.m_max.m_x - aabb.m_min.m_x,
+        .height = aabb.m_max.m_y - aabb.m_min.m_y
     };
     const ::Color rcolor = {
-        .r = color.r,
-        .g = color.g,
-        .b = color.b,
-        .a = color.a
+        .r = color.m_red,
+        .g = color.m_green,
+        .b = color.m_blue,
+        .a = color.m_alpha
     };
 
     DrawRectangleLinesEx(rrect, 2.f, rcolor);
@@ -38,7 +38,7 @@ void draw_triangle(WindowCtx const& wnd_ctx, slk::Vector2f const& pos, slk::f32 
     };
 
     // rotatiomathn
-    slk::Matrix2f xform = slk::Matrix2f::make_rotation(rot_rad);
+    slk::Matrix2f xform = slk::Matrix2f::makeRotation(rot_rad);
     for (auto& vert : vertices) {
         vert = xform * vert;
     }
@@ -59,8 +59,8 @@ void draw_triangle(WindowCtx const& wnd_ctx, slk::Vector2f const& pos, slk::f32 
     for (auto& rvert : rvertices) {
 
         rvert = {
-            .x = vertices[idx].x,
-            .y = wnd_ctx.height - vertices[idx].y
+            .x = vertices[idx].m_x,
+            .y = wnd_ctx.height - vertices[idx].m_y
         };
 
         idx = (idx + 1)%std::size(vertices);
