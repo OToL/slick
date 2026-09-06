@@ -1,3 +1,0 @@
-CompileFlags: 
-   CompilationDatabase: _build/ps3-debug
-   Add: [-Wno-unused-macros]  

@@ -80,6 +80,7 @@
 # TODO
 
 - [x] Clean naming convention in slk
+- [x] Remove pre-built libs
 - [ ] Remove PS3 (code, tools, cmake, etc.)
 - [ ] Remove raylib in favor of bgfx
 - [ ] Use singleton patten instead of global vars for InputApi and rename file form input.hpp to input_api.hpp
@@ -87,6 +88,5 @@
 - [ ] Rework src folder e.g. utils, etc.
 - [ ] Update `Depot Structure`
 - [ ] Rework grphics sandbox e.g. `demos`, how demos are declared, etc.
-- [ ] Remove pre-built libs
 - [ ] Error managenebt (look at c++ contract)
 - [ ] Single file compilation

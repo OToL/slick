@@ -93,7 +93,6 @@ local function get_project_commands()
     local curr_platform = get_current_platform()
     local build_dir = GetBuildDirPath()
     return {
-        ["ps3_upload"]      = vim.fs.joinpath(build_dir, curr_platform .. "-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader"),
         ["cpp_sandbox"]     = vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/cpp_sandbox/cpp_sandbox"),
         ["graphics_sandbox"]= vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/graphics_sandbox/graphics_sandbox"),
         ["test_bgfx"]       = vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/test_bgfx/test_bgfx"),
@@ -177,74 +176,8 @@ vim.cmd([[
 ]])
 
 --------------------------------------------------------------------------------------------------------
---                                  LSP platform switch                                               --
---------------------------------------------------------------------------------------------------------
-
-local function patch_ps3_commands()
-    local ps3_sdk_root = os.getenv("PSL1GHT")
-    if not ps3_sdk_root then
-        vim.notify("Cannot find environment varianle 'PSL1GHT'", vim.log.levels.ERROR)
-        return
-    end
-
-    local build_dir = GetBuildDirPath()
-    local ps3_build_dir = vim.fs.joinpath(build_dir, "ps3-debug")
-    local backup_commands_file_path = vim.fs.joinpath(ps3_build_dir, "compile_commands.json.bak")
-    local commands_file_path = vim.fs.joinpath(ps3_build_dir, "compile_commands.json")
-
-    if not file_exists(commands_file_path) then
-        vim.notify("Cannot locate ps3 compilation database: " .. commands_file_path, vim.log.levels.ERROR)
-        return
-    end
-
-    if file_exists(backup_commands_file_path) and file_exists(commands_file_path) then
-        local backup_commands_file_mtime = get_mtime(backup_commands_file_path)
-        local commands_file_mtime = get_mtime(commands_file_path)
-
-        -- file is already processed
-        if commands_file_mtime > backup_commands_file_mtime then
-            return
-        end
-    end
-
-    -- patch the command database
-    local replacements = {
-      [vim.fs.joinpath(ps3_sdk_root, "ppu", "bin", "ppu-gcc")] = "/usr/local/bin/clang",
-      [vim.fs.joinpath(ps3_sdk_root, "ppu", "bin", "ppu-g++")] = "/usr/local/bin/clang++",
-      ["-mcpu=cell"] = "",
-      ["-fmodulo-sched"] = "",
-      ["-mhard-float"] = "",
-    }
-
-    -- read file
-    local f = assert(io.open(commands_file_path, "r"))
-    local content = f:read("*a")
-    f:close()
-
-    -- perform replacements
-    for old, new in pairs(replacements) do
-        -- gsub replaces all occurrences
-        content = content:gsub(escape_pattern_case_insensitive(old), new)
-    end
-
-    rename_file(commands_file_path, backup_commands_file_path)
-
-    -- write file back
-    f = assert(io.open(commands_file_path, "w"))
-    f:write(content)
-    f:close()
-
-end
-
---------------------------------------------------------------------------------------------------------
 --                                      BUILD COMMANDS                                                --
 --------------------------------------------------------------------------------------------------------
-
-vim.api.nvim_create_user_command('BuildPs3', function()
-    local build_dir_path = GetBuildDirPath()
-    vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "ps3-debug")
-    vim.cmd('Build')
-end, {})
 
 vim.api.nvim_create_user_command('BuildDarwin', function()
   local build_dir_path = GetBuildDirPath()
@@ -254,21 +187,3 @@ vim.api.nvim_create_user_command('BuildDarwin', function()
   -- vim.cmd('make')          -- Use make instead of Build
 end, {})
 
-vim.api.nvim_create_user_command('LSPPs3', function()
-    local workspace_root = vim.fn.getcwd()
-    local clangd_path = vim.fs.joinpath(workspace_root, ".clangd")
-    local clangd_ps3_path = vim.fs.joinpath(workspace_root, ".clangd_ps3")
-
-    patch_ps3_commands()
-    copy_file(clangd_ps3_path, clangd_path)
-    vim.cmd('LspRestart')
-end, {})
-
-vim.api.nvim_create_user_command('LSPDarwin', function()
-    local workspace_root = vim.fn.getcwd()
-    local clangd_path = vim.fs.joinpath(workspace_root, ".clangd")
-    local clangd_darwin_path = vim.fs.joinpath(workspace_root, ".clangd_darwin")
-
-    copy_file(clangd_darwin_path, clangd_path)
-    vim.cmd('LspRestart')
-end, {})

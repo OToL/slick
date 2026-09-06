@@ -1,3 +1,0 @@
-CompileFlags: 
-   CompilationDatabase: _build/macos-debug
-   Add: [-Wno-unused-macros]  

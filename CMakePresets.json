@@ -40,18 +40,6 @@
                 "CMAKE_CXX_STDLIB_MODULES_JSON": "/Users/emmanuelbeau/Documents/dev/llvm-project/install/lib/libc++.modules.json",
                 "CMAKE_CXX_MODULE_STD" : "ON"
             }
-        },
-        {
-            "name": "ps3-debug",
-            "displayName": "PS3 Debug",
-            "generator": "Ninja",
-            "binaryDir": "_build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "scripts/cmake/toolchain_ps3.cmake",
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_SUPPRESS_DEVELOPER_WARNINGS": "ON",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "1"
-            }
         }
     ]
 }
