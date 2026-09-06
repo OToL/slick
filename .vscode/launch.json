@@ -52,19 +52,6 @@
             "sourceLanguages": [
                 "cpp"
             ]
-        },
-        {
-            "name": "ps3 uploader",
-            "type": "codelldb",
-            "request": "launch",
-            "program": "./_build/darwin-debug/tools/ps3_deploy/src/ps3_uploader/ps3_uploader",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "stopOnEntry": false,
-            "runInTerminal": false,
-            "sourceLanguages": [
-                "cpp"
-            ]
-        }
+        } 
     ]
 }
