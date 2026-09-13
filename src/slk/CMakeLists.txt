@@ -1,7 +1,7 @@
 add_library(slk
     color.cpp
     camera.cpp
-    input/input.cpp
+    input/input_api.cpp
     math/curves.cpp
     math/math_graphics.cpp
     math/math_constants.cpp)

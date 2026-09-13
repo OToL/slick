@@ -81,10 +81,10 @@
 
 - [x] Clean naming convention in slk
 - [x] Remove pre-built libs
-- [ ] Remove PS3 (code, tools, cmake, etc.)
-- [ ] Remove raylib in favor of bgfx
-- [ ] Use singleton patten instead of global vars for InputApi and rename file form input.hpp to input_api.hpp
+- [x] Remove PS3 (code, tools, cmake, etc.)
+- [x] Use singleton patten instead of global vars for InputApi and rename file form input.hpp to input_api.hpp
 - [ ] Replace `samples` by `projects`
+- [ ] Remove raylib in favor of bgfx
 - [ ] Rework src folder e.g. utils, etc.
 - [ ] Update `Depot Structure`
 - [ ] Rework grphics sandbox e.g. `demos`, how demos are declared, etc.

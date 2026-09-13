@@ -25,7 +25,7 @@ struct graphics::GridHdlImpl {
 
 graphics::GridHdlImpl* graphics::create_grid() {
     GridHdlImpl* hdl = nullptr;
-    Shader shader = LoadShader("samples/graphics_sandbox/data/shaders/grid_vs.glsl", "samples/graphics_sandbox/data/shaders/grid_fs.glsl");
+    Shader shader = LoadShader("projets/graphics_sandbox/data/shaders/grid_vs.glsl", "samples/graphics_sandbox/data/shaders/grid_fs.glsl");
 
     if (!IsShaderValid(shader))
         return nullptr;

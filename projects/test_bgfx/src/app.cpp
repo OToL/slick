@@ -6,7 +6,7 @@
 #include <slk/math/matrix4.hpp>
 #include <slk/math/graphics.hpp>
 #include <slk/math/utils.hpp>
-#include <slk/input/input.hpp>
+#include <slk/input/input_api.hpp>
 #include <slk/input/events.hpp>
 #include <slk/camera.hpp>
 #include <slk/color.hpp>
@@ -156,8 +156,8 @@ void app_init(void) {
     bgfx_init.platformData.nwh = app_get_window_hdl();
 
     bgfx::init(bgfx_init);
-    bgfx::ShaderHandle vs_hdl = loadShader("samples/test_bgfx/_build/shaders/metal/vs_cubes.bin");
-    bgfx::ShaderHandle fs_hdl = loadShader("samples/test_bgfx/_build/shaders/metal/fs_cubes.bin");
+    bgfx::ShaderHandle vs_hdl = loadShader("projects/test_bgfx/_build/shaders/metal/vs_cubes.bin");
+    bgfx::ShaderHandle fs_hdl = loadShader("projects/test_bgfx/_build/shaders/metal/fs_cubes.bin");
     g_app_state.m_prg_hdl = bgfx::createProgram(vs_hdl, fs_hdl, true);
 
     assert(isValid(vs_hdl) && isValid(fs_hdl) && isValid(g_app_state.m_prg_hdl));
@@ -181,8 +181,8 @@ void app_init(void) {
     grid.m_idx_buff_hdl = bgfx::createIndexBuffer(bgfx::makeRef(GRID_INDICES, sizeof(GRID_INDICES)));
     assert(isValid(grid.m_vert_buff_hdl) && isValid(grid.m_idx_buff_hdl));
 
-    vs_hdl = loadShader("samples/test_bgfx/_build/shaders/metal/grid_vs.sc.bin");
-    fs_hdl = loadShader("samples/test_bgfx/_build/shaders/metal/grid_fs.sc.bin");
+    vs_hdl = loadShader("projects/test_bgfx/_build/shaders/metal/grid_vs.sc.bin");
+    fs_hdl = loadShader("projects/test_bgfx/_build/shaders/metal/grid_fs.sc.bin");
     grid.m_prg_hdl = bgfx::createProgram(vs_hdl, fs_hdl, true);
     assert(isValid(vs_hdl) && isValid(fs_hdl) && isValid(g_app_state.m_prg_hdl));
 
@@ -210,13 +210,14 @@ void app_init(void) {
 
     imguiCreate();
 
-    slk::InputAPI::initialize();
+    slk::InputApi::initialize();
 }
 
 void render_slick_dbg_window() {
-    slk::Vector2f const mouse_pos = slk::InputAPI::mousePosition();
-    slk::Vector2f const mouse_scroll = slk::InputAPI::mouseScroll();
-    slk::MouseButtonMask const mouse_buttons_state = slk::InputAPI::mouseButtonsState();
+    slk::InputApi const* const input = slk::InputApi::instance();
+    slk::Vector2f const mouse_pos = input->mousePosition();
+    slk::Vector2f const mouse_scroll = input->mouseScroll();
+    slk::MouseButtonMask const mouse_buttons_state = input->mouseButtonsState();
     slk::u8 const imgui_button_state = ((mouse_buttons_state & slk::MouseButtonMask::LEFT) != slk::MouseButtonMask::NONE ? IMGUI_MBUT_LEFT : 0) |
                                        ((mouse_buttons_state & slk::MouseButtonMask::RIGHT) != slk::MouseButtonMask::NONE ? IMGUI_MBUT_RIGHT : 0) |
                                        ((mouse_buttons_state & slk::MouseButtonMask::MIDDLE) != slk::MouseButtonMask::NONE ? IMGUI_MBUT_MIDDLE : 0);
@@ -243,21 +244,21 @@ void render_slick_dbg_window() {
         if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Text("Mouse Position: %.2f %.2f", mouse_pos.m_x, mouse_pos.m_y);
             ImGui::Text("Mouse button state: %d", mouse_buttons_state);
-            ImGui::Text("Mouse buttons state: %d %d %d", slk::InputAPI::isMouseButtonDown(slk::MouseButton::LEFT),
-                        slk::InputAPI::isMouseButtonDown(slk::MouseButton::MIDDLE), slk::InputAPI::isMouseButtonDown(slk::MouseButton::RIGHT));
+            ImGui::Text("Mouse buttons state: %d %d %d", input->isMouseButtonDown(slk::MouseButton::LEFT),
+                        input->isMouseButtonDown(slk::MouseButton::MIDDLE), input->isMouseButtonDown(slk::MouseButton::RIGHT));
             ImGui::Text("Mouse Scroll: %.2f %.2f", mouse_scroll.m_x, mouse_scroll.m_y);
 
-            ImGui::Text("Keyboard SPACE key state: %d", slk::InputAPI::isKeyboardKeyDown(slk::KeyboardVKey::SPACE));
+            ImGui::Text("Keyboard SPACE key state: %d", input->isKeyboardKeyDown(slk::KeyboardVKey::SPACE));
 
             ImGui::Text("Modifiers State:");
-            ImGui::Text("   CTRL: %d", slk::InputAPI::hasModifier(slk::InputModifier::CTRL));
-            ImGui::Text("   SHIFT %d", slk::InputAPI::hasModifier(slk::InputModifier::SHIFT));
-            ImGui::Text("   ALT %d", slk::InputAPI::hasModifier(slk::InputModifier::ALT));
-            ImGui::Text("   LMB: %d", slk::InputAPI::hasModifier(slk::InputModifier::LMB));
-            ImGui::Text("   MMB %d", slk::InputAPI::hasModifier(slk::InputModifier::MMB));
-            ImGui::Text("   RMB %d", slk::InputAPI::hasModifier(slk::InputModifier::RMB));
+            ImGui::Text("   CTRL: %d", input->hasModifier(slk::InputModifier::CTRL));
+            ImGui::Text("   SHIFT %d", input->hasModifier(slk::InputModifier::SHIFT));
+            ImGui::Text("   ALT %d", input->hasModifier(slk::InputModifier::ALT));
+            ImGui::Text("   LMB: %d", input->hasModifier(slk::InputModifier::LMB));
+            ImGui::Text("   MMB %d", input->hasModifier(slk::InputModifier::MMB));
+            ImGui::Text("   RMB %d", input->hasModifier(slk::InputModifier::RMB));
 
-            ImGui::Text("Touch in progress: %d", slk::InputAPI::gestureTouchCount());
+            ImGui::Text("Touch in progress: %d", input->gestureTouchCount());
         }
         if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
 
@@ -274,9 +275,11 @@ void render_slick_dbg_window() {
 }
 
 void app_frame(void) {
-    slk::InputAPI::update();
+    slk::InputApi* const input = slk::InputApi::instance();
 
-    if (slk::InputAPI::isKeyboardKeyDown(slk::KeyboardVKey::ESCAPE)) {
+    input->update();
+
+    if (input->isKeyboardKeyDown(slk::KeyboardVKey::ESCAPE)) {
         sapp_request_quit();
         return;
     }
@@ -296,36 +299,36 @@ void app_frame(void) {
     // Update camera
     // TODO: Limit rotation to avoid gimbal lock
     if (!g_app_state.m_imgui_wnd_focused) {
-        if (slk::InputAPI::gestureTouchCount() == 0)
+        if (input->gestureTouchCount() == 0)
         {
-            slk::Vector2f const mouse_movement = slk::InputAPI::mouseMovement();
+            slk::Vector2f const mouse_movement = input->mouseMovement();
 
-            if (slk::InputAPI::areMouseButtonsDown(slk::MouseButtonMask::RIGHT | slk::MouseButtonMask::LEFT) ||
-                    slk::InputAPI::isMouseButtonDown(slk::MouseButton::MIDDLE)) {
+            if (input->areMouseButtonsDown(slk::MouseButtonMask::RIGHT | slk::MouseButtonMask::LEFT) ||
+                    input->isMouseButtonDown(slk::MouseButton::MIDDLE)) {
                 if (mouse_movement.m_x != 0.f || mouse_movement.m_y != 0.f) {
                     g_app_state.m_camera.pan(mouse_movement.m_x * CAMERA_DEFAULT_TRANSLATE_SPEED, mouse_movement.m_y * CAMERA_DEFAULT_TRANSLATE_SPEED);
                 }
 
-            } else if (slk::InputAPI::isMouseButtonDown(slk::MouseButton::RIGHT)) {
+            } else if (input->isMouseButtonDown(slk::MouseButton::RIGHT)) {
                 if ((mouse_movement.m_x != 0.f) || (mouse_movement.m_y != 0.f)) {
                     slk::Vector2f const camera_rot = mouse_movement * CAMERA_DEFAULT_ROTATE_SPEED * g_app_state.m_last_frame_time_ms;
                     g_app_state.m_camera.rotate(camera_rot.m_x, camera_rot.m_y);
                 }
-            } else if (slk::InputAPI::isMouseButtonDown(slk::MouseButton::LEFT)) {
+            } else if (input->isMouseButtonDown(slk::MouseButton::LEFT)) {
                 if (mouse_movement.m_y != 0.f) {
                     g_app_state.m_camera.translate(slk::Vector3f{0.f, 0.f, mouse_movement.m_y * CAMERA_DEFAULT_TRANSLATE_SPEED});
                 }
             }
         }
         // Gesture
-        else if (slk::InputAPI::gestureTouchCount() == 2) {
+        else if (input->gestureTouchCount() == 2) {
             // g_app_state.m_input_settings.m_camera_rotate_speed = CAMERA_DEFAULT_ROTATE_SPEED;
             // g_app_state.m_input_settings.m_camera_translate_speed = CAMERA_DEFAULT_TRANSLATE_SPEED;
 
-            slk::b8 const is_left = slk::InputAPI::isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_A, slk::KeyboardVKey::LEFT});
-            slk::b8 const is_right = slk::InputAPI::isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_D, slk::KeyboardVKey::RIGHT});
-            slk::b8 const is_up = slk::InputAPI::isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_W, slk::KeyboardVKey::UP});
-            slk::b8 const is_down = slk::InputAPI::isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_S, slk::KeyboardVKey::DOWN});
+            slk::b8 const is_left = input->isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_A, slk::KeyboardVKey::LEFT});
+            slk::b8 const is_right = input->isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_D, slk::KeyboardVKey::RIGHT});
+            slk::b8 const is_up = input->isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_W, slk::KeyboardVKey::UP});
+            slk::b8 const is_down = input->isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_S, slk::KeyboardVKey::DOWN});
 
             slk::Vector2f panning{};
             slk::Vector3f translate{};
@@ -338,7 +341,7 @@ void app_frame(void) {
             g_app_state.m_camera.pan(panning.m_x, panning.m_y);
             g_app_state.m_camera.translate(translate);
 
-            slk::Vector2f const mouse_scroll = slk::InputAPI::gestureScrollState();
+            slk::Vector2f const mouse_scroll = input->gestureScrollState();
             if ((mouse_scroll.m_x != 0.f) || (mouse_scroll.m_y != 0.f)) {
                 slk::Vector2f const camera_rot = mouse_scroll * g_app_state.m_input_settings.m_camera_rotate_speed * g_app_state.m_last_frame_time_ms;
                 g_app_state.m_camera.rotate(-camera_rot.m_x, -camera_rot.m_y);
@@ -394,7 +397,7 @@ void app_frame(void) {
 }
 
 void app_cleanup(void) {
-    slk::InputAPI::shutdown();
+    slk::InputApi::shutdown();
 
     imguiDestroy();
 
@@ -421,7 +424,7 @@ void app_notify_gesture_touch_count(int count) {
     slk::GestureEvent slk_event;
     slk_event.m_type = slk::InputEventType::GESTURE_TOUCH_COUNT_UPDATE;
     slk_event.m_point_count = count;
-    slk::InputAPI::forwardEvent(slk_event);
+    slk::InputApi::instance()->forwardEvent(slk_event);
 }
 
 void app_notify_gesture_scroll(int touch_count, float deltax, float deltay) {
@@ -430,7 +433,7 @@ void app_notify_gesture_scroll(int touch_count, float deltax, float deltay) {
     slk_event.m_type = slk::InputEventType::GESTURE_SCROLL;
     slk_event.m_point_count = touch_count;
     slk_event.m_delta = {deltax, deltay};
-    slk::InputAPI::forwardEvent(slk_event);
+    slk::InputApi::instance()->forwardEvent(slk_event);
 }
 
 // TODO: Key Char
@@ -454,7 +457,7 @@ void app_event(const sapp_event* evt) {
             slk_event.m_type = slk::InputEventType::MOUSE_MOVE;
             slk_event.m_postion = slk::Vector2f{evt->mouse_x, evt->mouse_y};
 
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputApi::instance()->forwardEvent(slk_event);
 
             break;
         }
@@ -462,7 +465,7 @@ void app_event(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.m_type = slk::InputEventType::MOUSE_BUTTON_DOWN;
             slk_event.m_button = static_cast<slk::MouseButton>(evt->mouse_button);
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputApi::instance()->forwardEvent(slk_event);
 
             break;
         }
@@ -470,7 +473,7 @@ void app_event(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.m_type = slk::InputEventType::MOUSE_BUTTON_UP;
             slk_event.m_button = static_cast<slk::MouseButton>(evt->mouse_button);
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputApi::instance()->forwardEvent(slk_event);
 
             break;
         }
@@ -479,7 +482,7 @@ void app_event(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.m_type = slk::InputEventType::MOUSE_SCROLL;
             slk_event.m_scroll = {evt->scroll_x, evt->scroll_y};
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputApi::instance()->forwardEvent(slk_event);
 
             break;
         }
@@ -492,7 +495,7 @@ void app_event(const sapp_event* evt) {
             slk_event.m_type = slk::InputEventType::KEYBOARD_KEY_DOWN;
             slk_event.m_key_repeat = evt->key_repeat;
             slk_event.m_vkey = static_cast<slk::KeyboardVKey>(evt->key_code);
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputApi::instance()->forwardEvent(slk_event);
 
             break;
         }
@@ -502,7 +505,7 @@ void app_event(const sapp_event* evt) {
             slk_event.m_type = slk::InputEventType::KEYBOARD_KEY_UP;
             slk_event.m_key_repeat = evt->key_repeat;
             slk_event.m_vkey = static_cast<slk::KeyboardVKey>(evt->key_code);
-            slk::InputAPI::forwardEvent(slk_event);
+            slk::InputApi::instance()->forwardEvent(slk_event);
 
             break;
         }

@@ -21,49 +21,6 @@ function GetBuildDirPath()
     return vim.fs.joinpath(vim.fn.getcwd(), "_build")
 end
 
-local function file_exists(path)
-  local f = io.open(path, "r")
-  if f then f:close() return true end
-  return false
-end
-
-local function copy_file(src, dst)
-  local _req, err = vim.uv.fs_copyfile(src, dst)
-  if err then
-    return nil, err
-  end
-  return true
-end
-
-local function rename_file(src, dst)
-  if file_exists(dst) then
-    os.remove(dst)  -- delete existing destination
-  end
-
-  local ok, err = os.rename(src, dst)
-  if not ok then
-    vim.notify("Rename failed: " .. (err or "unknown error"), vim.log.levels.ERROR)
-    return false
-  end
-
-  return true
-end
-
-local function get_mtime(path)
-  local stat = vim.uv.fs_stat(path)
-  return stat and stat.mtime.sec or nil
-end
-
-local function escape_pattern_case_insensitive(str)
-    -- Escape pattern characters first
-    str = str:gsub("([^%w])", "%%%1")
-    -- Replace each letter with [Aa] style pattern
-    str = str:gsub("%a", function(letter)
-        return string.format("[%s%s]", letter:lower(), letter:upper())
-    end)
-    return str
-end
-
 local function get_wezterm_path()
     local wz_path = os.getenv("WEZTERM_EXECUTABLE")
     if not wz_path then
@@ -90,13 +47,13 @@ vim.g.active_platform = vim.g.active_platform or get_current_platform()
 
 -- Project launch configurations
 local function get_project_commands()
-    local curr_platform = get_current_platform()
-    local build_dir = GetBuildDirPath()
+    local build_dir = vim.g.target_build_dir
+        or vim.fs.joinpath(GetBuildDirPath(), get_current_platform() .. "-debug")
     return {
-        ["cpp_sandbox"]     = vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/cpp_sandbox/cpp_sandbox"),
-        ["graphics_sandbox"]= vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/graphics_sandbox/graphics_sandbox"),
-        ["test_bgfx"]       = vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/test_bgfx/test_bgfx"),
-        ["asteroids"]       = vim.fs.joinpath(build_dir, curr_platform .. "-debug/samples/asteroids/asteroids"),
+        ["cpp_sandbox"]      = vim.fs.joinpath(build_dir, "projects/cpp_sandbox/cpp_sandbox"),
+        ["graphics_sandbox"] = vim.fs.joinpath(build_dir, "projects/graphics_sandbox/graphics_sandbox"),
+        ["test_bgfx"]        = vim.fs.joinpath(build_dir, "projects/test_bgfx/test_bgfx"),
+        ["asteroids"]        = vim.fs.joinpath(build_dir, "projects/asteroids/asteroids"),
     }
 end
 
@@ -127,7 +84,19 @@ function LaunchActiveProject(show_term)
 end
 
 -- User command to set active program
-vim.api.nvim_create_user_command('SetActiveProject', function()
+-- With an argument: set it directly (e.g. for use in startup config).
+-- With no argument: open an interactive picker, as before.
+vim.api.nvim_create_user_command('SetActiveProject', function(opts)
+    if opts.args ~= '' then
+        if not get_project_commands()[opts.args] then
+            vim.notify("Unknown project: " .. opts.args, vim.log.levels.ERROR)
+            return
+        end
+        vim.g.active_project = opts.args
+        vim.notify("Active project set to: " .. opts.args)
+        return
+    end
+
     local pickers     = require("telescope.pickers")
     local finders     = require("telescope.finders")
     local conf        = require("telescope.config").values
@@ -151,7 +120,12 @@ vim.api.nvim_create_user_command('SetActiveProject', function()
             return true
         end,
     }):find()
-end, { nargs = 0 })
+end, {
+    nargs = '?',
+    complete = function()
+        return vim.tbl_keys(get_project_commands())
+    end,
+})
 
 vim.api.nvim_create_user_command('ActiveProject', function(opts)
     vim.notify("Active Project: " .. vim.g.active_project, vim.log.levels.INFO)
@@ -163,13 +137,6 @@ vim.api.nvim_create_user_command('ActiveProject', function(opts)
     end
 end, { })
 
-vim.api.nvim_set_keymap("n", "<F6>", '<cmd>lua LaunchActiveProject(false)<cr>', {noremap = true, silent = true})
-vim.api.nvim_set_keymap("n", "<F7>", '<cmd>Build<cr>', {noremap = true, silent = true})
-
-vim.api.nvim_set_keymap("n", "<M-F6>", '<cmd>lua LaunchActiveProject(true)<cr>', {noremap = true, silent = true})
-vim.api.nvim_set_keymap("n", "<F54>", '<cmd>lua LaunchActiveProject(true)<cr>', {noremap = true, silent = true})
-
-
 --%-GIn\ file\ include\ %.%#
 vim.cmd([[
     set errorformat=%f:%l:%c:\ %t%*[^:]:\ %m
@@ -179,11 +146,78 @@ vim.cmd([[
 --                                      BUILD COMMANDS                                                --
 --------------------------------------------------------------------------------------------------------
 
-vim.api.nvim_create_user_command('BuildDarwin', function()
-  local build_dir_path = GetBuildDirPath()
-  vim.o.makeprg = "ninja -C " .. vim.fs.joinpath(build_dir_path, "darwin-debug")
-    vim.cmd('Build')
-  -- vim.cmd('silent! wall')  -- Save all, ignore errors
-  -- vim.cmd('make')          -- Use make instead of Build
+vim.api.nvim_create_user_command('SetActiveTargetPlatform', function(opts)
+    local platform = (opts.fargs[1] or ''):lower()
+    local config   = (opts.fargs[2] or 'debug'):lower()
+    if platform == '' then
+        vim.notify('Usage: :SetActiveTargetPlatform <Darwin|Windows|Linux> [config]', vim.log.levels.ERROR)
+        return
+    end
+
+    local preset    = platform .. '-' .. config
+    local build_dir = vim.fs.joinpath(GetBuildDirPath(), preset)
+    if vim.fn.isdirectory(build_dir) == 0 then
+        vim.notify('Build directory not found: ' .. build_dir, vim.log.levels.WARN)
+    end
+
+    vim.g.target_build_platform = platform
+    vim.g.target_build_config   = config
+    vim.g.target_build_dir      = build_dir
+    vim.o.makeprg = 'ninja -C ' .. build_dir
+
+    vim.notify('Active target: ' .. preset, vim.log.levels.INFO)
+end, {
+    nargs = '+',
+    complete = function(_, cmdline)
+        local n = #vim.split(cmdline, '%s+')
+        return n <= 2 and { 'Darwin', 'Windows', 'Linux' } or { 'debug', 'relwithdebinfo' }
+    end,
+})
+
+vim.api.nvim_create_user_command('BuildCurrentFile', function()
+    local file = vim.fn.expand('%:p')
+    local build_dir = vim.g.target_build_dir
+    if not build_dir then
+        vim.notify('No active target platform; run :SetActiveTargetPlatform first', vim.log.levels.ERROR)
+        return
+    end
+
+    local ccj = vim.fs.joinpath(build_dir, 'compile_commands.json')
+    if vim.fn.filereadable(ccj) == 0 then
+        vim.notify('compile_commands.json not found at ' .. ccj, vim.log.levels.ERROR)
+        return
+    end
+
+    local db = vim.json.decode(table.concat(vim.fn.readfile(ccj), '\n'))
+    for _, e in ipairs(db) do
+        if vim.fn.fnamemodify(e.file, ':p') == file then
+            -- ninja targets are relative to the build dir; strip it if `output` is absolute
+            local output = e.output:gsub('^' .. vim.pesc(build_dir) .. '[/\\]', '')
+            local saved = vim.o.makeprg
+            vim.o.makeprg = 'ninja -C ' .. build_dir .. ' ' .. output
+            vim.cmd('Build')
+            vim.o.makeprg = saved
+            return
+        end
+    end
+    vim.notify('No compile command found for this file', vim.log.levels.WARN)
 end, {})
+
+--------------------------------------------------------------------------------------------------------
+--                                       KEY BINDINGS                                                 --
+--------------------------------------------------------------------------------------------------------
+
+
+vim.api.nvim_set_keymap("n", "<F6>", '<cmd>lua LaunchActiveProject(false)<cr>', {noremap = true, silent = true})
+utils.set_multi_keymap("n", {"<M-F6>", "<F54>"}, '<cmd>lua LaunchActiveProject(true)<cr>', {noremap = true, silent = true})
+
+vim.api.nvim_set_keymap("n", "<F7>", '<cmd>Build<cr>', {noremap = true, silent = true})
+utils.set_multi_keymap("n", { "<M-F7>", "<F55>" }, '<cmd>BuildCurrentFile<cr>', { noremap = true, silent = true })
+
+--------------------------------------------------------------------------------------------------------
+--                                      STARTUP DEFAULTS                                              --
+--------------------------------------------------------------------------------------------------------
+
+vim.cmd('SetActiveTargetPlatform Darwin debug')
+vim.cmd('SetActiveProject test_bgfx')
 

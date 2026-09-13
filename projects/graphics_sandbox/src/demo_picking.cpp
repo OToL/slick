@@ -27,7 +27,7 @@ using ObjectId = union {
 slk::b8 init() {
     assert(!g_state);
 
-    Shader picking_shader = LoadShader(nullptr, "samples/graphics_sandbox/data/shaders/base_picking_fs.glsl");
+    Shader picking_shader = LoadShader(nullptr, "projects/graphics_sandbox/data/shaders/base_picking_fs.glsl");
 
     if (!IsShaderValid(picking_shader))
         return false;

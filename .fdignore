@@ -1,6 +1,3 @@
 **/.DS_Store
-.luarc.json
-imgui.ini
 extern/redist/lib/
 _build/
-.claude/
