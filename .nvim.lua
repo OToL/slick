@@ -6,15 +6,15 @@ local utils = require("utils")
 
 -- Detect current platform
 local function get_current_platform()
-  if vim.fn.has("macunix") == 1 then
-    return "darwin"
-  elseif vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
-    return "windows"
-  elseif vim.fn.has("unix") == 1 then
-    return "linux"
-  else
-    return "unknown"
-  end
+    if vim.fn.has("macunix") == 1 then
+        return "darwin"
+    elseif vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
+        return "windows"
+    elseif vim.fn.has("unix") == 1 then
+        return "linux"
+    else
+        return "unknown"
+    end
 end
 
 function GetBuildDirPath()
@@ -30,7 +30,7 @@ local function get_wezterm_path()
     if vim.g.active_platform == "windows" then
         return utils.joinPaths(wz_dir, "wezterm.exe")
     else
-       return utils.joinPaths(wz_dir, "wezterm")
+        return utils.joinPaths(wz_dir, "wezterm")
     end
 end
 
@@ -50,10 +50,10 @@ local function get_project_commands()
     local build_dir = vim.g.target_build_dir
         or vim.fs.joinpath(GetBuildDirPath(), get_current_platform() .. "-debug")
     return {
-        ["cpp_sandbox"]      = vim.fs.joinpath(build_dir, "projects/cpp_sandbox/cpp_sandbox"),
-        ["graphics_sandbox"] = vim.fs.joinpath(build_dir, "projects/graphics_sandbox/graphics_sandbox"),
-        ["test_bgfx"]        = vim.fs.joinpath(build_dir, "projects/test_bgfx/test_bgfx"),
-        ["asteroids"]        = vim.fs.joinpath(build_dir, "projects/asteroids/asteroids"),
+        ["cpp_sandbox"] = vim.fs.joinpath(build_dir, "projects/cpp_sandbox/cpp_sandbox"),
+        ["demos"]       = vim.fs.joinpath(build_dir, "projects/demos/demos"),
+        ["test_bgfx"]   = vim.fs.joinpath(build_dir, "projects/test_bgfx/test_bgfx"),
+        ["asteroids"]   = vim.fs.joinpath(build_dir, "projects/asteroids/asteroids"),
     }
 end
 
@@ -97,13 +97,13 @@ vim.api.nvim_create_user_command('SetActiveProject', function(opts)
         return
     end
 
-    local pickers     = require("telescope.pickers")
-    local finders     = require("telescope.finders")
-    local conf        = require("telescope.config").values
-    local actions     = require("telescope.actions")
+    local pickers      = require("telescope.pickers")
+    local finders      = require("telescope.finders")
+    local conf         = require("telescope.config").values
+    local actions      = require("telescope.actions")
     local action_state = require("telescope.actions.state")
 
-    local projects = vim.tbl_keys(get_project_commands())
+    local projects     = vim.tbl_keys(get_project_commands())
     table.sort(projects)
 
     pickers.new({}, {
@@ -135,7 +135,7 @@ vim.api.nvim_create_user_command('ActiveProject', function(opts)
     if ok and router.update then
         require("noice.message.router").update()
     end
-end, { })
+end, {})
 
 --%-GIn\ file\ include\ %.%#
 vim.cmd([[
@@ -163,7 +163,7 @@ vim.api.nvim_create_user_command('SetActiveTargetPlatform', function(opts)
     vim.g.target_build_platform = platform
     vim.g.target_build_config   = config
     vim.g.target_build_dir      = build_dir
-    vim.o.makeprg = 'ninja -C ' .. build_dir
+    vim.o.makeprg               = 'ninja -C ' .. build_dir
 
     vim.notify('Active target: ' .. preset, vim.log.levels.INFO)
 end, {
@@ -208,10 +208,11 @@ end, {})
 --------------------------------------------------------------------------------------------------------
 
 
-vim.api.nvim_set_keymap("n", "<F6>", '<cmd>lua LaunchActiveProject(false)<cr>', {noremap = true, silent = true})
-utils.set_multi_keymap("n", {"<M-F6>", "<F54>"}, '<cmd>lua LaunchActiveProject(true)<cr>', {noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<F6>", '<cmd>lua LaunchActiveProject(false)<cr>', { noremap = true, silent = true })
+utils.set_multi_keymap("n", { "<M-F6>", "<F54>" }, '<cmd>lua LaunchActiveProject(true)<cr>',
+    { noremap = true, silent = true })
 
-vim.api.nvim_set_keymap("n", "<F7>", '<cmd>Build<cr>', {noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<F7>", '<cmd>Build<cr>', { noremap = true, silent = true })
 utils.set_multi_keymap("n", { "<M-F7>", "<F55>" }, '<cmd>BuildCurrentFile<cr>', { noremap = true, silent = true })
 
 --------------------------------------------------------------------------------------------------------
@@ -219,5 +220,4 @@ utils.set_multi_keymap("n", { "<M-F7>", "<F55>" }, '<cmd>BuildCurrentFile<cr>', 
 --------------------------------------------------------------------------------------------------------
 
 vim.cmd('SetActiveTargetPlatform Darwin debug')
-vim.cmd('SetActiveProject test_bgfx')
-
+vim.cmd('SetActiveProject demos')

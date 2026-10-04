@@ -1,0 +1,4 @@
+- Files taken from bgfx.cmake/bgfx/examples/common
+- Custom changes are marked with: `SLICK - BEGIN/END`
+    - imgui/imgui.h
+    - imgui/imgui.cpp

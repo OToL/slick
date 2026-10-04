@@ -6,6 +6,7 @@ set(bgfx_internal_files
     "${SLICK_EXTERN_INCLUDE_DIR}/bgfx/3rdparty/dear-imgui/imgui_widgets.cpp")
 
 add_library(bgfx-utils
+    debugdraw/debugdraw.cpp
     imgui/imgui.cpp
     ${bgfx_internal_files})
 

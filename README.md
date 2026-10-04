@@ -79,14 +79,67 @@
 
 # TODO
 
+## Board
+
+- [ ] Launch (F6) and active project using the launch json --> use dap to populate everything e.g. including active projects
+    ```
+    local function get_launch_config(name)
+      for _, c in ipairs(require('dap.ext.vscode').getconfigs()) do
+        if c.name == name then return c end
+      end
+    end
+
+    local c = get_launch_config("slick demos")
+    print(c.program)   -- "./_build/darwin-debug/projects/demos/demos"
+    print(c.cwd)       -- "${workspaceFolder}/projects/demos/_build"   (not expanded)
+    print(vim.inspect(c.args))  -- {}
+
+    The ${...} variables are still unexpanded. nvim-dap does have the expansion code (expand_config_variables), but it's a local function inside dap.lua:396, so you can't call it. For your launch.json, a small helper covers it:
+
+    local function expand(s)
+      if type(s) ~= 'string' then return s end
+      return (s:gsub('%${workspaceFolder}', vim.fn.getcwd())
+               :gsub('%${env:([%w_]+)}', function(v) return os.getenv(v) or '' end))
+    end
+
+    local cwd  = expand(c.cwd)
+    local args = vim.tbl_map(expand, c.args or {})
+    ```
+- [ ] Camera limit angle to avoid gimbal lock
+- [ ] Camera management in demos for trackpad and mouse/kb
+- [ ] Bgfx type conversion
+- [ ] Use slk namespace for projects
+- [ ] Hash support + litterals and use it for DemoId
+
+## Backlog
+
+- [ ] Load launch.json only when it has changed
+- [ ] pass Demo grid `grid_scalar_params` as parameter
+- [ ] Infinite Grid e.g. offset the grid when too far
+- [ ] Use rag for extern knowledge
+- [ ] Claude skill to use nvim
+- [ ] Ignore cmake errors from 3rdparty
+- [ ] Instruct claude to use servers (e.g. lsp and dap) when asking for something related
+- [ ] Give some intruction to claude about cmake and build
+- [ ] Try Metal GPU capture + maybe claude skill
+- [ ] Use launch.json for F6
+- [ ] Error managenent (look at c++ contract)
+- [ ] Rework src folder e.g. utils, etc.
+- [ ] Update `Depot Structure`
+- [ ] Enable sanitizers (UB, fuzzer, Adress, etc.)
+- [ ] Try clang-tidy
+
+## Archives
+
+- [x] Rename color constants
+- [x] Rework graphics sandbox e.g. `demos`, how demos are declared, etc.
+- [x] Remove raylib in favor of bgfx
 - [x] Clean naming convention in slk
 - [x] Remove pre-built libs
 - [x] Remove PS3 (code, tools, cmake, etc.)
 - [x] Use singleton patten instead of global vars for InputApi and rename file form input.hpp to input_api.hpp
-- [ ] Replace `samples` by `projects`
-- [ ] Remove raylib in favor of bgfx
-- [ ] Rework src folder e.g. utils, etc.
-- [ ] Update `Depot Structure`
-- [ ] Rework grphics sandbox e.g. `demos`, how demos are declared, etc.
-- [ ] Error managenebt (look at c++ contract)
-- [ ] Single file compilation
+- [x] Replace `samples` by `projects`
+- [x] Cleanup nvim environment management (SetActiveProject, SetActiveTargetPlatform, get rid of BuildDarwin, good defaults, etc.)
+- [x] Compile single file
+- [x] Single file compilation
+

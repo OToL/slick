@@ -67,8 +67,8 @@ struct Vector2 {
     constexpr Vector2 normalized() const {
         auto const length_val = length();
         return {
-            m_x /= length_val,
-            m_y /= length_val,
+            m_x / length_val,
+            m_y / length_val,
         };
     }
 

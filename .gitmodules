@@ -1,15 +1,9 @@
 [submodule "extern/src/zlib"]
 	path = extern/src/zlib
 	url = https://github.com/madler/zlib.git
-[submodule "extern/src/raylib"]
-	path = extern/src/raylib
-	url = https://github.com/raysan5/raylib.git
 [submodule "extern/src/imgui"]
 	path = extern/src/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "extern/src/rlimgui"]
-	path = extern/src/rlimgui
-	url = https://github.com/OToL/rlImGui.git
 [submodule "extern/src/bgfx.cmake"]
 	path = extern/src/bgfx.cmake
 	url = https://github.com/bkaradzic/bgfx.cmake

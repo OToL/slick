@@ -6,7 +6,7 @@
             "type": "codelldb",
             "request": "launch",
             "program": "./_build/darwin-debug/projects/asteroids/asteroids",
-            "args": [],
+            "rgs": [],
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,
             "runInTerminal": false,
@@ -15,25 +15,12 @@
             ]
         },
         {
-            "name": "test bgfx",
+            "name": "slick demos",
             "type": "codelldb",
             "request": "launch",
-            "program": "./_build/darwin-debug/projects/test_bgfx/test_bgfx",
+            "program": "./_build/darwin-debug/projects/demos/demos",
             "args": [],
-            "cwd": "${workspaceFolder}",
-            "stopOnEntry": false,
-            "runInTerminal": false,
-            "sourceLanguages": [
-                "cpp"
-            ]
-        },
-        {
-            "name": "graphics sandbox",
-            "type": "codelldb",
-            "request": "launch",
-            "program": "./_build/darwin-debug/projects/graphics_sandbox/graphics_sandbox",
-            "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/projects/demos/_build",
             "stopOnEntry": false,
             "runInTerminal": false,
             "sourceLanguages": [

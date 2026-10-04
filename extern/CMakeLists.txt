@@ -6,9 +6,6 @@
 #       this means they have to be updated whenever associated sources are modified (extern\src\<dep name>).
 
 slk_is_in_list(${SLICK_TARGET_PLATFORM_ID} ENABLE_EXTERN_ZLIB     "darwin" "ps3")
-slk_is_in_list(${SLICK_TARGET_PLATFORM_ID} ENABLE_EXTERN_RAYLIB   "darwin")
-slk_is_in_list(${SLICK_TARGET_PLATFORM_ID} ENABLE_EXTERN_RLIMGUI  "darwin")
-slk_is_in_list(${SLICK_TARGET_PLATFORM_ID} ENABLE_EXTERN_IMGUI    "darwin")
 slk_is_in_list(${SLICK_TARGET_PLATFORM_ID} ENABLE_EXTERN_BGFX     "darwin")
 slk_is_in_list(${SLICK_TARGET_PLATFORM_ID} ENABLE_EXTERN_SOKOL    "darwin")
 
@@ -29,72 +26,6 @@ if(ENABLE_EXTERN_ZLIB)
         target_link_libraries(slk_extern_zlib
             INTERFACE
                 slk_extern_redist_zlib)
-    endif()
-endif()
-
-# RayLib
-if(ENABLE_EXTERN_RAYLIB)
-    if(SLICK_ENABLE_BUILD_EXTERN)
-        add_subdirectory(src/raylib)
-        add_library(ext-raylib ALIAS raylib)
-    else()
-        add_library(slk_extern_redist_raylib STATIC IMPORTED)
-        set_target_properties(slk_extern_redist_raylib PROPERTIES
-            IMPORTED_LOCATION_DEBUG "${SLICK_EXTERN_LIB_DIR}/darwin/libraylib_debug.a")
-        if(${SLICK_TARGET_PLATFORM_ID} STREQUAL "darwin")
-            target_link_libraries(slk_extern_redist_raylib INTERFACE
-                  "-framework Cocoa"
-                  "-framework OpenGL"
-                  "-framework IOKit"
-                  "-framework CoreVideo")
-        endif()
-        add_library(slk_extern_raylib INTERFACE)
-        add_library(ext-raylib ALIAS slk_extern_raylib)
-        target_link_libraries(slk_extern_raylib
-            INTERFACE
-                slk_extern_redist_raylib)
-    endif()
-endif()
-
-# ImGUI
-if(ENABLE_EXTERN_IMGUI)
-    if(SLICK_ENABLE_BUILD_EXTERN)
-        add_library(imgui STATIC 
-            src/imgui/imgui.cpp
-            src/imgui/imgui_demo.cpp
-            src/imgui/imgui_draw.cpp
-            src/imgui/imgui_tables.cpp
-            src/imgui/imgui_widgets.cpp)
-        add_library(ext-imgui ALIAS imgui)
-    else()
-        add_library(slk_extern_redist_imgui STATIC IMPORTED)
-        set_target_properties(slk_extern_redist_imgui PROPERTIES
-            IMPORTED_LOCATION_DEBUG "${SLICK_EXTERN_LIB_DIR}/darwin/libimgui_debug.a")
-        add_library(slk_extern_imgui INTERFACE)
-        add_library(ext-imgui ALIAS slk_extern_imgui)
-        target_link_libraries(slk_extern_imgui
-            INTERFACE
-                slk_extern_redist_imgui)
-    endif()
-endif()
-
-if(ENABLE_EXTERN_RLIMGUI AND ENABLE_EXTERN_IMGUI AND ENABLE_EXTERN_RAYLIB)
-    if(SLICK_ENABLE_BUILD_EXTERN)
-        add_library(rlimgui STATIC 
-            src/rlimgui/rlImGui.cpp)
-        target_include_directories(rlimgui PUBLIC
-            ${SLICK_EXTERN_INCLUDE_DIR})
-        target_compile_options(rlimgui PRIVATE -w)
-        add_library(ext-rlimgui ALIAS rlimgui)
-    else()
-        add_library(slk_extern_redist_rlimgui STATIC IMPORTED)
-        set_target_properties(slk_extern_redist_rlimgui PROPERTIES
-            IMPORTED_LOCATION_DEBUG "${SLICK_EXTERN_LIB_DIR}/darwin/librlimgui_debug.a")
-        add_library(slk_extern_rlimgui INTERFACE)
-        add_library(ext-rlimgui ALIAS slk_extern_rlimgui)
-        target_link_libraries(slk_extern_rlimgui
-            INTERFACE
-                slk_extern_redist_rlimgui)
     endif()
 endif()
 

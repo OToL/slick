@@ -178,10 +178,10 @@ struct Matrix3 {
 
 		m_values[ 3] = 0.f;
 		m_values[ 4] = cx;
-		m_values[ 5] = -sx;
+		m_values[ 5] = sx;
 
 		m_values[ 6] = 0.f;
-		m_values[ 7] = sx;
+		m_values[ 7] = -sx;
 		m_values[ 8] = cx;
 
         return *this;
@@ -194,13 +194,13 @@ struct Matrix3 {
 
 		m_values[0] = cy;
 		m_values[1] = 0.f;
-		m_values[2] = sy;
+		m_values[2] = -sy;
 
 		m_values[3] = 0.f;
 		m_values[4] = 1.0f;
 		m_values[5] = 0.f;
 
-		m_values[6] = -sy;
+		m_values[6] = sy;
 		m_values[7] = 0.f;
 		m_values[8] = cy;
 
@@ -213,10 +213,10 @@ struct Matrix3 {
 		const float cz = cos(rot_rad);
 
 		m_values[0] = cz;
-		m_values[1] = -sz;
+		m_values[1] = sz;
 		m_values[2] = 0.f;
 
-		m_values[3] = sz;
+		m_values[3] = -sz;
 		m_values[4] = cz;
 		m_values[5] = 0.f;
 
@@ -235,15 +235,15 @@ struct Matrix3 {
 		const float cy = cos(roty_rad);
 
 		m_values[0] = cy;
-		m_values[1] = 0.f;
-		m_values[2] = sy;
+		m_values[1] = sx*sy;
+		m_values[2] = -cx*sy;
 
-		m_values[3] = sx*sy;
+		m_values[3] = 0.f;
 		m_values[4] = cx;
-		m_values[5] = -sx*cy;
+		m_values[5] = sx;
 
-		m_values[6] = -cx*sy;
-		m_values[7] = sx;
+		m_values[6] = sy;
+		m_values[7] = -sx*cy;
 		m_values[8] = cx*cy;
 
         return *this;
@@ -259,15 +259,15 @@ struct Matrix3 {
 		const float cz = cos(rotz_rad);
 
 		m_values[0] = cy*cz;
-		m_values[1] = -cy*sz;
-		m_values[2] = sy;
+		m_values[1] = cz*sx*sy + cx*sz;
+		m_values[2] = -cx*cz*sy + sx*sz;
 
-		m_values[3] = cz*sx*sy + cx*sz;
+		m_values[3] = -cy*sz;
 		m_values[4] = cx*cz - sx*sy*sz;
-		m_values[5] = -cy*sx;
+		m_values[5] = cz*sx + cx*sy*sz;
 
-		m_values[6] = -cx*cz*sy + sx*sz;
-		m_values[7] = cz*sx + cx*sy*sz;
+		m_values[6] = sy;
+		m_values[7] = -cy*sx;
 		m_values[8] = cx*cy;
 
         return *this;
@@ -283,15 +283,15 @@ struct Matrix3 {
 		const float cz = cos(rotz_rad);
 
 		m_values[0] = cy*cz;
-		m_values[1] = cz*sx*sy-cx*sz;
-		m_values[2] = cx*cz*sy+sx*sz;
+		m_values[1] = cy*sz;
+		m_values[2] = -sy;
 
-		m_values[3] = cy*sz;
+		m_values[3] = cz*sx*sy-cx*sz;
 		m_values[4] = cx*cz + sx*sy*sz;
-		m_values[5] = -cz*sx + cx*sy*sz;
+		m_values[5] = cy*sx;
 
-		m_values[6] = -sy;
-		m_values[7] = cy*sx;
+		m_values[6] = cx*cz*sy+sx*sz;
+		m_values[7] = -cz*sx + cx*sy*sz;
 		m_values[8] = cx*cy;
 
         return *this;

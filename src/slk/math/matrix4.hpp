@@ -230,11 +230,11 @@ struct Matrix4 {
 
 		m_values[ 4] = 0.f;
 		m_values[ 5] = cx;
-		m_values[ 6] = -sx;
+		m_values[ 6] = sx;
 		m_values[ 7] = 0.f;
 
 		m_values[ 8] = 0.f;
-		m_values[ 9] = sx;
+		m_values[ 9] = -sx;
 		m_values[10] = cx;
 		m_values[11] = 0.f;
 
@@ -253,7 +253,7 @@ struct Matrix4 {
 
 		m_values[ 0] = cy;
 		m_values[ 1] = 0.f;
-		m_values[ 2] = sy;
+		m_values[ 2] = -sy;
 		m_values[ 3] = 0.f;
 
 		m_values[ 4] = 0.f;
@@ -261,7 +261,7 @@ struct Matrix4 {
 		m_values[ 6] = 0.f;
 		m_values[ 7] = 0.f;
 
-		m_values[ 8] = -sy;
+		m_values[ 8] = sy;
 		m_values[ 9] = 0.f;
 		m_values[10] = cy;
 		m_values[11] = 0.f;
@@ -280,11 +280,11 @@ struct Matrix4 {
 		const f32 cz = cos(rot_rad);
 
 		m_values[ 0] = cz;
-		m_values[ 1] = -sz;
+		m_values[ 1] = sz;
 		m_values[ 2] = 0.f;
 		m_values[ 3] = 0.f;
 
-		m_values[ 4] = sz;
+		m_values[ 4] = -sz;
 		m_values[ 5] = cz;
 		m_values[ 6] = 0.f;
 		m_values[ 7] = 0.f;
@@ -310,17 +310,17 @@ struct Matrix4 {
 		const f32 cy = cos(roty_rad);
 
 		m_values[ 0] = cy;
-		m_values[ 1] = 0.f;
-		m_values[ 2] = sy;
+		m_values[ 1] = sx*sy;
+		m_values[ 2] = -cx*sy;
 		m_values[ 3] = 0.f;
 
-		m_values[ 4] = sx*sy;
+		m_values[ 4] = 0.f;
 		m_values[ 5] = cx;
-		m_values[ 6] = -sx*cy;
+		m_values[ 6] = sx;
 		m_values[ 7] = 0.f;
 
-		m_values[ 8] = -cx*sy;
-		m_values[ 9] = sx;
+		m_values[ 8] = sy;
+		m_values[ 9] = -sx*cy;
 		m_values[10] = cx*cy;
 		m_values[11] = 0.f;
 
@@ -342,17 +342,17 @@ struct Matrix4 {
 		const f32 cz = cos(rotz_rad);
 
 		m_values[ 0] = cy*cz;
-		m_values[ 1] = -cy*sz;
-		m_values[ 2] = sy;
+		m_values[ 1] = cz*sx*sy + cx*sz;
+		m_values[ 2] = -cx*cz*sy + sx*sz;
 		m_values[ 3] = 0.f;
 
-		m_values[ 4] = cz*sx*sy + cx*sz;
+		m_values[ 4] = -cy*sz;
 		m_values[ 5] = cx*cz - sx*sy*sz;
-		m_values[ 6] = -cy*sx;
+		m_values[ 6] = cz*sx + cx*sy*sz;
 		m_values[ 7] = 0.f;
 
-		m_values[ 8] = -cx*cz*sy + sx*sz;
-		m_values[ 9] = cz*sx + cx*sy*sz;
+		m_values[ 8] = sy;
+		m_values[ 9] = -cy*sx;
 		m_values[10] = cx*cy;
 		m_values[11] = 0.f;
 
@@ -374,17 +374,17 @@ struct Matrix4 {
 		const f32 cz = cos(rotz_rad);
 
 		m_values[ 0] = cy*cz;
-		m_values[ 1] = cz*sx*sy-cx*sz;
-		m_values[ 2] = cx*cz*sy+sx*sz;
+		m_values[ 1] = cy*sz;
+		m_values[ 2] = -sy;
 		m_values[ 3] = 0.f;
 
-		m_values[ 4] = cy*sz;
+		m_values[ 4] = cz*sx*sy-cx*sz;
 		m_values[ 5] = cx*cz + sx*sy*sz;
-		m_values[ 6] = -cz*sx + cx*sy*sz;
+		m_values[ 6] = cy*sx;
 		m_values[ 7] = 0.f;
 
-		m_values[ 8] = -sy;
-		m_values[ 9] = cy*sx;
+		m_values[ 8] = cx*cz*sy+sx*sz;
+		m_values[ 9] = -cz*sx + cx*sy*sz;
 		m_values[10] = cx*cy;
 		m_values[11] = 0.f;
 

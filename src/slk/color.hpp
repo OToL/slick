@@ -42,6 +42,14 @@ struct ColorU32 {
     constexpr ColorU32(RgbaTag, u8 r, u8 g, u8 b, u8 a)
         : ColorU32(a, b, g, r) { }
 
+    constexpr u32 value() const {
+        return m_abgr;
+    }
+
+    constexpr u32 rgba() const {
+        return (u32)m_red << 24 | (u32)m_green << 16 | (u32)m_blue << 8 | (u32)m_alpha;
+    }
+
     static inline constexpr ColorU32 red() {
         return ColorU32{0xFF0000FFU};
     }
@@ -62,16 +70,17 @@ struct ColorU32 {
         return ColorU32{0xFFFFFFFFU};
     }
 
-    constexpr u32 rgba() const {
-        return (u32)m_red << 24 | (u32)m_green << 16 | (u32)m_blue << 8 | (u32)m_alpha;
+    static inline constexpr ColorU32 pink() {
+        return ColorU32{0xFFFF00FFU};
     }
 
     // named 'COLOR_<color>' instead of '<color>' because of collisions with 3rd party libraries e.g. raylib
-    static const ColorU32 COLOR_RED;
-    static const ColorU32 COLOR_GREEN;
-    static const ColorU32 COLOR_BLUE;
-    static const ColorU32 COLOR_BLACK;
-    static const ColorU32 COLOR_WHITE;
+    static const ColorU32 RED;
+    static const ColorU32 GREEN;
+    static const ColorU32 BLUE;
+    static const ColorU32 BLACK;
+    static const ColorU32 WHITE;
+    static const ColorU32 PINK;
 };
 
 } // namespace slk

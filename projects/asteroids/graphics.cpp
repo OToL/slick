@@ -1,35 +1,51 @@
 #include "graphics.hpp"
-#include "rlib_utils.hpp"
-
-#include <raylib/raylib.h>
-#include <raylib/raymath.h>
 
 #include <slk/color.hpp>
 #include <slk/math/vector2.hpp>
 #include <slk/math/matrix2.hpp>
 #include <slk/math/aabb2.hpp>
 
+#include <bgfx_utils/debugdraw/debugdraw.h>
+
 #include <iterator>
 
-void draw_aabb(WindowCtx const& wnd_ctx, slk::AABB2f const& aabb, slk::Vector2f const& pos, slk::ColorU32 const& color) {
+namespace {
 
-    const Rectangle rrect = {
-        .x = aabb.m_min.m_x + pos.m_x,
-        .y = wnd_ctx.height - aabb.m_max.m_y - pos.m_y,
-        .width = aabb.m_max.m_x - aabb.m_min.m_x,
-        .height = aabb.m_max.m_y - aabb.m_min.m_y
-    };
-    const ::Color rcolor = {
-        .r = color.m_red,
-        .g = color.m_green,
-        .b = color.m_blue,
-        .a = color.m_alpha
-    };
-
-    DrawRectangleLinesEx(rrect, 2.f, rcolor);
+bx::Vec3 to_bxvec3(slk::Vector2f const& vec) {
+    return {vec.m_x, vec.m_y, 0.f};
 }
 
-void draw_triangle(WindowCtx const& wnd_ctx, slk::Vector2f const& pos, slk::f32 rot_rad, slk::u32 width, slk::u32 height, slk::ColorU32 const& color)
+} // namespace
+
+// Debug draw lines are 1 pixel wide, so thick lines are drawn as a quad (2 triangles)
+void draw_line(DebugDrawEncoder& dde, slk::Vector2f const& start, slk::Vector2f const& end, slk::ColorU32 const& color, slk::f32 thickness) {
+    slk::Vector2f const dir = end - start;
+    if (dir.length2() == 0.f) {
+        return;
+    }
+
+    slk::Vector2f const dir_norm = dir.normalized();
+    slk::Vector2f const offset = slk::Vector2f{-dir_norm.m_y, dir_norm.m_x} * (thickness * 0.5f);
+
+    dde.setColor(color.m_abgr);
+    dde.draw(bx::Triangle{to_bxvec3(start + offset), to_bxvec3(start - offset), to_bxvec3(end + offset)});
+    dde.draw(bx::Triangle{to_bxvec3(start - offset), to_bxvec3(end - offset), to_bxvec3(end + offset)});
+}
+
+void draw_aabb(DebugDrawEncoder& dde, slk::AABB2f const& aabb, slk::Vector2f const& pos, slk::ColorU32 const& color) {
+    slk::Vector2f const min = aabb.m_min + pos;
+    slk::Vector2f const max = aabb.m_max + pos;
+
+    // horizontal edges are extended to fill the corners
+    slk::f32 const half_thickness = DEFAULT_LINE_THICKNESS * 0.5f;
+
+    draw_line(dde, {min.m_x - half_thickness, min.m_y}, {max.m_x + half_thickness, min.m_y}, color);
+    draw_line(dde, {min.m_x - half_thickness, max.m_y}, {max.m_x + half_thickness, max.m_y}, color);
+    draw_line(dde, {min.m_x, min.m_y}, {min.m_x, max.m_y}, color);
+    draw_line(dde, {max.m_x, min.m_y}, {max.m_x, max.m_y}, color);
+}
+
+void draw_triangle(DebugDrawEncoder& dde, slk::Vector2f const& pos, slk::f32 rot_rad, slk::f32 width, slk::f32 height, slk::ColorU32 const& color)
 {
     slk::Vector2f vertices[] = {
         {0, 1},
@@ -37,7 +53,7 @@ void draw_triangle(WindowCtx const& wnd_ctx, slk::Vector2f const& pos, slk::f32 
         {-1, 0},
     };
 
-    // rotatiomathn
+    // rotation
     slk::Matrix2f xform = slk::Matrix2f::makeRotation(rot_rad);
     for (auto& vert : vertices) {
         vert = xform * vert;
@@ -46,30 +62,14 @@ void draw_triangle(WindowCtx const& wnd_ctx, slk::Vector2f const& pos, slk::f32 
     // scale
     vertices[0] *= height;
     vertices[1] *= width * 0.5f;
-    vertices[2] *= width * 0.5f; 
+    vertices[2] *= width * 0.5f;
 
     // translation
     for (auto& vert : vertices) {
         vert += pos;
     }
 
-    // transform vertices
-    Vector2 rvertices[4] = {};
-    slk::u32 idx = 0;
-    for (auto& rvert : rvertices) {
-
-        rvert = {
-            .x = vertices[idx].m_x,
-            .y = wnd_ctx.height - vertices[idx].m_y
-        };
-
-        idx = (idx + 1)%std::size(vertices);
-    }
-
-    for (size_t i = 1 ; i < std::size(rvertices) ; ++i) {
-
-        DrawLineEx(rvertices[i - 1], rvertices[i], 2, to_rcolor(color));
+    for (size_t i = 0 ; i < std::size(vertices) ; ++i) {
+        draw_line(dde, vertices[i], vertices[(i + 1) % std::size(vertices)], color);
     }
 }
-
-

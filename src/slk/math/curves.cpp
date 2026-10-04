@@ -6,7 +6,19 @@
 
 namespace slk {
 
-BezierSplineInfo computeBezierSplineInfoFromCtrlPoints(u32 section_cnt) {
+BezierSplineInfo computeBezierSplineInfoFromCtrlPoints(u32 ctrl_point_cnt) {
+    if (ctrl_point_cnt < 4)
+        return {};
+
+    return {
+        .ctrl_point_cnt = ctrl_point_cnt,
+        .section_cnt = 1 + (ctrl_point_cnt - 4) / 3,
+        .item_cnt = ctrl_point_cnt,
+    };
+
+};
+
+BezierSplineInfo computeBezierSplineInfoFromSections(u32 section_cnt) {
     if (section_cnt == 0)
         return {};
 
@@ -15,17 +27,6 @@ BezierSplineInfo computeBezierSplineInfoFromCtrlPoints(u32 section_cnt) {
         .ctrl_point_cnt = item_cnt,
         .section_cnt = section_cnt,
         .item_cnt = item_cnt,
-    };
-};
-
-BezierSplineInfo computeBezierSplineInfoFromSections(u32 ctrl_point_cnt) {
-    if (ctrl_point_cnt < 4)
-        return {};
-
-    return {
-        .ctrl_point_cnt = ctrl_point_cnt,
-        .section_cnt = 1 + (ctrl_point_cnt - 4) / 3,
-        .item_cnt = ctrl_point_cnt,
     };
 };
 

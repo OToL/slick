@@ -11,8 +11,12 @@ Matrix4f makeOrthoProjectionMatrix(f32 left, f32 right, f32 bottom, f32 top, f32
     const f32 ee = (top + bottom) / (bottom - top);
     const f32 ff = homogeneous_ndc ? (near + far) / (near - far) : near / (near - far);
 
+    // Matrix4 scalar constructor takes columns
     return {
-        aa, 0.f, 0.f, dd + offset, 0.f, bb, 0.f, ee, 0.f, 0.f, Handedness::RIGHT == handedness ? -cc : cc, ff, 0.f, 0.f, 0.f, 1.0f,
+        aa, 0.f, 0.f, 0.f,
+        0.f, bb, 0.f, 0.f,
+        0.f, 0.f, Handedness::RIGHT == handedness ? -cc : cc, 0.f,
+        dd + offset, ee, ff, 1.0f,
     };
 }
 

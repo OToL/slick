@@ -27,14 +27,16 @@ using b8 = bool;
 #define SB_FEATURE_ENABLED 2
 #define SB_FEATURE_DISABLED 1
 
-#define sb_feature_enabled(name) \
-    2 == ((SB_FEATURE_##name+1) / SB_FEATURE_##name)
+#define sb_feature_enabled(name) 2 == ((SB_FEATURE_##name + 1) / SB_FEATURE_##name)
 
-#define sb_feature_disabled(name) \
-    2 != ((SB_FEATURE_##name+1) / SB_FEATURE_##name)
+#define sb_feature_disabled(name) 2 != ((SB_FEATURE_##name + 1) / SB_FEATURE_##name)
 
 // Enumeration used as mask
 #define sb_declare_enum_mask_operators(flag)                                                                                                         \
+    inline constexpr slk::b8 allMaskFlagSet(flag lval, flag rval) {                                                                                  \
+        return (static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval)) ==                                          \
+               static_cast<__underlying_type(flag)>(rval);                                                                                           \
+    }                                                                                                                                                \
     inline constexpr flag operator|(flag lval, flag rval) {                                                                                          \
         return (flag)(static_cast<__underlying_type(flag)>(lval) | static_cast<__underlying_type(flag)>(rval));                                      \
     }                                                                                                                                                \
@@ -57,4 +59,3 @@ using b8 = bool;
 #else
 #    define sb_force_inline
 #endif
-

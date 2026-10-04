@@ -54,8 +54,8 @@ void Camera::setLookAt(Vector3f eye, Vector3f target) {
 
 void Camera::rotate(f32 delta_yaw, f32 delta_pitch) {
     Matrix3f roty, rotx;
-    roty.setRotationY(delta_yaw);
-    rotx.setRotationX(delta_pitch);
+    roty.setRotationY(-delta_yaw);
+    rotx.setRotationX(-delta_pitch);
     m_orientation = roty * m_orientation * rotx;
 }
 
