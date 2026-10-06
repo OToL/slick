@@ -81,32 +81,8 @@
 
 ## Board
 
-- [ ] Launch (F6) and active project using the launch json --> use dap to populate everything e.g. including active projects
-    ```
-    local function get_launch_config(name)
-      for _, c in ipairs(require('dap.ext.vscode').getconfigs()) do
-        if c.name == name then return c end
-      end
-    end
-
-    local c = get_launch_config("slick demos")
-    print(c.program)   -- "./_build/darwin-debug/projects/demos/demos"
-    print(c.cwd)       -- "${workspaceFolder}/projects/demos/_build"   (not expanded)
-    print(vim.inspect(c.args))  -- {}
-
-    The ${...} variables are still unexpanded. nvim-dap does have the expansion code (expand_config_variables), but it's a local function inside dap.lua:396, so you can't call it. For your launch.json, a small helper covers it:
-
-    local function expand(s)
-      if type(s) ~= 'string' then return s end
-      return (s:gsub('%${workspaceFolder}', vim.fn.getcwd())
-               :gsub('%${env:([%w_]+)}', function(v) return os.getenv(v) or '' end))
-    end
-
-    local cwd  = expand(c.cwd)
-    local args = vim.tbl_map(expand, c.args or {})
-    ```
-- [ ] Camera limit angle to avoid gimbal lock
 - [ ] Camera management in demos for trackpad and mouse/kb
+- [ ] Camera limit angle to avoid gimbal lock
 - [ ] Bgfx type conversion
 - [ ] Use slk namespace for projects
 - [ ] Hash support + litterals and use it for DemoId
@@ -128,9 +104,11 @@
 - [ ] Update `Depot Structure`
 - [ ] Enable sanitizers (UB, fuzzer, Adress, etc.)
 - [ ] Try clang-tidy
+- [ ] Impolement own parser for launch.json instead of using the dap config + timestamp to not parse the file each time
 
 ## Archives
 
+- [x] Launch (F6) and active project using the launch json --> use dap to populate everything e.g. including active projects
 - [x] Rename color constants
 - [x] Rework graphics sandbox e.g. `demos`, how demos are declared, etc.
 - [x] Remove raylib in favor of bgfx

@@ -6,7 +6,7 @@
             "type": "codelldb",
             "request": "launch",
             "program": "./_build/darwin-debug/projects/asteroids/asteroids",
-            "rgs": [],
+            "args": [],
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,
             "runInTerminal": false,

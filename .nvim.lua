@@ -4,6 +4,12 @@
 
 local utils = require("utils")
 
+local function expand_launch_vars(s)
+  if type(s) ~= 'string' then return s end
+  return (s:gsub('%${workspaceFolder}', vim.fn.getcwd())
+           :gsub('%${env:([%w_]+)}', function(v) return os.getenv(v) or '' end))
+end
+
 -- Detect current platform
 local function get_current_platform()
     if vim.fn.has("macunix") == 1 then
@@ -17,7 +23,7 @@ local function get_current_platform()
     end
 end
 
-function GetBuildDirPath()
+local function get_build_dir_path()
     return vim.fs.joinpath(vim.fn.getcwd(), "_build")
 end
 
@@ -34,33 +40,42 @@ local function get_wezterm_path()
     end
 end
 
+local function reload_launch_projects()
+    vim.g.projects = {}
+
+    local projects = {}
+    local dap = require('dap.ext.vscode')
+    for _, c in ipairs(dap.getconfigs()) do
+        local program = expand_launch_vars(c.program)
+        if not vim.startswith(program, '/') then
+            program = vim.fs.normalize(vim.fs.joinpath(vim.fn.getcwd(), program))
+        end
+
+        local project = {
+            program = program,
+            cwd = expand_launch_vars(c.cwd),
+            args = {}
+        }
+        for _, arg in ipairs(c.args) do
+            project.args[#project.args + 1] = expand_launch_vars(arg)
+        end
+
+        projects[c.name] = project
+    end
+    vim.g.projects = projects
+end
+
 --------------------------------------------------------------------------------------------------------
 --                                  Globl workspace variables                                         --
 --------------------------------------------------------------------------------------------------------
 
 vim.g.active_project = vim.g.active_project or "default"
 vim.g.active_platform = vim.g.active_platform or get_current_platform()
+vim.g.projects = {}
 
 --------------------------------------------------------------------------------------------------------
 --                                      Quick app launch                                              --
 --------------------------------------------------------------------------------------------------------
-
--- Project launch configurations
-local function get_project_commands()
-    local build_dir = vim.g.target_build_dir
-        or vim.fs.joinpath(GetBuildDirPath(), get_current_platform() .. "-debug")
-    return {
-        ["cpp_sandbox"] = vim.fs.joinpath(build_dir, "projects/cpp_sandbox/cpp_sandbox"),
-        ["demos"]       = vim.fs.joinpath(build_dir, "projects/demos/demos"),
-        ["test_bgfx"]   = vim.fs.joinpath(build_dir, "projects/test_bgfx/test_bgfx"),
-        ["asteroids"]   = vim.fs.joinpath(build_dir, "projects/asteroids/asteroids"),
-    }
-end
-
-function GetLaunchCommand(project)
-    local commands = get_project_commands()
-    return commands[project] or "echo 'No project selected'"
-end
 
 local WEZTERM = get_wezterm_path()
 if not WEZTERM then
@@ -70,16 +85,30 @@ end
 
 -- Launch active program using the workspace root as current directory
 function LaunchActiveProject(show_term)
-    local command = GetLaunchCommand(vim.g.active_project)
-    local workspace_dir = vim.fn.getcwd()
+    if not vim.g.active_project then
+        vim.notify("No active project to launch", vim.log.levels.ERROR)
+    end
 
+    local project_desc = vim.g.projects[vim.g.active_project]
+    if not project_desc then
+        vim.notify("Cannot find project: " .. vim.g.active_project, vim.log.levels.ERROR)
+    end
+
+    local working_dir = vim.fn.getcwd()
+    if project_desc.cwd then
+       working_dir = project_desc.cwd
+    end
+
+    -- TODO: args
     if show_term then
         local height = math.floor(vim.api.nvim_win_get_height(0) / 4)
         vim.cmd('belowright ' .. height .. 'new')
-        vim.fn.jobstart(command, { cwd = workspace_dir, term = true })
+        vim.fn.jobstart(project_desc.program, { cwd = working_dir, term = true })
         vim.cmd('wincmd p')
     else
-        vim.fn.jobstart(command, { cwd = workspace_dir, detach = true })
+        print(project_desc.program)
+        print(working_dir)
+        vim.fn.jobstart(project_desc.program, { cwd = working_dir, detach = true })
     end
 end
 
@@ -87,11 +116,14 @@ end
 -- With an argument: set it directly (e.g. for use in startup config).
 -- With no argument: open an interactive picker, as before.
 vim.api.nvim_create_user_command('SetActiveProject', function(opts)
+    reload_launch_projects()
+
     if opts.args ~= '' then
-        if not get_project_commands()[opts.args] then
+        if not vim.g.projects[opts.args] then
             vim.notify("Unknown project: " .. opts.args, vim.log.levels.ERROR)
             return
         end
+
         vim.g.active_project = opts.args
         vim.notify("Active project set to: " .. opts.args)
         return
@@ -103,7 +135,7 @@ vim.api.nvim_create_user_command('SetActiveProject', function(opts)
     local actions      = require("telescope.actions")
     local action_state = require("telescope.actions.state")
 
-    local projects     = vim.tbl_keys(get_project_commands())
+    local projects     = vim.tbl_keys(vim.g.projects)
     table.sort(projects)
 
     pickers.new({}, {
@@ -123,7 +155,7 @@ vim.api.nvim_create_user_command('SetActiveProject', function(opts)
 end, {
     nargs = '?',
     complete = function()
-        return vim.tbl_keys(get_project_commands())
+        return vim.tbl_keys(vim.g.projects)
     end,
 })
 
@@ -155,7 +187,7 @@ vim.api.nvim_create_user_command('SetActiveTargetPlatform', function(opts)
     end
 
     local preset    = platform .. '-' .. config
-    local build_dir = vim.fs.joinpath(GetBuildDirPath(), preset)
+    local build_dir = vim.fs.joinpath(get_build_dir_path(), preset)
     if vim.fn.isdirectory(build_dir) == 0 then
         vim.notify('Build directory not found: ' .. build_dir, vim.log.levels.WARN)
     end
@@ -203,10 +235,13 @@ vim.api.nvim_create_user_command('BuildCurrentFile', function()
     vim.notify('No compile command found for this file', vim.log.levels.WARN)
 end, {})
 
+vim.api.nvim_create_user_command('ReloadLaunchProjects', function()
+    reload_launch_projects()
+end, {})
+
 --------------------------------------------------------------------------------------------------------
 --                                       KEY BINDINGS                                                 --
 --------------------------------------------------------------------------------------------------------
-
 
 vim.api.nvim_set_keymap("n", "<F6>", '<cmd>lua LaunchActiveProject(false)<cr>', { noremap = true, silent = true })
 utils.set_multi_keymap("n", { "<M-F6>", "<F54>" }, '<cmd>lua LaunchActiveProject(true)<cr>',
@@ -220,4 +255,4 @@ utils.set_multi_keymap("n", { "<M-F7>", "<F55>" }, '<cmd>BuildCurrentFile<cr>', 
 --------------------------------------------------------------------------------------------------------
 
 vim.cmd('SetActiveTargetPlatform Darwin debug')
-vim.cmd('SetActiveProject demos')
+vim.cmd('SetActiveProject slick demos')
