@@ -76,7 +76,7 @@ void Camera::translate(Vector3f const& vec) {
 }
 
 void Camera::pan(float delta_x, float delta_y) {
-    m_pos += right() * delta_x + Vector3f{0.f, delta_y, 0.f};
+    m_pos += right() * delta_x + up() * delta_y;
 }
 
 Matrix4f Camera::viewMatrix() const {

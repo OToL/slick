@@ -509,7 +509,7 @@ struct OcornutImguiContext
 		  int32_t _mx
 		, int32_t _my
 		, uint8_t _button
-		, int32_t _scroll_delta
+		, float _scroll_delta
 		, int _width
 		, int _height
 		, int _inputChar
@@ -661,7 +661,7 @@ void imguiDestroy()
 }
 
 // SLICK - BEGIN
-void imguiBeginFrameEx(int32_t _mx, int32_t _my, uint8_t _button, int32_t _scroll_delts, uint16_t _width, uint16_t _height, int _inputChar, bgfx::ViewId _viewId)
+void imguiBeginFrameEx(int32_t _mx, int32_t _my, uint8_t _button, float _scroll_delts, uint16_t _width, uint16_t _height, int _inputChar, bgfx::ViewId _viewId)
 {
 	s_ctx.beginFrameEx(_mx, _my, _button, _scroll_delts, _width, _height, _inputChar, _viewId);
 }

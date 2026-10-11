@@ -12,9 +12,9 @@ enum class InputEventType : u8 {
     MOUSE_MOVE,
     MOUSE_SCROLL,
 
-    // TODO: implement magnify
     GESTURE_TOUCH_COUNT_UPDATE,
     GESTURE_SCROLL,
+    GESTURE_MAGNIFY,
 
     KEYBOARD_KEY_UP,
     KEYBOARD_KEY_DOWN,

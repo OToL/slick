@@ -33,6 +33,9 @@ using b8 = bool;
 
 // Enumeration used as mask
 #define sb_declare_enum_mask_operators(flag)                                                                                                         \
+    inline constexpr slk::b8 anyMaskFlagSet(flag lval, flag rval) {                                                                                  \
+        return (static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval)) != 0;                                       \
+    }                                                                                                                                                \
     inline constexpr slk::b8 allMaskFlagSet(flag lval, flag rval) {                                                                                  \
         return (static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval)) ==                                          \
                static_cast<__underlying_type(flag)>(rval);                                                                                           \

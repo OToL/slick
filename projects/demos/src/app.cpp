@@ -27,11 +27,11 @@ import std;
 
 using namespace slk::literals;
 
-constexpr slk::f32 CAMERA_DEFAULT_ROTATE_SPEED = 0.0008f;
-constexpr slk::f32 CAMERA_DEFAULT_TRANSLATE_SPEED = 0.8f;
+constexpr slk::f32 CAMERA_DEFAULT_ROTATE_SPEED = 0.0003f;
+constexpr slk::f32 CAMERA_DEFAULT_TRANSLATE_SPEED = 0.15f;
 
 struct InputSettings {
-    slk::f32 camera_rotate_speed;
+    slk::f32 camera_rotation_speed;
     slk::f32 camera_translate_speed;
 };
 
@@ -74,12 +74,12 @@ void renderDbgWnd(AppState& app_state) {
     }
 
     // Main body of the Demo window starts here.
-    ImGui::SetNextWindowSize(ImVec2(250, 380), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(280, 380), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Slick Demos", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
 
     // Must be called after ImGui::Begin because it is related to the currently processed window
-    app_state.imgui_wnd_focused = ImGui::IsWindowFocused();
+    // app_state.imgui_wnd_focused = ImGui::IsWindowFocused();
 
     ImGui::Text("Frame Time: %.2f ms", g_app_state.last_frame_time_ms);
 
@@ -88,16 +88,19 @@ void renderDbgWnd(AppState& app_state) {
     auto const curr_demo_it = std::ranges::find_if(demos, [curr_demo_id](DemoDesc const& desc) { return strcmp(curr_demo_id, desc.id) == 0; });
     assert(curr_demo_it != demos.end());
 
-    auto const dbg_demo_raw_names = demos | 
-        std::views::transform([](DemoDesc const& desc) {return desc.info.name.data();}) | 
-        std::ranges::to<std::vector<char const*>>();
+    auto const dbg_demo_raw_names =
+        demos | std::views::transform([](DemoDesc const& desc) { return desc.info.name.data(); }) | std::ranges::to<std::vector<char const*>>();
 
     slk::i32 const curr_demo_idx = std::distance(demos.begin(), curr_demo_it);
     slk::i32 next_demo_idx = curr_demo_idx;
 
-    ImGui::TextUnformatted("Demo:"); ImGui::SameLine(); ImGui::Combo("##DemoSelection", &next_demo_idx, dbg_demo_raw_names.data(), dbg_demo_raw_names.size());
+    ImGui::PushItemWidth(ImGui::GetFontSize() * 8.f);
+    ImGui::TextUnformatted("Demo:");
+    ImGui::SameLine();
+    ImGui::Combo("##DemoSelection", &next_demo_idx, dbg_demo_raw_names.data(), dbg_demo_raw_names.size());
+    ImGui::PopItemWidth();
 
-    if (ImGui::CollapsingHeader("General")) {
+    if (ImGui::CollapsingHeader("Debug Info")) {
         static slk::b8 show_imgui_demo = false;
         ImGui::Checkbox("Show ImGui demo", &show_imgui_demo);
         if (show_imgui_demo)
@@ -127,22 +130,26 @@ void renderDbgWnd(AppState& app_state) {
         ImGui::Text("   RMB %d", input->hasModifier(slk::InputModifier::RMB));
 
         ImGui::Text("Touch in progress: %d", input->gestureTouchCount());
-
+    }
+    if (ImGui::CollapsingHeader("Settings")) {
+        ImGui::PushItemWidth(ImGui::GetFontSize() * 8.f);
+        ImGui::InputFloat("Translation Speed", &app_state.input_settings.camera_translate_speed, 0.001f, 1.0f, "%.6f");
+        ImGui::InputFloat("Rotation Speed ", &app_state.input_settings.camera_rotation_speed, 0.001f, 1.0f, "%.6f");
+        ImGui::PopItemWidth();
     }
 
-    if (next_demo_idx != curr_demo_idx)
-    {
+    if (next_demo_idx != curr_demo_idx) {
         g_app_state.demos.setCurrent(demos[next_demo_idx].id);
     }
 
     DemoDesc const curr_demo_desc = app_state.demos.currentDesc();
-    if (allMaskFlagSet(curr_demo_desc.info.caps, DemoCapsMask::DEBUG_IMGUI))
-    {
+    if (allMaskFlagSet(curr_demo_desc.info.caps, DemoCapsMask::DEBUG_IMGUI)) {
         if (ImGui::CollapsingHeader("Demo", ImGuiTreeNodeFlags_DefaultOpen)) {
             app_state.demos.drawImgui(app_state.last_frame_time_ms);
         }
     }
 
+    app_state.imgui_wnd_focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
 
     ImGui::End();
 
@@ -150,52 +157,92 @@ void renderDbgWnd(AppState& app_state) {
 }
 
 // TODO: Limit rotation to avoid gimbal lock
-void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& input) {
-    if (input.gestureTouchCount() == 0) {
-        slk::Vector2f const mouse_movement = input.mouseMovement();
+void updateCamera([[maybe_unused]] AppState& app_state, slk::Camera& cam, slk::InputApi const& input) {
+    // Frame dependent movement delta
+    slk::f32 const translate_frame_factor = g_app_state.input_settings.camera_translate_speed * g_app_state.last_frame_time_ms;
+    slk::f32 const rotate_frame_factor = g_app_state.input_settings.camera_rotation_speed * g_app_state.last_frame_time_ms;
 
-        if (input.areMouseButtonsDown(slk::MouseButtonMask::RIGHT | slk::MouseButtonMask::LEFT) ||
-            input.isMouseButtonDown(slk::MouseButton::MIDDLE)) {
-            if (mouse_movement.m_x != 0.f || mouse_movement.m_y != 0.f) {
-                cam.pan(mouse_movement.m_x * CAMERA_DEFAULT_TRANSLATE_SPEED, mouse_movement.m_y * CAMERA_DEFAULT_TRANSLATE_SPEED);
-            }
+    slk::Vector2f const mouse_scroll = input.mouseScroll();
+    slk::Vector2f const gesture_movement = input.mouseMovement();
+    slk::Vector2f const gesture_magnify = input.gestureMagnify();
+    slk::Vector2f const gesture_scroll = input.gestureScroll();
 
-        } else if (input.isMouseButtonDown(slk::MouseButton::RIGHT)) {
-            if ((mouse_movement.m_x != 0.f) || (mouse_movement.m_y != 0.f)) {
-                slk::Vector2f const camera_rot = mouse_movement * CAMERA_DEFAULT_ROTATE_SPEED * g_app_state.last_frame_time_ms;
-                cam.rotate(camera_rot.m_x, camera_rot.m_y);
-            }
-        } else if (input.isMouseButtonDown(slk::MouseButton::LEFT)) {
-            if (mouse_movement.m_y != 0.f) {
-                cam.translate(slk::Vector3f{0.f, 0.f, mouse_movement.m_y * CAMERA_DEFAULT_TRANSLATE_SPEED});
-            }
-        }
-    }
-    // Gesture
-    else if (input.gestureTouchCount() == 2) {
-        // g_app_state.m_input_settings.camera_rotate_speed = CAMERA_DEFAULT_ROTATE_SPEED;
-        // g_app_state.m_input_settings.camera_translate_speed = CAMERA_DEFAULT_TRANSLATE_SPEED;
+    // Panning
+    if (input.isMouseButtonDown(slk::MouseButton::MIDDLE) || (input.gestureTouchCount() == 3) ||
+        ((input.isMouseButtonDown(slk::MouseButton::RIGHT) || input.gestureTouchCount() == 2) && input.hasModifier(slk::InputModifier::SHIFT))) {
+        slk::Vector2f pan_value{};
+        if (input.gestureTouchCount() >= 2)
+            pan_value = gesture_scroll * 0.2f * translate_frame_factor;
+        else
+            pan_value = gesture_movement * 0.02f * translate_frame_factor;
+        cam.pan(pan_value.m_x, -pan_value.m_y);
+    } 
+    // 2 fingers & right mouse click basic movements
+    else if ((input.gestureTouchCount() == 2) || input.isMouseButtonDown(slk::MouseButton::RIGHT)) {
+        slk::Vector2f panning{};
+        slk::Vector3f translate{};
+        slk::Vector2f rotation{};
 
+        // WASD and Arrows move
         slk::b8 const is_left = input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_A, slk::KeyboardVKey::LEFT});
         slk::b8 const is_right = input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_D, slk::KeyboardVKey::RIGHT});
         slk::b8 const is_up = input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_W, slk::KeyboardVKey::UP});
         slk::b8 const is_down = input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_S, slk::KeyboardVKey::DOWN});
 
-        slk::Vector2f panning{};
-        slk::Vector3f translate{};
+        panning.m_x -= is_left * translate_frame_factor;
+        panning.m_x += is_right * translate_frame_factor;
+        translate.m_z -= is_down * translate_frame_factor;
+        translate.m_z += is_up * translate_frame_factor;
 
-        panning.m_x -= is_left * app_state.input_settings.camera_translate_speed;
-        panning.m_x += is_right * app_state.input_settings.camera_translate_speed;
-        translate.m_z -= is_down * app_state.input_settings.camera_translate_speed;
-        translate.m_z += is_up * app_state.input_settings.camera_translate_speed;
+        // Zoom via magnify
+        if (gesture_magnify.m_x != 0.f) {
+            translate.m_z += gesture_magnify.m_x * translate_frame_factor; 
+        }
+        // Zoom
+        else if (input.hasModifier(slk::InputModifier::CTRL)) {
+            if (input.gestureTouchCount() == 2)
+                translate.m_z += gesture_scroll.m_y * 0.02f * translate_frame_factor;
+            else
+                translate.m_z += gesture_movement.m_y * 0.02f * translate_frame_factor;
+        // Rotation
+        } else {
+            if (input.gestureTouchCount() == 2)
+                rotation = gesture_scroll * rotate_frame_factor;
+            else
+                rotation = gesture_movement * rotate_frame_factor;
+        }
 
-        cam.pan(panning.m_x, panning.m_y);
         cam.translate(translate);
+        cam.pan(panning.m_x, panning.m_y);
 
-        slk::Vector2f const mouse_scroll = input.gestureScrollState();
-        if ((mouse_scroll.m_x != 0.f) || (mouse_scroll.m_y != 0.f)) {
-            slk::Vector2f const camera_rot = mouse_scroll * g_app_state.input_settings.camera_rotate_speed * g_app_state.last_frame_time_ms;
-            cam.rotate(-camera_rot.m_x, -camera_rot.m_y);
+        if ((rotation.m_x != 0.f) || (rotation.m_y != 0.f)) {
+            cam.rotate(-rotation.m_x, -rotation.m_y);
+        }
+
+    } 
+    // Mouse scroll w/o gesture
+    else if (input.gestureTouchCount() == 0 && mouse_scroll.m_y != 0.f)
+    {
+        slk::f32 const translate_z = mouse_scroll.m_y * 0.15f * translate_frame_factor;
+        cam.translate({0.f, 0.f, translate_z});
+    }
+
+    // Elevation
+    if (((input.gestureTouchCount() >= 2) || input.isMouseButtonDown(slk::MouseButton::RIGHT)) &&
+        input.isAnyKeyboardKeyDown(
+            std::array{slk::KeyboardVKey::CHAR_Q, slk::KeyboardVKey::CHAR_E, slk::KeyboardVKey::CHAR_R, slk::KeyboardVKey::CHAR_F})) {
+        slk::b8 const is_up = input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_E, slk::KeyboardVKey::CHAR_R});
+        slk::b8 const is_down = input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_Q, slk::KeyboardVKey::CHAR_F});
+
+        slk::f32 y_offset = 0;
+
+        y_offset -= is_down * app_state.input_settings.camera_translate_speed;
+        y_offset += is_up * app_state.input_settings.camera_translate_speed;
+
+        if (input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_R, slk::KeyboardVKey::CHAR_F})) {
+            cam.pan(0.f, y_offset);
+        } else {
+            cam.m_pos.m_y += y_offset;
         }
     }
 }
@@ -221,15 +268,13 @@ void appInitialize() {
     g_app_state.camera.setLookAt({10.0f, 10.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
     g_app_state.camera.setPerspectiveProjection(0.1f, 10000.0f, 45.0_deg, sapp_widthf() / sapp_heightf());
 
-    g_app_state.input_settings.camera_rotate_speed = CAMERA_DEFAULT_ROTATE_SPEED;
+    g_app_state.input_settings.camera_rotation_speed = CAMERA_DEFAULT_ROTATE_SPEED;
     g_app_state.input_settings.camera_translate_speed = CAMERA_DEFAULT_TRANSLATE_SPEED;
 
     g_app_state.last_frame_time_point = std::chrono::high_resolution_clock::now();
     g_app_state.last_frame_time_ms = 0.f;
 
-    g_app_state.demos.initialize({
-            emptyDemo(),
-            curvesDemo()});
+    g_app_state.demos.initialize({emptyDemo(), curvesDemo()});
     g_app_state.demos.setCurrent(EMPTY_DEMO_ID);
 
     // debug draw init
@@ -250,14 +295,14 @@ void appUpdate() {
     }
 
     auto const time_point = AppState::Timer::now();
-    g_app_state.last_frame_time_ms = std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state.last_frame_time_point).count() / 1000.f;
+    g_app_state.last_frame_time_ms =
+        std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state.last_frame_time_point).count() / 1000.f;
     g_app_state.last_frame_time_point = time_point;
 
     if (!g_app_state.imgui_wnd_focused)
         updateCamera(g_app_state, g_app_state.camera, *input);
 
-    if (!g_app_state.demos.update(g_app_state.last_frame_time_ms, g_app_state.camera))
-    {
+    if (!g_app_state.demos.update(g_app_state.last_frame_time_ms, g_app_state.camera)) {
         sapp_request_quit();
         return;
     }
@@ -274,7 +319,6 @@ void appUpdate() {
 
     bgfx::setViewTransform(0, view.data(), proj.data());
 
-
     renderDbgWnd(g_app_state);
 
     g_app_state.demos.draw3d(g_app_state.last_frame_time_ms, g_app_state.camera);
@@ -282,7 +326,6 @@ void appUpdate() {
     renderGrid(g_app_state.grid_hdl, THIN_COLOR, THICK_COLOR, true);
 
     g_app_state.demos.draw2d(g_app_state.last_frame_time_ms);
-
 
     // TEMP DEBUG: dump the actual rendered backbuffer to disk for direct inspection
     static int frame_count = 0;
@@ -295,7 +338,6 @@ void appUpdate() {
 }
 
 void appShutdown() {
-
     ddShutdown();
 
     g_app_state.demos.shutdown();
@@ -309,6 +351,85 @@ void appShutdown() {
     slk::InputApi::shutdown();
 
     g_app_state = {};
+}
+
+static ImGuiKey toImGuiKey(sapp_keycode key) {
+    // Contiguous ranges in both enums
+    if ((key >= SAPP_KEYCODE_A) && (key <= SAPP_KEYCODE_Z))
+        return static_cast<ImGuiKey>(ImGuiKey_A + (key - SAPP_KEYCODE_A));
+    if ((key >= SAPP_KEYCODE_0) && (key <= SAPP_KEYCODE_9))
+        return static_cast<ImGuiKey>(ImGuiKey_0 + (key - SAPP_KEYCODE_0));
+    if ((key >= SAPP_KEYCODE_F1) && (key <= SAPP_KEYCODE_F24))
+        return static_cast<ImGuiKey>(ImGuiKey_F1 + (key - SAPP_KEYCODE_F1));
+    if ((key >= SAPP_KEYCODE_KP_0) && (key <= SAPP_KEYCODE_KP_9))
+        return static_cast<ImGuiKey>(ImGuiKey_Keypad0 + (key - SAPP_KEYCODE_KP_0));
+
+    switch (key) {
+        case SAPP_KEYCODE_SPACE:         return ImGuiKey_Space;
+        case SAPP_KEYCODE_APOSTROPHE:    return ImGuiKey_Apostrophe;
+        case SAPP_KEYCODE_COMMA:         return ImGuiKey_Comma;
+        case SAPP_KEYCODE_MINUS:         return ImGuiKey_Minus;
+        case SAPP_KEYCODE_PERIOD:        return ImGuiKey_Period;
+        case SAPP_KEYCODE_SLASH:         return ImGuiKey_Slash;
+        case SAPP_KEYCODE_SEMICOLON:     return ImGuiKey_Semicolon;
+        case SAPP_KEYCODE_EQUAL:         return ImGuiKey_Equal;
+        case SAPP_KEYCODE_LEFT_BRACKET:  return ImGuiKey_LeftBracket;
+        case SAPP_KEYCODE_BACKSLASH:     return ImGuiKey_Backslash;
+        case SAPP_KEYCODE_RIGHT_BRACKET: return ImGuiKey_RightBracket;
+        case SAPP_KEYCODE_GRAVE_ACCENT:  return ImGuiKey_GraveAccent;
+        case SAPP_KEYCODE_WORLD_1:       return ImGuiKey_Oem102;
+        case SAPP_KEYCODE_ESCAPE:        return ImGuiKey_Escape;
+        case SAPP_KEYCODE_ENTER:         return ImGuiKey_Enter;
+        case SAPP_KEYCODE_TAB:           return ImGuiKey_Tab;
+        case SAPP_KEYCODE_BACKSPACE:     return ImGuiKey_Backspace;
+        case SAPP_KEYCODE_INSERT:        return ImGuiKey_Insert;
+        case SAPP_KEYCODE_DELETE:        return ImGuiKey_Delete;
+        case SAPP_KEYCODE_RIGHT:         return ImGuiKey_RightArrow;
+        case SAPP_KEYCODE_LEFT:          return ImGuiKey_LeftArrow;
+        case SAPP_KEYCODE_DOWN:          return ImGuiKey_DownArrow;
+        case SAPP_KEYCODE_UP:            return ImGuiKey_UpArrow;
+        case SAPP_KEYCODE_PAGE_UP:       return ImGuiKey_PageUp;
+        case SAPP_KEYCODE_PAGE_DOWN:     return ImGuiKey_PageDown;
+        case SAPP_KEYCODE_HOME:          return ImGuiKey_Home;
+        case SAPP_KEYCODE_END:           return ImGuiKey_End;
+        case SAPP_KEYCODE_CAPS_LOCK:     return ImGuiKey_CapsLock;
+        case SAPP_KEYCODE_SCROLL_LOCK:   return ImGuiKey_ScrollLock;
+        case SAPP_KEYCODE_NUM_LOCK:      return ImGuiKey_NumLock;
+        case SAPP_KEYCODE_PRINT_SCREEN:  return ImGuiKey_PrintScreen;
+        case SAPP_KEYCODE_PAUSE:         return ImGuiKey_Pause;
+        case SAPP_KEYCODE_KP_DECIMAL:    return ImGuiKey_KeypadDecimal;
+        case SAPP_KEYCODE_KP_DIVIDE:     return ImGuiKey_KeypadDivide;
+        case SAPP_KEYCODE_KP_MULTIPLY:   return ImGuiKey_KeypadMultiply;
+        case SAPP_KEYCODE_KP_SUBTRACT:   return ImGuiKey_KeypadSubtract;
+        case SAPP_KEYCODE_KP_ADD:        return ImGuiKey_KeypadAdd;
+        case SAPP_KEYCODE_KP_ENTER:      return ImGuiKey_KeypadEnter;
+        case SAPP_KEYCODE_KP_EQUAL:      return ImGuiKey_KeypadEqual;
+        case SAPP_KEYCODE_LEFT_SHIFT:    return ImGuiKey_LeftShift;
+        case SAPP_KEYCODE_LEFT_CONTROL:  return ImGuiKey_LeftCtrl;
+        case SAPP_KEYCODE_LEFT_ALT:      return ImGuiKey_LeftAlt;
+        case SAPP_KEYCODE_LEFT_SUPER:    return ImGuiKey_LeftSuper;
+        case SAPP_KEYCODE_RIGHT_SHIFT:   return ImGuiKey_RightShift;
+        case SAPP_KEYCODE_RIGHT_CONTROL: return ImGuiKey_RightCtrl;
+        case SAPP_KEYCODE_RIGHT_ALT:     return ImGuiKey_RightAlt;
+        case SAPP_KEYCODE_RIGHT_SUPER:   return ImGuiKey_RightSuper;
+        case SAPP_KEYCODE_MENU:          return ImGuiKey_Menu;
+        default:                         return ImGuiKey_None;
+    }
+}
+
+// The bgfx imgui wrapper only reads the keyboard through bgfx's entry system (USE_ENTRY), which isn't used with sokol
+static void forwardKeyToImGui(sapp_event const* evt, bool down) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddKeyEvent(ImGuiMod_Shift, (evt->modifiers & SAPP_MODIFIER_SHIFT) != 0);
+    io.AddKeyEvent(ImGuiMod_Ctrl, (evt->modifiers & SAPP_MODIFIER_CTRL) != 0);
+    io.AddKeyEvent(ImGuiMod_Alt, (evt->modifiers & SAPP_MODIFIER_ALT) != 0);
+    io.AddKeyEvent(ImGuiMod_Super, (evt->modifiers & SAPP_MODIFIER_SUPER) != 0);
+
+    ImGuiKey const key = toImGuiKey(evt->key_code);
+    if (key != ImGuiKey_None) {
+        io.AddKeyEvent(key, down);
+        io.SetKeyEventNativeData(key, evt->key_code, 0);
+    }
 }
 
 void appNotifyEvent(const sapp_event* evt) {
@@ -365,6 +486,8 @@ void appNotifyEvent(const sapp_event* evt) {
         // uint32_t char_code;                 // the UTF-32 character code, only valid in CHAR events
         // bool key_repeat;                    // true if this is a key-repeat event, valid in KEY_UP, KEY_DOWN and CHAR
         case SAPP_EVENTTYPE_KEY_DOWN: {
+            forwardKeyToImGui(evt, true);
+
             slk::KeyboardEvent slk_event;
             slk_event.m_type = slk::InputEventType::KEYBOARD_KEY_DOWN;
             slk_event.m_key_repeat = evt->key_repeat;
@@ -375,6 +498,8 @@ void appNotifyEvent(const sapp_event* evt) {
         }
 
         case SAPP_EVENTTYPE_KEY_UP: {
+            forwardKeyToImGui(evt, false);
+
             slk::KeyboardEvent slk_event;
             slk_event.m_type = slk::InputEventType::KEYBOARD_KEY_UP;
             slk_event.m_key_repeat = evt->key_repeat;
@@ -385,7 +510,12 @@ void appNotifyEvent(const sapp_event* evt) {
         }
 
         // Note: Used for text input e.g. 'A' == VirtualKey::CHAR_A + InputModifier::SHIFT
-        // SAPP_EVENTTYPE_CHAR
+        case SAPP_EVENTTYPE_CHAR: {
+            ImGui::GetIO().AddInputCharacter(evt->char_code);
+
+            break;
+        }
+
         // Not needed atm
         // SAPP_EVENTTYPE_MOUSE_ENTER
 
@@ -412,3 +542,10 @@ void appNotifyGestureScroll(int touch_count, float deltax, float deltay) {
     slk::InputApi::instance()->forwardEvent(slk_event);
 }
 
+void appNotifyGestureMagnify(int touch_count, float magnification) {
+    slk::GestureEvent slk_event;
+    slk_event.m_type = slk::InputEventType::GESTURE_MAGNIFY;
+    slk_event.m_point_count = touch_count;
+    slk_event.m_delta = {magnification, 0.f};
+    slk::InputApi::instance()->forwardEvent(slk_event);
+}

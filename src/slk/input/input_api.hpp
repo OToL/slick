@@ -10,7 +10,6 @@ namespace slk {
 
 struct InputEvent;
 
-// TODO: Event based notification e.g. to properly handle key down repeat
 class InputApi {
 
 public:
@@ -34,15 +33,16 @@ public:
     b8 areMouseButtonsDown(MouseButtonMask buttons) const;
     MouseButtonMask mouseButtonsState() const;
 
-    // Gesture & Touchpad
-    u8 gestureTouchCount() const;
-    Vector2f gestureScrollState() const;
-
     // Keyboard
     // TODO: pressed & released
     b8 isKeyboardKeyDown(KeyboardVKey key_code) const;
     b8 isAnyKeyboardKeyDown(std::span<KeyboardVKey const> key_codes) const;
     b8 areKeyboardKeysDown(std::span<KeyboardVKey const> key_codes) const;
+
+    // Gesture & Touchpad
+    u8 gestureTouchCount() const;
+    Vector2f gestureScroll() const;
+    Vector2f gestureMagnify() const;
 
     // External input events injection
     void forwardEvent(InputEvent const& evt);

@@ -84,7 +84,7 @@ void renderGrid(GridHdl grid, slk::ColorU32 const& thin_color, slk::ColorU32 con
 
     // TODO: pass this by parameter
     const float grid_scalar_params[4] = {
-        4000.f, // grid half size
+        2000.f, // grid half size
         1.f, // cell size
         debug_visualize?1.f:0.f, // dbg viz
         0.f, // fade mode

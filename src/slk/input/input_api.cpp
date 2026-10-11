@@ -24,6 +24,7 @@ struct MouseState {
 struct GestureState {
     slk::u8 m_point_count;
     slk::Vector2f m_scroll_delta;
+    slk::Vector2f m_magnify_delta;
 };
 
 struct KeyboardState {
@@ -117,6 +118,8 @@ void InputApi::processEvents() {
             if (gesture_state.m_point_count == max_point_count) {
                 if (evt.m_type == InputEventType::GESTURE_SCROLL)
                     gesture_state.m_scroll_delta = evt.m_delta;
+                else if (evt.m_type == InputEventType::GESTURE_MAGNIFY)
+                    gesture_state.m_magnify_delta = evt.m_delta;
             }
         }
     }
@@ -200,6 +203,7 @@ void InputApi::update() {
     mouse_state.m_scroll = Vector2f::ZERO;
 
     m_state->m_gesture_state.m_scroll_delta = Vector2f::ZERO;
+    m_state->m_gesture_state.m_magnify_delta = Vector2f::ZERO;
 
     processEvents();
 }
@@ -239,7 +243,12 @@ Vector2f InputApi::mouseScroll() const {
     return m_state->m_mouse_state.m_scroll;
 }
 
-Vector2f InputApi::gestureScrollState() const {
+Vector2f InputApi::gestureMagnify() const {
+    assert(ms_instance);
+    return m_state->m_gesture_state.m_magnify_delta;
+}
+
+Vector2f InputApi::gestureScroll() const {
     assert(ms_instance);
     return m_state->m_gesture_state.m_scroll_delta;
 }
@@ -291,7 +300,7 @@ void InputApi::forwardEvent(InputEvent const& evt) {
         KeyboardEvent const& spec_evt = static_cast<KeyboardEvent const&>(evt);
         m_state->m_keyboard_events.emplace_back(spec_evt);
     } 
-    else if ((evt.m_type >= InputEventType::GESTURE_TOUCH_COUNT_UPDATE) && (evt.m_type <= InputEventType::GESTURE_SCROLL)) {
+    else if ((evt.m_type >= InputEventType::GESTURE_TOUCH_COUNT_UPDATE) && (evt.m_type <= InputEventType::GESTURE_MAGNIFY)) {
         GestureEvent const& spec_evt = static_cast<GestureEvent const&>(evt);
         m_state->m_gesture_events.emplace_back(spec_evt);
     }
