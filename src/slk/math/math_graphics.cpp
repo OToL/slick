@@ -2,6 +2,14 @@
 
 namespace slk {
 
+Vector2f screenPosToNdc(Vector2f screen_pos, Vector2f screen_dimension)
+{
+    return {
+        2.f * (screen_pos.m_x / screen_dimension.m_x) - 1.f,
+        1.f - 2.f * (screen_pos.m_y / screen_dimension.m_y)
+    };
+}
+
 Matrix4f makeOrthoProjectionMatrix(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far, f32 offset, bool homogeneous_ndc,
                                Handedness handedness) {
     const f32 aa = 2.0f / (right - left);
@@ -20,7 +28,7 @@ Matrix4f makeOrthoProjectionMatrix(f32 left, f32 right, f32 bottom, f32 top, f32
     };
 }
 
-Matrix4f makeLookAtMatrix(const Vector3f& eye, const Vector3f& at, const Vector3f& ref_up, Handedness handedness) {
+Matrix4f makeLookAtMatrix(Vector3f eye, Vector3f at, Vector3f ref_up, Handedness handedness) {
     const Vector3f view = (Handedness::RIGHT == handedness ? eye - at : at - eye).normalized();
 
     Vector3f right = ref_up.cross(view);

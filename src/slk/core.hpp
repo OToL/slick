@@ -36,6 +36,9 @@ using b8 = bool;
     inline constexpr slk::b8 anyMaskFlagSet(flag lval, flag rval) {                                                                                  \
         return (static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval)) != 0;                                       \
     }                                                                                                                                                \
+    inline constexpr slk::b8 noMaskFlagSet(flag lval, flag rval) {                                                                                   \
+        return !anyMaskFlagSet(lval, rval);                                                                                                          \
+    }                                                                                                                                                \
     inline constexpr slk::b8 allMaskFlagSet(flag lval, flag rval) {                                                                                  \
         return (static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval)) ==                                          \
                static_cast<__underlying_type(flag)>(rval);                                                                                           \

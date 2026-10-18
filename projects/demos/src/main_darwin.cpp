@@ -135,31 +135,30 @@ void darwin_init_wrapper()
         // events with decaying deltas to produce the "coasting" inertia
         // effect. Those carry a non-zero momentumPhase, unlike events driven
         // directly by finger movement (momentumPhase == NSEventPhaseNone).
-        // Drop them so drags stop the instant the user lifts their fingers.
+        // Drop them (return nil) so drags stop the instant the user lifts their fingers.
         if (event.momentumPhase != NSEventPhaseNone) {
-            return event;
+            return nil;
         }
 
         float deltax = static_cast<float>(event.scrollingDeltaX);
         float deltay = static_cast<float>(event.scrollingDeltaY);
 
-        // STANDARD MOUSE WHEEL (Logitech, Razer, etc.)
-        // Apple scales a standard wheel click down to roughly 0.1 to 1.0.
-        // Multiply by a fixed scalar to restore standard hardware wheel "ticks".
-        // Cross-platform frameworks (like GLFW) use a multiplier of ~0.1 to 1.0 
-        // depending on how they define 1 "tick", but if you want it to feel like Windows:
-        if (!event.hasPreciseScrollingDeltas) {
-            float const WHEEL_TICK_MULTIPLIER = 30.f; 
-            deltax *= WHEEL_TICK_MULTIPLIER;
-            deltay *= WHEEL_TICK_MULTIPLIER;
+        // Trackpad / Magic Mouse gestures go through phases, classic mouse wheels don't
+        if (event.phase != NSEventPhaseNone) {
+            appNotifyGestureScroll(2, deltax, deltay);
+        }
+        else {
+            // Same scaling as sokol's scrollWheel: so the mouse wheel speed is unchanged
+            if (event.hasPreciseScrollingDeltas) {
+                deltax *= 0.1f;
+                deltay *= 0.1f;
+            }
+            appNotifyMouseScroll(deltax, deltay);
         }
 
-
-        bool const is_gesture = (event.phase != NSEventPhaseNone) || (event.momentumPhase != NSEventPhaseNone);
-        if (is_gesture)
-            appNotifyGestureScroll(2, deltax, deltay);
-
-        return event;
+        // sokol turns every scroll event (gesture & momentum included) into a SAPP_EVENTTYPE_MOUSE_SCROLL,
+        // all of them are handled here so it must not see them
+        return nil;
     }];
 
     [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMagnify

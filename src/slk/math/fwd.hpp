@@ -46,5 +46,8 @@ namespace slk {
     using AABB2i = AABB2<slk::i32>;
     using AABB2f = AABB2<slk::f32>;
 
+    struct Plane;
+
+    struct Ray3f;
 }
 

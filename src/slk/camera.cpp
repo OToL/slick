@@ -71,6 +71,32 @@ Vector3f Camera::forward() const {
     return m_orientation.zAxis();
 }
 
+// When looking straight up/down (|forward.y| ~ 1) yaw & roll rotate around the same axis (gimbal lock),
+// only their sum is defined: roll is then 0 and yaw holds the whole rotation
+static constexpr f32 GIMBAL_LOCK_THRESHOLD = 0.9999f;
+
+f32 Camera::yaw() const {
+    Vector3f const f = forward();
+    if (std::abs(f.m_y) < GIMBAL_LOCK_THRESHOLD)
+        return std::atan2(f.m_x, f.m_z);
+
+    Vector3f const r = right();
+    return std::atan2(-r.m_z, r.m_x);
+}
+
+f32 Camera::roll() const {
+    if (std::abs(forward().m_y) < GIMBAL_LOCK_THRESHOLD)
+        return std::atan2(right().m_y, up().m_y);
+
+    return 0.f;
+}
+
+f32 Camera::pitch() const {
+    // orientation is Ry(yaw) * Rx(pitch) i.e. forward = (sin(yaw)cos(pitch), -sin(pitch), cos(yaw)cos(pitch))
+    Vector3f const f = forward();
+    return std::atan2(-f.m_y, std::sqrt(f.m_x * f.m_x + f.m_z * f.m_z));
+}
+
 void Camera::translate(Vector3f const& vec) {
     m_pos += right() * vec.m_x + up() * vec.m_y + forward() * vec.m_z;
 }
@@ -119,5 +145,41 @@ Matrix4f Camera::projectionMatrix(Handedness hand, bool homogeneous_ndc) const {
     }
 }
 
+Ray3f Camera::rayFromNdc(Vector2f ndc) {
+    if (m_projection == Projection::PERSPECTIVE)
+    {
+        // The camera frustrum is a pyramid and we can do our computations at any
+        // camera `z` value as far as we keep consitent proportions. 
+        // `z=1` is convenient because:
+        //      tan(fovy/2)=half_height/1=half_height 
+        //
+        //           top edge of the view
+        //          /|
+        //         / |
+        //        /  |  half_height
+        //       /   |
+        //      /    |
+        // cam o-----+   ← z = 1
+        //      \ θ  |
+        //       \   |     θ = fovy / 2
+        //        \  |
+        //         \ |
+        //          \|
+        //           bottom edge
+        f32 const half_height_z1  = std::tan(0.5f * m_fovy);
+        return Ray3f{
+            .m_pos = m_pos,
+            .m_dir = m_orientation * Vector3f{
+                ndc.m_x * half_height_z1 * m_aspect,
+                ndc.m_y * half_height_z1,
+                1.f
+            }
+        };
+    }
+    else {
+        Ray3f ray = {};
+        return ray;
+    }
+}
 
 } // namespace slk

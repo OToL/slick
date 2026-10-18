@@ -8,6 +8,7 @@ void appNotifyEvent(const sapp_event* );
 void appNotifyGestureTouchCount(int count);
 void appNotifyGestureScroll(int touch_count, float deltax, float deltay);
 void appNotifyGestureMagnify(int touch_count, float magnification);
+void appNotifyMouseScroll(float deltax, float deltay);
 
 void * appGetWindowHdl();
 

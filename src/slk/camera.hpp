@@ -1,6 +1,7 @@
 #pragma once
 
 #include <slk/math/vector3.hpp>
+#include <slk/math/ray3.hpp>
 #include <slk/math/math.hpp>
 #include <slk/math/matrix3.hpp>
 #include <slk/math/fwd.hpp>
@@ -8,8 +9,8 @@
 
 namespace slk {
 
-// TODO: orbit/target
-// TODO: zoom
+// TODO: Use a QTransform or Transform struct
+//       i.e. compact representation of translation/orientation/scale
 struct Camera {
 
     Camera();
@@ -21,6 +22,14 @@ struct Camera {
     Vector3f up() const;
     Vector3f forward() const;
 
+    // Euler angles of the orientation, decomposed as Ry(yaw) * Rx(pitch) * Rz(roll)
+    // Note: same sign as the rotation matrices, rotate() applies -delta_yaw & -delta_pitch
+    f32 yaw() const;
+    // > 0 when looking down
+    f32 pitch() const;
+    // always 0 unless m_orientation is set directly, rotate() never rolls
+    f32 roll() const;
+
     // movements
     void rotate(f32 delta_yaw, f32 delta_pitch);
     void translate(Vector3f const& vec);
@@ -30,6 +39,10 @@ struct Camera {
     void setLookAt(Vector3f eye, Vector3f target);
     Matrix4f viewMatrix() const;
 
+    // utilities
+    Ray3f rayFromNdc(Vector2f ndc);
+
+    // projections
     void setPerspectiveProjection(f32 near, f32 far, f32 fovy, f32 aspect);
     void setOrthoProjection(f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset);
     Matrix4f projectionMatrix(Handedness hand, bool homogeneous_ndc) const;
@@ -43,7 +56,7 @@ struct Camera {
     union {
         struct {
             float m_fovy;
-            float m_aspect;
+            float m_aspect; // width/height ratio
         };
 
         struct {

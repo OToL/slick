@@ -81,14 +81,13 @@
 
 ## Board
 
-- [ ] Camera management in demos for trackpad and mouse/kb
-- [ ] Camera limit angle to avoid gimbal lock
 - [ ] Bgfx type conversion
 - [ ] Use slk namespace for projects
 - [ ] Hash support + litterals and use it for DemoId
 
 ## Backlog
 
+- [ ] Implementation Transform and/or QTransform ... should we include the scale or implement STranform and/or QSTransform
 - [ ] Load launch.json only when it has changed
 - [ ] pass Demo grid `grid_scalar_params` as parameter
 - [ ] Infinite Grid e.g. offset the grid when too far
@@ -108,6 +107,8 @@
 
 ## Archives
 
+- [x] Camera management in demos for trackpad and mouse/kb
+- [x] Camera limit angle to avoid gimbal lock
 - [x] Launch (F6) and active project using the launch json --> use dap to populate everything e.g. including active projects
 - [x] Rename color constants
 - [x] Rework graphics sandbox e.g. `demos`, how demos are declared, etc.
