@@ -6,7 +6,7 @@ namespace slk {
 
 struct Plane {
     Vector3f m_normal;
-    f32 m_d;
+    f32 m_dist;
 };
 
 } // namespace slk

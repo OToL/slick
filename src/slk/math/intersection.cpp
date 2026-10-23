@@ -11,7 +11,7 @@ std::optional<Vector3f> intersect(Ray3f const& ray, Plane const& plane) {
     if (nearZero(dot_norm))
         return std::nullopt;
 
-    f32 const t = -(ray.m_pos.dot(plane.m_normal) + plane.m_d)/dot_norm;
+    f32 const t = -(ray.m_pos.dot(plane.m_normal) + plane.m_dist)/dot_norm;
     if (t < 0.f)
         return std::nullopt;
 

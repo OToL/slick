@@ -17,12 +17,12 @@ constexpr inline T max(T lval, T rval) {
     return lval > rval ? lval : rval;
 }
 
-constexpr inline f32 toRadians(f32 deg) {
+constexpr inline f32 degToRad(f32 deg) {
 
     return deg * slk::PI_F32 / 180.0f;
 }
 
-constexpr inline f32 toDegrees(f32 rad) {
+constexpr inline f32 radToDeg(f32 rad) {
     return rad * 180.0f / slk::PI_F32;
 }
 
@@ -32,7 +32,7 @@ constexpr inline b8 nearZero(f32 val) {
 
 namespace literals {
     constexpr slk::f32 operator""_deg(long double degrees) {
-        return toRadians(degrees);
+        return degToRad(degrees);
     }
 
     constexpr slk::f32 operator""_rad(long double radians) {

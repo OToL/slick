@@ -250,7 +250,7 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
                 g_app_state.orbitting = was_orbitting;
 
                 if (!g_app_state.orbitting) {
-                    slk::Plane const plane = {.m_normal = slk::Vector3f::UNITY, .m_d = 0.f};
+                    slk::Plane const plane = {.m_normal = slk::Vector3f::UNITY, .m_dist = 0.f};
 
                     if (auto const res = slk::intersect(ray, plane)) {
                         g_app_state.orbitting = true;
