@@ -4,7 +4,7 @@
 
 namespace slk {
 
-enum class MouseButton : u8 {
+enum class EMouseButton : u8 {
     LEFT,
     RIGHT,
     MIDDLE,
@@ -12,15 +12,15 @@ enum class MouseButton : u8 {
     _COUNT
 };
 
-enum class MouseButtonMask : u8 {
+enum class EMouseButtonMask : u8 {
     NONE = 0,
-    LEFT = 1 << (u8)MouseButton::LEFT,
-    RIGHT = 1 << (u8)MouseButton::RIGHT,
-    MIDDLE = 1 << (u8)MouseButton::MIDDLE,
+    LEFT = 1 << (u8)EMouseButton::LEFT,
+    RIGHT = 1 << (u8)EMouseButton::RIGHT,
+    MIDDLE = 1 << (u8)EMouseButton::MIDDLE,
 };
-sb_declare_enum_mask_operators(MouseButtonMask);
+sb_declare_enum_mask_operators(EMouseButtonMask);
 
-enum class InputModifier : u8 {
+enum class EInputModifier : u8 {
     SHIFT, // left or right shift key
     CTRL, // left or right control key
     ALT, // left or right alt key
@@ -32,19 +32,19 @@ enum class InputModifier : u8 {
     _COUNT
 };
 
-enum class InputModifierMask : u8 {
+enum class EInputModifierMask : u8 {
     NONE = 0,
-    SHIFT = 1 << (u8)InputModifier::SHIFT,
-    CTRL = 1 << (u8)InputModifier::CTRL,
-    ALT = 1 << (u8)InputModifier::ALT,
-    SUPER = 1 << (u8)InputModifier::SUPER,
-    LMB = 1 << (u8)InputModifier::LMB,
-    RMB = 1 << (u8)InputModifier::RMB,
-    MMB = 1 << (u8)InputModifier::MMB,
+    SHIFT = 1 << (u8)EInputModifier::SHIFT,
+    CTRL = 1 << (u8)EInputModifier::CTRL,
+    ALT = 1 << (u8)EInputModifier::ALT,
+    SUPER = 1 << (u8)EInputModifier::SUPER,
+    LMB = 1 << (u8)EInputModifier::LMB,
+    RMB = 1 << (u8)EInputModifier::RMB,
+    MMB = 1 << (u8)EInputModifier::MMB,
 };
-sb_declare_enum_mask_operators(InputModifierMask);
+sb_declare_enum_mask_operators(EInputModifierMask);
 
-enum class KeyboardVKey : u16 {
+enum class EKeyboardVKey : u16 {
     INVALID = 0,
     SPACE = 32,
     APOSTROPHE = 39, /* ' */

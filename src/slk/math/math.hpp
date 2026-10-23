@@ -42,7 +42,7 @@ using Matrix3Param = Matrix3<T> const&;
 template<typename T>
 using Matrix4Param = Matrix4<T> const&;
 
-enum class Handedness : u8
+enum class EHandedness : u8
 {
     LEFT,
     RIGHT,
@@ -50,7 +50,7 @@ enum class Handedness : u8
     DEFAULT = LEFT
 };
 
-enum class Projection : u8
+enum class EProjection : u8
 {
     PERSPECTIVE,
     ORTHO,

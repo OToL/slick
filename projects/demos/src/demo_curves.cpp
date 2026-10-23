@@ -571,6 +571,6 @@ void drawImgui(DemoHdl hdl, slk::f32 /* frame_delta_ms */) {
 
 DemoDesc curvesDemo() {
     return {.id = CURVES_DEMO_ID,
-            .info = DemoInfo{.name = "Curves demo", .description = "Curves demo", .caps = DemoCapsMask::DEBUG_IMGUI | DemoCapsMask::CUSTOM_CAMERA_CONTROL },
+            .info = DemoInfo{.name = "Curves demo", .description = "Curves demo", .caps = EDemoCapsMask::DEBUG_IMGUI | EDemoCapsMask::CUSTOM_CAMERA_CONTROL },
             .api = {.init = &init, .shutdown = &shutdown, .update = &update, .drawImgui = &drawImgui, .draw3d = &draw3d, .draw2d = &draw2d}};
 }

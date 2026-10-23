@@ -14,8 +14,8 @@ namespace slk {
 struct Camera {
 
     Camera();
-    Camera(slk::ETag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset);
-    Camera(slk::ETag<Projection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect);
+    Camera(slk::ETag<EProjection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset);
+    Camera(slk::ETag<EProjection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect);
 
     // axis
     Vector3f right() const;
@@ -45,13 +45,13 @@ struct Camera {
     // projections
     void setPerspectiveProjection(f32 near, f32 far, f32 fovy, f32 aspect);
     void setOrthoProjection(f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset);
-    Matrix4f projectionMatrix(Handedness hand, bool homogeneous_ndc) const;
+    Matrix4f projectionMatrix(EHandedness hand, bool homogeneous_ndc) const;
 
     Matrix3f m_orientation;
     Vector3f m_pos;
     f32 m_near;
     f32 m_far;
-    Projection m_projection;
+    EProjection m_projection;
 
     union {
         struct {

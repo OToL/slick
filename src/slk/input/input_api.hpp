@@ -21,23 +21,23 @@ public:
     void update();
 
     // Modifiers
-    InputModifierMask modifiersState() const; 
-    b8 hasAnyModifier(InputModifierMask mod_mask) const;
-    b8 hasModifier(InputModifier mod_key) const;
+    EInputModifierMask modifiersState() const; 
+    b8 hasAnyModifier(EInputModifierMask mod_mask) const;
+    b8 hasModifier(EInputModifier mod_key) const;
 
     // Mouse
     Vector2f mousePosition() const;
     Vector2f mouseMovement() const;
     Vector2f mouseScroll() const;
-    b8 isMouseButtonDown(MouseButton button) const;
-    b8 areMouseButtonsDown(MouseButtonMask buttons) const;
-    MouseButtonMask mouseButtonsState() const;
+    b8 isMouseButtonDown(EMouseButton button) const;
+    b8 areMouseButtonsDown(EMouseButtonMask buttons) const;
+    EMouseButtonMask mouseButtonsState() const;
 
     // Keyboard
     // TODO: pressed & released
-    b8 isKeyboardKeyDown(KeyboardVKey key_code) const;
-    b8 isAnyKeyboardKeyDown(std::span<KeyboardVKey const> key_codes) const;
-    b8 areKeyboardKeysDown(std::span<KeyboardVKey const> key_codes) const;
+    b8 isKeyboardKeyDown(EKeyboardVKey key_code) const;
+    b8 isAnyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const;
+    b8 areKeyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const;
 
     // Gesture & Touchpad
     u8 gestureTouchCount() const;

@@ -6,12 +6,12 @@ using namespace slk::literals;
 
 namespace slk {
 
-Camera::Camera(ETag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset) :
+Camera::Camera(ETag<EProjection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset) :
     m_orientation(Matrix3f::IDENTITY),
     m_pos(0.f, 0.f, 0.f),
     m_near(near),
     m_far(far),
-    m_projection(Projection::ORTHO),
+    m_projection(EProjection::ORTHO),
     m_left(left),
     m_right(right),
     m_top(top),
@@ -20,12 +20,12 @@ Camera::Camera(ETag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 right, 
 {
 }
 
-Camera::Camera(ETag<Projection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect) :
+Camera::Camera(ETag<EProjection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect) :
     m_orientation(Matrix3f::IDENTITY),
     m_pos(0.f, 0.f, 0.f),
     m_near(near),
     m_far(far),
-    m_projection(Projection::PERSPECTIVE),
+    m_projection(EProjection::PERSPECTIVE),
     m_fovy(fovy),
     m_aspect(aspect)
 {
@@ -37,7 +37,7 @@ Camera::Camera() :
     m_pos(0.f, 0.f, 0.f),
     m_near(0.1f),
     m_far(10000.f),
-    m_projection(Projection::PERSPECTIVE),
+    m_projection(EProjection::PERSPECTIVE),
     m_fovy(45.0_deg),
     m_aspect(1.77777779) // 16:9
 {
@@ -120,7 +120,7 @@ void Camera::setPerspectiveProjection(f32 near, f32 far, f32 fovy, f32 aspect)
     m_far = far;
     m_aspect = aspect;
     m_fovy = fovy;
-    m_projection = Projection::PERSPECTIVE;
+    m_projection = EProjection::PERSPECTIVE;
 }
 
 void Camera::setOrthoProjection(f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset)
@@ -132,12 +132,12 @@ void Camera::setOrthoProjection(f32 near, f32 far, f32 left, f32 right, f32 top,
     m_top = top;
     m_bottom = bottom;
     m_offset = offset;
-    m_projection = Projection::ORTHO;
+    m_projection = EProjection::ORTHO;
 }
 
-Matrix4f Camera::projectionMatrix(Handedness hand, bool homogeneous_ndc) const {
+Matrix4f Camera::projectionMatrix(EHandedness hand, bool homogeneous_ndc) const {
 
-    if (m_projection == Projection::ORTHO) {
+    if (m_projection == EProjection::ORTHO) {
         return makeOrthoProjectionMatrix(m_left, m_right, m_bottom, m_top, m_near, m_far, m_offset, homogeneous_ndc, hand);
     }
     else {
@@ -146,7 +146,7 @@ Matrix4f Camera::projectionMatrix(Handedness hand, bool homogeneous_ndc) const {
 }
 
 Ray3f Camera::rayFromNdc(Vector2f ndc) {
-    if (m_projection == Projection::PERSPECTIVE)
+    if (m_projection == EProjection::PERSPECTIVE)
     {
         // The camera frustrum is a pyramid and we can do our computations at any
         // camera `z` value as far as we keep consitent proportions. 

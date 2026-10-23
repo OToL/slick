@@ -6,7 +6,7 @@
 namespace slk {
 
 // Order of enum values is used to determine event type (i.e. mouse, gesture, keyboard, etc.)
-enum class InputEventType : u8 {
+enum class EInputEventType : u8 {
     MOUSE_BUTTON_UP,
     MOUSE_BUTTON_DOWN,
     MOUSE_MOVE,
@@ -26,7 +26,7 @@ enum class InputEventType : u8 {
 };
 
 struct InputEvent {
-    InputEventType m_type;
+    EInputEventType m_type;
 };
 
 struct GestureEvent : InputEvent {
@@ -45,14 +45,14 @@ struct MouseEvent : InputEvent {
         // MOUVE_SCROLL
         Vector2f m_scroll;
         // MOUSE_BUTTON_UP/DOWN
-        MouseButton m_button;
+        EMouseButton m_button;
     };
 };
 
 struct KeyboardEvent : InputEvent {
     using InputEvent::m_type;
 
-    KeyboardVKey m_vkey;
+    EKeyboardVKey m_vkey;
     // Not currently used
     b8 m_key_repeat;
 };

@@ -15,8 +15,8 @@ struct MouseState {
 
     slk::Vector2f m_prev_position;
     slk::Vector2f m_curr_postion;
-    slk::MouseButtonMask m_prev_buttons_state;
-    slk::MouseButtonMask m_curr_buttons_state;
+    slk::EMouseButtonMask m_prev_buttons_state;
+    slk::EMouseButtonMask m_curr_buttons_state;
     slk::Vector2f m_scroll;
     slk::u8 m_data_state;
 };
@@ -28,14 +28,14 @@ struct GestureState {
 };
 
 struct KeyboardState {
-    static constexpr slk::u32 VKEY_COUNT = std::to_underlying(slk::KeyboardVKey::_COUNT);
+    static constexpr slk::u32 VKEY_COUNT = std::to_underlying(slk::EKeyboardVKey::_COUNT);
     static constexpr slk::u32 VKEY_SIZE_BYTE = (VKEY_COUNT + 7U) >> 3U;
 
-    static slk::u32 getVKeyByteIndex(slk::KeyboardVKey key) {
+    static slk::u32 getVKeyByteIndex(slk::EKeyboardVKey key) {
         return std::to_underlying(key) >> 3U;
     }
 
-    static slk::u8 getVKeyByteOffset(slk::KeyboardVKey key) {
+    static slk::u8 getVKeyByteOffset(slk::EKeyboardVKey key) {
         return std::to_underlying(key) % 8;
     }
 
@@ -56,7 +56,7 @@ struct InputApi::State {
     std::vector<slk::GestureEvent> m_gesture_events;
     std::vector<slk::MouseEvent> m_mouse_events;
     std::vector<slk::KeyboardEvent> m_keyboard_events;
-    slk::InputModifierMask m_modififers;
+    slk::EInputModifierMask m_modififers;
 };
 
 InputApi* InputApi::ms_instance = nullptr;
@@ -94,9 +94,9 @@ b8 InputApi::shutdown() {
 static constexpr u8 MB_MODIFIER_OFFSET = 4U;
 static constexpr u8 KB_MODIFIERS_COUNT = MB_MODIFIER_OFFSET;
 
-static_assert((MB_MODIFIER_OFFSET + std::to_underlying(MouseButton::LEFT)) == std::to_underlying(InputModifier::LMB));
-static_assert((MB_MODIFIER_OFFSET + std::to_underlying(MouseButton::MIDDLE)) == std::to_underlying(InputModifier::MMB));
-static_assert((MB_MODIFIER_OFFSET + std::to_underlying(MouseButton::RIGHT)) == std::to_underlying(InputModifier::RMB));
+static_assert((MB_MODIFIER_OFFSET + std::to_underlying(EMouseButton::LEFT)) == std::to_underlying(EInputModifier::LMB));
+static_assert((MB_MODIFIER_OFFSET + std::to_underlying(EMouseButton::MIDDLE)) == std::to_underlying(EInputModifier::MMB));
+static_assert((MB_MODIFIER_OFFSET + std::to_underlying(EMouseButton::RIGHT)) == std::to_underlying(EInputModifier::RMB));
 
 void InputApi::processEvents() {
     GestureState& gesture_state = m_state->m_gesture_state;
@@ -116,9 +116,9 @@ void InputApi::processEvents() {
 
             // apply the gesture effect only if this is the current one
             if (gesture_state.m_point_count == max_point_count) {
-                if (evt.m_type == InputEventType::GESTURE_SCROLL)
+                if (evt.m_type == EInputEventType::GESTURE_SCROLL)
                     gesture_state.m_scroll_delta = evt.m_delta;
-                else if (evt.m_type == InputEventType::GESTURE_MAGNIFY)
+                else if (evt.m_type == EInputEventType::GESTURE_MAGNIFY)
                     gesture_state.m_magnify_delta = evt.m_delta;
             }
         }
@@ -126,16 +126,16 @@ void InputApi::processEvents() {
 
     MouseState& mouse_state = m_state->m_mouse_state;
     for (MouseEvent const& evt : m_state->m_mouse_events) {
-        if (evt.m_type == InputEventType::MOUSE_MOVE) {
+        if (evt.m_type == EInputEventType::MOUSE_MOVE) {
             mouse_state.m_curr_postion = evt.m_postion;
             mouse_state.m_data_state |= MouseState::HAS_POSITION;
-        } else if (evt.m_type == InputEventType::MOUSE_BUTTON_DOWN) {
-            mouse_state.m_curr_buttons_state |= static_cast<MouseButtonMask>(1U << std::to_underlying(evt.m_button));
-            m_state->m_modififers |= static_cast<InputModifierMask>(1U << (std::to_underlying(evt.m_button) + MB_MODIFIER_OFFSET));
-        } else if (evt.m_type == InputEventType::MOUSE_BUTTON_UP) {
-            mouse_state.m_curr_buttons_state &= ~static_cast<MouseButtonMask>(1U << std::to_underlying(evt.m_button));
-            m_state->m_modififers &= ~static_cast<InputModifierMask>(1U << (std::to_underlying(evt.m_button) + MB_MODIFIER_OFFSET));
-        } else if (evt.m_type == InputEventType::MOUSE_SCROLL) {
+        } else if (evt.m_type == EInputEventType::MOUSE_BUTTON_DOWN) {
+            mouse_state.m_curr_buttons_state |= static_cast<EMouseButtonMask>(1U << std::to_underlying(evt.m_button));
+            m_state->m_modififers |= static_cast<EInputModifierMask>(1U << (std::to_underlying(evt.m_button) + MB_MODIFIER_OFFSET));
+        } else if (evt.m_type == EInputEventType::MOUSE_BUTTON_UP) {
+            mouse_state.m_curr_buttons_state &= ~static_cast<EMouseButtonMask>(1U << std::to_underlying(evt.m_button));
+            m_state->m_modififers &= ~static_cast<EInputModifierMask>(1U << (std::to_underlying(evt.m_button) + MB_MODIFIER_OFFSET));
+        } else if (evt.m_type == EInputEventType::MOUSE_SCROLL) {
             mouse_state.m_scroll += evt.m_scroll;
         } else {
             assert(false);
@@ -146,13 +146,13 @@ void InputApi::processEvents() {
     KeyboardState& keyboard_state = m_state->m_keyboard_state;
     for (KeyboardEvent const& evt : m_state->m_keyboard_events) {
         i8 modifier_val = 1;
-        if (evt.m_type == InputEventType::KEYBOARD_KEY_DOWN) {
+        if (evt.m_type == EInputEventType::KEYBOARD_KEY_DOWN) {
             u32 const byte_idx = KeyboardState::getVKeyByteIndex(evt.m_vkey);
             u8 const byte_offset = KeyboardState::getVKeyByteOffset(evt.m_vkey);
 
             assert(byte_idx < KeyboardState::VKEY_SIZE_BYTE);
             keyboard_state.curr_key_states[byte_idx] |= 1U << byte_offset;
-        } else if (evt.m_type == InputEventType::KEYBOARD_KEY_UP) {
+        } else if (evt.m_type == EInputEventType::KEYBOARD_KEY_UP) {
             u32 const byte_idx = KeyboardState::getVKeyByteIndex(evt.m_vkey);
             u8 const byte_offset = KeyboardState::getVKeyByteOffset(evt.m_vkey);
             assert(byte_idx < KeyboardState::VKEY_SIZE_BYTE);
@@ -163,26 +163,26 @@ void InputApi::processEvents() {
             assert(false);
         }
 
-        if (evt.m_vkey == KeyboardVKey::LEFT_CONTROL || evt.m_vkey == KeyboardVKey::RIGHT_CONTROL) {
-            keyboard_modifiers[std::to_underlying(InputModifier::CTRL)] += modifier_val;
+        if (evt.m_vkey == EKeyboardVKey::LEFT_CONTROL || evt.m_vkey == EKeyboardVKey::RIGHT_CONTROL) {
+            keyboard_modifiers[std::to_underlying(EInputModifier::CTRL)] += modifier_val;
         }
-        if (evt.m_vkey == KeyboardVKey::LEFT_SHIFT || evt.m_vkey == KeyboardVKey::RIGHT_SHIFT) {
-            keyboard_modifiers[std::to_underlying(InputModifier::SHIFT)] += modifier_val;
+        if (evt.m_vkey == EKeyboardVKey::LEFT_SHIFT || evt.m_vkey == EKeyboardVKey::RIGHT_SHIFT) {
+            keyboard_modifiers[std::to_underlying(EInputModifier::SHIFT)] += modifier_val;
         }
-        if (evt.m_vkey == KeyboardVKey::LEFT_SUPER || evt.m_vkey == KeyboardVKey::RIGHT_SUPER) {
-            keyboard_modifiers[std::to_underlying(InputModifier::SUPER)] += modifier_val;
+        if (evt.m_vkey == EKeyboardVKey::LEFT_SUPER || evt.m_vkey == EKeyboardVKey::RIGHT_SUPER) {
+            keyboard_modifiers[std::to_underlying(EInputModifier::SUPER)] += modifier_val;
         }
-        if (evt.m_vkey == KeyboardVKey::LEFT_ALT || evt.m_vkey == KeyboardVKey::RIGHT_ALT) {
-            keyboard_modifiers[std::to_underlying(InputModifier::ALT)] += modifier_val;
+        if (evt.m_vkey == EKeyboardVKey::LEFT_ALT || evt.m_vkey == EKeyboardVKey::RIGHT_ALT) {
+            keyboard_modifiers[std::to_underlying(EInputModifier::ALT)] += modifier_val;
         }
     }
 
     for (u8 idx = 0; idx != KB_MODIFIERS_COUNT; ++idx) {
         i8 const mod = keyboard_modifiers[idx];
         if (mod < 0) {
-            m_state->m_modififers &= ~static_cast<InputModifierMask>(1 << idx);
+            m_state->m_modififers &= ~static_cast<EInputModifierMask>(1 << idx);
         } else if (mod > 0) {
-            m_state->m_modififers |= static_cast<InputModifierMask>(1 << idx);
+            m_state->m_modififers |= static_cast<EInputModifierMask>(1 << idx);
         }
     }
 
@@ -208,19 +208,19 @@ void InputApi::update() {
     processEvents();
 }
 
-MouseButtonMask InputApi::mouseButtonsState() const {
+EMouseButtonMask InputApi::mouseButtonsState() const {
     assert(ms_instance);
     return m_state->m_mouse_state.m_curr_buttons_state;
 }
 
-b8 InputApi::areMouseButtonsDown(MouseButtonMask buttons) const {
+b8 InputApi::areMouseButtonsDown(EMouseButtonMask buttons) const {
     assert(ms_instance);
     return (m_state->m_mouse_state.m_curr_buttons_state & buttons) == buttons;
 }
 
-b8 InputApi::isMouseButtonDown(MouseButton button) const {
+b8 InputApi::isMouseButtonDown(EMouseButton button) const {
     assert(ms_instance);
-    return (m_state->m_mouse_state.m_curr_buttons_state & static_cast<MouseButtonMask>(1 << std::to_underlying(button))) != MouseButtonMask::NONE;
+    return (m_state->m_mouse_state.m_curr_buttons_state & static_cast<EMouseButtonMask>(1 << std::to_underlying(button))) != EMouseButtonMask::NONE;
 }
 
 Vector2f InputApi::mousePosition() const {
@@ -258,7 +258,7 @@ u8 InputApi::gestureTouchCount() const {
     return m_state->m_gesture_state.m_point_count;
 }
 
-b8 InputApi::areKeyboardKeysDown(std::span<KeyboardVKey const> key_codes) const
+b8 InputApi::areKeyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const
 {
     for (auto key_code : key_codes)
     {
@@ -269,7 +269,7 @@ b8 InputApi::areKeyboardKeysDown(std::span<KeyboardVKey const> key_codes) const
     return true;
 }
 
-b8 InputApi::isAnyKeyboardKeyDown(std::span<KeyboardVKey const> key_codes) const
+b8 InputApi::isAnyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const
 {
     for (auto key_code : key_codes)
     {
@@ -280,7 +280,7 @@ b8 InputApi::isAnyKeyboardKeyDown(std::span<KeyboardVKey const> key_codes) const
     return false;
 }
 
-b8 InputApi::isKeyboardKeyDown(KeyboardVKey key_code) const {
+b8 InputApi::isKeyboardKeyDown(EKeyboardVKey key_code) const {
     assert(ms_instance);
 
     u32 const byte_idx = KeyboardState::getVKeyByteIndex(key_code);
@@ -293,14 +293,14 @@ b8 InputApi::isKeyboardKeyDown(KeyboardVKey key_code) const {
 void InputApi::forwardEvent(InputEvent const& evt) {
     assert(ms_instance);
 
-    if ((evt.m_type >= InputEventType::MOUSE_BUTTON_UP) && (evt.m_type <= InputEventType::MOUSE_SCROLL)) {
+    if ((evt.m_type >= EInputEventType::MOUSE_BUTTON_UP) && (evt.m_type <= EInputEventType::MOUSE_SCROLL)) {
         MouseEvent const& spec_evt = static_cast<MouseEvent const&>(evt);
         m_state->m_mouse_events.emplace_back(spec_evt);
-    } else if ((evt.m_type >= InputEventType::KEYBOARD_KEY_UP) && (evt.m_type <= InputEventType::KEYBOARD_KEY_DOWN)) {
+    } else if ((evt.m_type >= EInputEventType::KEYBOARD_KEY_UP) && (evt.m_type <= EInputEventType::KEYBOARD_KEY_DOWN)) {
         KeyboardEvent const& spec_evt = static_cast<KeyboardEvent const&>(evt);
         m_state->m_keyboard_events.emplace_back(spec_evt);
     } 
-    else if ((evt.m_type >= InputEventType::GESTURE_TOUCH_COUNT_UPDATE) && (evt.m_type <= InputEventType::GESTURE_MAGNIFY)) {
+    else if ((evt.m_type >= EInputEventType::GESTURE_TOUCH_COUNT_UPDATE) && (evt.m_type <= EInputEventType::GESTURE_MAGNIFY)) {
         GestureEvent const& spec_evt = static_cast<GestureEvent const&>(evt);
         m_state->m_gesture_events.emplace_back(spec_evt);
     }
@@ -309,22 +309,22 @@ void InputApi::forwardEvent(InputEvent const& evt) {
     }
 }
 
-InputModifierMask InputApi::modifiersState() const {
+EInputModifierMask InputApi::modifiersState() const {
     assert(ms_instance);
 
     return m_state->m_modififers;
 }
 
-b8 InputApi::hasAnyModifier(InputModifierMask mod_mask) const {
+b8 InputApi::hasAnyModifier(EInputModifierMask mod_mask) const {
     assert(ms_instance);
 
-    return InputModifierMask::NONE != (m_state->m_modififers & mod_mask);
+    return EInputModifierMask::NONE != (m_state->m_modififers & mod_mask);
 }
 
-b8 InputApi::hasModifier(InputModifier mod_key) const {
+b8 InputApi::hasModifier(EInputModifier mod_key) const {
     assert(ms_instance);
 
-    return hasAnyModifier(static_cast<InputModifierMask>(1 << std::to_underlying(mod_key)));
+    return hasAnyModifier(static_cast<EInputModifierMask>(1 << std::to_underlying(mod_key)));
 }
 
 }

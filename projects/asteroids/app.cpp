@@ -122,7 +122,7 @@ constexpr slk::f32 CANNON_ROT_SPEED = 0.005f;
 // slk::InputApi only exposes key down states (no pressed/released yet)
 class KeyReleaseTracker {
 public:
-    explicit KeyReleaseTracker(slk::KeyboardVKey key) : m_key(key) { }
+    explicit KeyReleaseTracker(slk::EKeyboardVKey key) : m_key(key) { }
 
     // Must be called once per frame
     slk::b8 update(slk::InputApi const& input) {
@@ -134,7 +134,7 @@ public:
     }
 
 private:
-    slk::KeyboardVKey m_key;
+    slk::EKeyboardVKey m_key;
     slk::b8 m_was_down = false;
 };
 
@@ -144,8 +144,8 @@ struct AppState {
     GameState game_state;
     std::vector<Ennemy> new_ennemies;
 
-    KeyReleaseTracker reset_key{slk::KeyboardVKey::CHAR_R};
-    KeyReleaseTracker shoot_key{slk::KeyboardVKey::SPACE};
+    KeyReleaseTracker reset_key{slk::EKeyboardVKey::CHAR_R};
+    KeyReleaseTracker shoot_key{slk::EKeyboardVKey::SPACE};
 
     Timer::time_point last_frame_time_point;
     slk::f32 delta_time_ms = 0.f;
@@ -166,10 +166,10 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
     if (game_state.ennemies.empty() || reset_released) {
         game_state.reset();
     }
-    if (input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_J, slk::KeyboardVKey::LEFT})) {
+    if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_J, slk::EKeyboardVKey::LEFT})) {
         game_state.cannon.turn(CANNON_ROT_SPEED * delta_time_ms);
     }
-    if (input.isAnyKeyboardKeyDown(std::array{slk::KeyboardVKey::CHAR_L, slk::KeyboardVKey::RIGHT})) {
+    if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_L, slk::EKeyboardVKey::RIGHT})) {
         game_state.cannon.turn(-CANNON_ROT_SPEED * delta_time_ms);
     }
     if (shoot_released) {
@@ -439,7 +439,7 @@ void appUpdate() {
     slk::InputApi* const input = slk::InputApi::instance();
     input->update();
 
-    if (input->isKeyboardKeyDown(slk::KeyboardVKey::ESCAPE)) {
+    if (input->isKeyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
         sapp_request_quit();
         return;
     }
@@ -452,7 +452,7 @@ void appUpdate() {
 
     // orthographic projection mapping the world (in pixels, y up) to the whole window
     slk::Matrix4f const proj = slk::makeOrthoProjectionMatrix(0.f, WORLD_WIDTH, 0.f, WORLD_HEIGHT, -1.f, 1.f, 0.f,
-                                                              bgfx::getCaps()->homogeneousDepth, slk::Handedness::DEFAULT);
+                                                              bgfx::getCaps()->homogeneousDepth, slk::EHandedness::DEFAULT);
 
     bgfx::setViewClear(MAIN_VIEW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, CLEAR_COLOR, 1.0f, 0);
     bgfx::setViewRect(MAIN_VIEW_ID, 0, 0, sapp_width(), sapp_height());
@@ -489,9 +489,9 @@ void appNotifyEvent(const sapp_event* evt) {
     switch (evt->type) {
         case SAPP_EVENTTYPE_KEY_DOWN: {
             slk::KeyboardEvent slk_event;
-            slk_event.m_type = slk::InputEventType::KEYBOARD_KEY_DOWN;
+            slk_event.m_type = slk::EInputEventType::KEYBOARD_KEY_DOWN;
             slk_event.m_key_repeat = evt->key_repeat;
-            slk_event.m_vkey = static_cast<slk::KeyboardVKey>(evt->key_code);
+            slk_event.m_vkey = static_cast<slk::EKeyboardVKey>(evt->key_code);
             slk::InputApi::instance()->forwardEvent(slk_event);
 
             break;
@@ -499,9 +499,9 @@ void appNotifyEvent(const sapp_event* evt) {
 
         case SAPP_EVENTTYPE_KEY_UP: {
             slk::KeyboardEvent slk_event;
-            slk_event.m_type = slk::InputEventType::KEYBOARD_KEY_UP;
+            slk_event.m_type = slk::EInputEventType::KEYBOARD_KEY_UP;
             slk_event.m_key_repeat = evt->key_repeat;
-            slk_event.m_vkey = static_cast<slk::KeyboardVKey>(evt->key_code);
+            slk_event.m_vkey = static_cast<slk::EKeyboardVKey>(evt->key_code);
             slk::InputApi::instance()->forwardEvent(slk_event);
 
             break;
