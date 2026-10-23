@@ -14,8 +14,8 @@ namespace slk {
 struct Camera {
 
     Camera();
-    Camera(slk::EnumTag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset);
-    Camera(slk::EnumTag<Projection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect);
+    Camera(slk::ETag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset);
+    Camera(slk::ETag<Projection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect);
 
     // axis
     Vector3f right() const;

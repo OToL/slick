@@ -10,6 +10,7 @@
 #include <slk/math/matrix2.hpp>
 #include <slk/math/matrix4.hpp>
 #include <slk/math/graphics.hpp>
+#include <slk/math/constants.hpp>
 #include <slk/math/utils.hpp>
 #include <slk/input/input_api.hpp>
 #include <slk/input/events.hpp>
@@ -23,6 +24,8 @@
 #include <vector>
 #include <random>
 #include <cassert>
+
+import std;
 
 using namespace slk::literals;
 
@@ -376,7 +379,7 @@ void renderGame(GameState const& game_state, DebugDrawEncoder& dde) {
     constexpr slk::ColorU32 BLACK = slk::ColorU32::black();
 
     // Draw environment
-    draw_aabb(dde, ENV_AABB, slk::Vector2f::zero(), BLACK);
+   draw_aabb(dde, ENV_AABB, slk::Vector2f::zero(), BLACK);
 
     // Draw canon
     draw_triangle(dde, game_state.cannon.getPos(), game_state.cannon.getRotation(), game_state.cannon.getWidth(),

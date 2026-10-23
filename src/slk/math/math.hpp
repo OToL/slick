@@ -42,10 +42,6 @@ using Matrix3Param = Matrix3<T> const&;
 template<typename T>
 using Matrix4Param = Matrix4<T> const&;
 
-inline constexpr f32 PI_F32 = 3.14159265f;
-inline constexpr f64 PI_F64 = 3.14159265358979323846;
-inline constexpr f32 EPSILON_F32 = 1.1920929e-07;
-
 enum class Handedness : u8
 {
     LEFT,

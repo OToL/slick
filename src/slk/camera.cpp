@@ -6,7 +6,7 @@ using namespace slk::literals;
 
 namespace slk {
 
-Camera::Camera(EnumTag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset) :
+Camera::Camera(ETag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset) :
     m_orientation(Matrix3f::IDENTITY),
     m_pos(0.f, 0.f, 0.f),
     m_near(near),
@@ -20,7 +20,7 @@ Camera::Camera(EnumTag<Projection::ORTHO>, f32 near, f32 far, f32 left, f32 righ
 {
 }
 
-Camera::Camera(EnumTag<Projection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect) :
+Camera::Camera(ETag<Projection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect) :
     m_orientation(Matrix3f::IDENTITY),
     m_pos(0.f, 0.f, 0.f),
     m_near(near),

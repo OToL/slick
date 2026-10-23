@@ -81,8 +81,9 @@
 
 ## Board
 
-- [ ] Bgfx type conversion
-- [ ] Use slk namespace for projects
+- [ ] Bgfx type conversion + namespace
+- [ ] Pass on slick naming
+- [ ] API centralization
 - [ ] Hash support + litterals and use it for DemoId
 
 ## Backlog

@@ -42,7 +42,7 @@ struct ColorU32 {
     constexpr ColorU32(RgbaTag, u8 r, u8 g, u8 b, u8 a)
         : ColorU32(a, b, g, r) { }
 
-    constexpr u32 value() const {
+    constexpr u32 data() const {
         return m_abgr;
     }
 

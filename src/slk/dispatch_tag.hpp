@@ -8,6 +8,6 @@
 namespace slk {
 
 template <slk::EnumerationType auto V>
-struct EnumTag { };
+struct ETag { };
 
 } // namespace slk

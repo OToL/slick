@@ -1,6 +1,9 @@
 #pragma once
 
 #include "math.hpp"
+#include "constants.hpp"
+
+import std;
 
 namespace slk {
 
@@ -15,11 +18,12 @@ constexpr inline T max(T lval, T rval) {
 }
 
 constexpr inline f32 toRadians(f32 deg) {
-    return deg * PI_F32 / 180.0f;
+
+    return deg * slk::PI_F32 / 180.0f;
 }
 
 constexpr inline f32 toDegrees(f32 rad) {
-    return rad * 180.0f / PI_F32;
+    return rad * 180.0f / slk::PI_F32;
 }
 
 constexpr inline b8 nearZero(f32 val) { 
