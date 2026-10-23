@@ -3,7 +3,7 @@
 #include <slk/core.hpp>
 #include "math.hpp"
 
-#include <cmath>
+import std;
 
 namespace slk {
 
