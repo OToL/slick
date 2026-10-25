@@ -213,12 +213,12 @@ EMouseButtonMask InputApi::mouseButtonsState() const {
     return m_state->m_mouse_state.m_curr_buttons_state;
 }
 
-b8 InputApi::areMouseButtonsDown(EMouseButtonMask buttons) const {
+b8 InputApi::mouseButtonsDown(EMouseButtonMask buttons) const {
     assert(ms_instance);
     return (m_state->m_mouse_state.m_curr_buttons_state & buttons) == buttons;
 }
 
-b8 InputApi::isMouseButtonDown(EMouseButton button) const {
+b8 InputApi::mouseButtonDown(EMouseButton button) const {
     assert(ms_instance);
     return (m_state->m_mouse_state.m_curr_buttons_state & static_cast<EMouseButtonMask>(1 << std::to_underlying(button))) != EMouseButtonMask::NONE;
 }
@@ -258,29 +258,29 @@ u8 InputApi::gestureTouchCount() const {
     return m_state->m_gesture_state.m_point_count;
 }
 
-b8 InputApi::areKeyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const
+b8 InputApi::keyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const
 {
     for (auto key_code : key_codes)
     {
-        if (!isKeyboardKeyDown(key_code))
+        if (!keyboardKeyDown(key_code))
             return false;
     }
 
     return true;
 }
 
-b8 InputApi::isAnyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const
+b8 InputApi::anyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const
 {
     for (auto key_code : key_codes)
     {
-        if (isKeyboardKeyDown(key_code))
+        if (keyboardKeyDown(key_code))
             return true;
     }
 
     return false;
 }
 
-b8 InputApi::isKeyboardKeyDown(EKeyboardVKey key_code) const {
+b8 InputApi::keyboardKeyDown(EKeyboardVKey key_code) const {
     assert(ms_instance);
 
     u32 const byte_idx = KeyboardState::getVKeyByteIndex(key_code);

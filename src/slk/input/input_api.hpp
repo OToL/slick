@@ -29,15 +29,15 @@ public:
     Vector2f mousePosition() const;
     Vector2f mouseMovement() const;
     Vector2f mouseScroll() const;
-    b8 isMouseButtonDown(EMouseButton button) const;
-    b8 areMouseButtonsDown(EMouseButtonMask buttons) const;
+    b8 mouseButtonDown(EMouseButton button) const;
+    b8 mouseButtonsDown(EMouseButtonMask buttons) const;
     EMouseButtonMask mouseButtonsState() const;
 
     // Keyboard
     // TODO: pressed & released
-    b8 isKeyboardKeyDown(EKeyboardVKey key_code) const;
-    b8 isAnyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const;
-    b8 areKeyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const;
+    b8 keyboardKeyDown(EKeyboardVKey key_code) const;
+    b8 anyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const;
+    b8 keyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const;
 
     // Gesture & Touchpad
     u8 gestureTouchCount() const;
