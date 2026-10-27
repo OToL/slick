@@ -32,31 +32,31 @@ using b8 = bool;
 #define sb_feature_disabled(name) 2 != ((SB_FEATURE_##name + 1) / SB_FEATURE_##name)
 
 // Enumeration used as mask
-#define sb_declare_enum_mask_operators(flag)                                                                                                         \
-    inline constexpr slk::b8 anyMaskFlagSet(flag lval, flag rval) {                                                                                  \
-        return (static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval)) != 0;                                       \
+#define sb_declare_enum_mask_operators(mask_value)                                                                                                   \
+    inline constexpr slk::b8 isAnyMaskBitSet(mask_value lval, mask_value rval) {                                                                     \
+        return (static_cast<__underlying_type(mask_value)>(lval) & static_cast<__underlying_type(mask_value)>(rval)) != 0;                           \
     }                                                                                                                                                \
-    inline constexpr slk::b8 noMaskFlagSet(flag lval, flag rval) {                                                                                   \
-        return !anyMaskFlagSet(lval, rval);                                                                                                          \
+    inline constexpr slk::b8 areAllMaskBitsSet(mask_value lval, mask_value rval) {                                                                   \
+        return (static_cast<__underlying_type(mask_value)>(lval) & static_cast<__underlying_type(mask_value)>(rval)) ==                              \
+               static_cast<__underlying_type(mask_value)>(rval);                                                                                     \
     }                                                                                                                                                \
-    inline constexpr slk::b8 allMaskFlagSet(flag lval, flag rval) {                                                                                  \
-        return (static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval)) ==                                          \
-               static_cast<__underlying_type(flag)>(rval);                                                                                           \
+    inline constexpr slk::b8 isNoMaskBitSet(mask_value lval, mask_value rval) {                                                                      \
+        return !isAnyMaskBitSet(lval, rval);                                                                                                         \
     }                                                                                                                                                \
-    inline constexpr flag operator|(flag lval, flag rval) {                                                                                          \
-        return (flag)(static_cast<__underlying_type(flag)>(lval) | static_cast<__underlying_type(flag)>(rval));                                      \
+    inline constexpr mask_value operator|(mask_value lval, mask_value rval) {                                                                        \
+        return (mask_value)(static_cast<__underlying_type(mask_value)>(lval) | static_cast<__underlying_type(mask_value)>(rval));                    \
     }                                                                                                                                                \
-    inline constexpr flag operator&(flag lval, flag rval) {                                                                                          \
-        return (flag)(static_cast<__underlying_type(flag)>(lval) & static_cast<__underlying_type(flag)>(rval));                                      \
+    inline constexpr mask_value operator&(mask_value lval, mask_value rval) {                                                                        \
+        return (mask_value)(static_cast<__underlying_type(mask_value)>(lval) & static_cast<__underlying_type(mask_value)>(rval));                    \
     }                                                                                                                                                \
-    inline constexpr void operator|=(flag& lval, flag rval) {                                                                                        \
+    inline constexpr void operator|=(mask_value& lval, mask_value rval) {                                                                            \
         lval = lval | rval;                                                                                                                          \
     }                                                                                                                                                \
-    inline constexpr void operator&=(flag& lval, flag rval) {                                                                                        \
+    inline constexpr void operator&=(mask_value& lval, mask_value rval) {                                                                            \
         lval = lval & rval;                                                                                                                          \
     }                                                                                                                                                \
-    inline constexpr flag operator~(flag val) {                                                                                                      \
-        return (flag)(~static_cast<__underlying_type(flag)>(val));                                                                                   \
+    inline constexpr mask_value operator~(mask_value val) {                                                                                          \
+        return (mask_value)(~static_cast<__underlying_type(mask_value)>(val));                                                                       \
     }
 
 // Toolchain specific macros

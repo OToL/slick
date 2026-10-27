@@ -64,10 +64,10 @@ void renderDbgWnd(AppState& app_state) {
     slk::InputApi const* const input = slk::InputApi::instance();
     slk::Vector2f const mouse_pos = input->mousePosition();
     slk::Vector2f const mouse_scroll = input->mouseScroll();
-    slk::EMouseButtonMask const mouse_buttons_state = input->mouseButtonsState();
-    slk::u8 const imgui_button_state = ((mouse_buttons_state & slk::EMouseButtonMask::LEFT) != slk::EMouseButtonMask::NONE ? IMGUI_MBUT_LEFT : 0) |
-                                       ((mouse_buttons_state & slk::EMouseButtonMask::RIGHT) != slk::EMouseButtonMask::NONE ? IMGUI_MBUT_RIGHT : 0) |
-                                       ((mouse_buttons_state & slk::EMouseButtonMask::MIDDLE) != slk::EMouseButtonMask::NONE ? IMGUI_MBUT_MIDDLE : 0);
+    slk::EMouseButtonBits const mouse_buttons_state = input->mouseButtonsState();
+    slk::u8 const imgui_button_state = ((mouse_buttons_state & slk::EMouseButtonBits::LEFT) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_LEFT : 0) |
+                                       ((mouse_buttons_state & slk::EMouseButtonBits::RIGHT) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_RIGHT : 0) |
+                                       ((mouse_buttons_state & slk::EMouseButtonBits::MIDDLE) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_MIDDLE : 0);
 
     imguiBeginFrameEx(static_cast<slk::i32>(mouse_pos.m_x), static_cast<slk::i32>(mouse_pos.m_y), imgui_button_state,
                       mouse_scroll.m_y, // wheel status
@@ -124,11 +124,11 @@ void renderDbgWnd(AppState& app_state) {
 
         ImGui::Text("Mouse Position: %.2f %.2f", mouse_pos.m_x, mouse_pos.m_y);
         ImGui::Text("Mouse button state: %d", mouse_buttons_state);
-        ImGui::Text("Mouse buttons state: %d %d %d", input->mouseButtonDown(slk::EMouseButton::LEFT),
-                    input->mouseButtonDown(slk::EMouseButton::MIDDLE), input->mouseButtonDown(slk::EMouseButton::RIGHT));
+        ImGui::Text("Mouse buttons state: %d %d %d", input->isMouseButtonDown(slk::EMouseButton::LEFT),
+                    input->isMouseButtonDown(slk::EMouseButton::MIDDLE), input->isMouseButtonDown(slk::EMouseButton::RIGHT));
         ImGui::Text("Mouse Scroll: %.2f %.2f", mouse_scroll.m_x, mouse_scroll.m_y);
 
-        ImGui::Text("Keyboard SPACE key state: %d", input->keyboardKeyDown(slk::EKeyboardVKey::SPACE));
+        ImGui::Text("Keyboard SPACE key state: %d", input->isKeyboardKeyDown(slk::EKeyboardVKey::SPACE));
 
         ImGui::Text("Modifiers State:");
         ImGui::Text("   CTRL: %d", input->hasModifier(slk::EInputModifier::CTRL));
@@ -152,7 +152,7 @@ void renderDbgWnd(AppState& app_state) {
     }
 
     DemoDesc const curr_demo_desc = app_state.demos.currentDesc();
-    if (allMaskFlagSet(curr_demo_desc.info.caps, EDemoCapsMask::DEBUG_IMGUI)) {
+    if (areAllMaskBitsSet(curr_demo_desc.info.caps, EDemoCapsBits::DEBUG_IMGUI)) {
         if (ImGui::CollapsingHeader("Demo", ImGuiTreeNodeFlags_DefaultOpen)) {
             app_state.demos.drawImgui(app_state.last_frame_time_ms);
         }
@@ -180,8 +180,8 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
 
     // Panning
     if (!was_orbitting &&
-        (input.mouseButtonDown(slk::EMouseButton::MIDDLE) || (input.gestureTouchCount() == 3) ||
-         ((input.mouseButtonDown(slk::EMouseButton::RIGHT) || input.gestureTouchCount() == 2) && input.hasModifier(slk::EInputModifier::SHIFT)))) {
+        (input.isMouseButtonDown(slk::EMouseButton::MIDDLE) || (input.gestureTouchCount() == 3) ||
+         ((input.isMouseButtonDown(slk::EMouseButton::RIGHT) || input.gestureTouchCount() == 2) && input.hasModifier(slk::EInputModifier::SHIFT)))) {
         slk::Vector2f pan_value{};
         if (input.gestureTouchCount() == 2)
             pan_value = gesture_scroll * 0.1f * translate_frame_factor;
@@ -192,7 +192,7 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
         cam.pan(pan_value.m_x, -pan_value.m_y);
     }
     // 2 fingers & right mouse click basic movements
-    else if ((input.gestureTouchCount() == 2) || input.mouseButtonDown(slk::EMouseButton::RIGHT)) {
+    else if ((input.gestureTouchCount() == 2) || input.isMouseButtonDown(slk::EMouseButton::RIGHT)) {
         slk::Vector2f panning{};
         slk::Vector3f translate{};
         slk::Vector2f rotation{};
@@ -201,10 +201,10 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
 
         if (!was_orbitting) {
             // WASD and Arrows move
-            slk::b8 const is_left = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_A, slk::EKeyboardVKey::LEFT});
-            slk::b8 const is_right = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_D, slk::EKeyboardVKey::RIGHT});
-            slk::b8 const is_up = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_W, slk::EKeyboardVKey::UP});
-            slk::b8 const is_down = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_S, slk::EKeyboardVKey::DOWN});
+            slk::b8 const is_left = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_A, slk::EKeyboardVKey::LEFT});
+            slk::b8 const is_right = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_D, slk::EKeyboardVKey::RIGHT});
+            slk::b8 const is_up = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_W, slk::EKeyboardVKey::UP});
+            slk::b8 const is_down = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_S, slk::EKeyboardVKey::DOWN});
 
             panning.m_x -= is_left * translate_frame_factor;
             panning.m_x += is_right * translate_frame_factor;
@@ -287,17 +287,17 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
     }
 
     // Elevation
-    if (((input.gestureTouchCount() >= 2) || input.mouseButtonDown(slk::EMouseButton::RIGHT)) &&
-        input.anyKeyboardKeyDown(
+    if (((input.gestureTouchCount() >= 2) || input.isMouseButtonDown(slk::EMouseButton::RIGHT)) &&
+        input.isAnyKeyboardKeyDown(
             std::array{slk::EKeyboardVKey::CHAR_Q, slk::EKeyboardVKey::CHAR_E, slk::EKeyboardVKey::CHAR_R, slk::EKeyboardVKey::CHAR_F})) {
-        slk::b8 const is_up = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_E, slk::EKeyboardVKey::CHAR_R});
-        slk::b8 const is_down = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_Q, slk::EKeyboardVKey::CHAR_F});
+        slk::b8 const is_up = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_E, slk::EKeyboardVKey::CHAR_R});
+        slk::b8 const is_down = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_Q, slk::EKeyboardVKey::CHAR_F});
 
         slk::f32 y_offset = 0;
         y_offset -= is_down * app_state.input_settings.camera_translate_speed;
         y_offset += is_up * app_state.input_settings.camera_translate_speed;
 
-        if (input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_R, slk::EKeyboardVKey::CHAR_F})) {
+        if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_R, slk::EKeyboardVKey::CHAR_F})) {
             cam.pan(0.f, y_offset);
         } else {
             cam.m_pos.m_y += y_offset;
@@ -346,13 +346,13 @@ void appUpdate() {
     slk::InputApi* const input = slk::InputApi::instance();
     input->update();
 
-    if (input->keyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
+    if (input->isKeyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
         sapp_request_quit();
         return;
     }
 
-    if (input->keyboardKeyDown(slk::EKeyboardVKey::BACKSLASH) &&
-        !anyMaskFlagSet(g_app_state.demos.currentDesc().info.caps, EDemoCapsMask::CUSTOM_CAMERA_CONTROL))
+    if (input->isKeyboardKeyDown(slk::EKeyboardVKey::BACKSLASH) &&
+        !isAnyMaskBitSet(g_app_state.demos.currentDesc().info.caps, EDemoCapsBits::CUSTOM_CAMERA_CONTROL))
         g_app_state.camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
 
     auto const time_point = AppState::Timer::now();

@@ -12,13 +12,13 @@ enum class EMouseButton : u8 {
     _COUNT
 };
 
-enum class EMouseButtonMask : u8 {
+enum class EMouseButtonBits : u8 {
     NONE = 0,
     LEFT = 1 << (u8)EMouseButton::LEFT,
     RIGHT = 1 << (u8)EMouseButton::RIGHT,
     MIDDLE = 1 << (u8)EMouseButton::MIDDLE,
 };
-sb_declare_enum_mask_operators(EMouseButtonMask);
+sb_declare_enum_mask_operators(EMouseButtonBits);
 
 enum class EInputModifier : u8 {
     SHIFT, // left or right shift key
@@ -32,7 +32,7 @@ enum class EInputModifier : u8 {
     _COUNT
 };
 
-enum class EInputModifierMask : u8 {
+enum class EInputModifierBits : u8 {
     NONE = 0,
     SHIFT = 1 << (u8)EInputModifier::SHIFT,
     CTRL = 1 << (u8)EInputModifier::CTRL,
@@ -42,7 +42,7 @@ enum class EInputModifierMask : u8 {
     RMB = 1 << (u8)EInputModifier::RMB,
     MMB = 1 << (u8)EInputModifier::MMB,
 };
-sb_declare_enum_mask_operators(EInputModifierMask);
+sb_declare_enum_mask_operators(EInputModifierBits);
 
 enum class EKeyboardVKey : u16 {
     INVALID = 0,

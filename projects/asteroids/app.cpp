@@ -126,7 +126,7 @@ public:
 
     // Must be called once per frame
     slk::b8 update(slk::InputApi const& input) {
-        slk::b8 const is_down = input.keyboardKeyDown(m_key);
+        slk::b8 const is_down = input.isKeyboardKeyDown(m_key);
         slk::b8 const released = m_was_down && !is_down;
         m_was_down = is_down;
 
@@ -166,10 +166,10 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
     if (game_state.ennemies.empty() || reset_released) {
         game_state.reset();
     }
-    if (input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_J, slk::EKeyboardVKey::LEFT})) {
+    if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_J, slk::EKeyboardVKey::LEFT})) {
         game_state.cannon.turn(CANNON_ROT_SPEED * delta_time_ms);
     }
-    if (input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_L, slk::EKeyboardVKey::RIGHT})) {
+    if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_L, slk::EKeyboardVKey::RIGHT})) {
         game_state.cannon.turn(-CANNON_ROT_SPEED * delta_time_ms);
     }
     if (shoot_released) {
@@ -439,7 +439,7 @@ void appUpdate() {
     slk::InputApi* const input = slk::InputApi::instance();
     input->update();
 
-    if (input->keyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
+    if (input->isKeyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
         sapp_request_quit();
         return;
     }
