@@ -147,6 +147,8 @@ struct AppState {
     KeyReleaseTracker reset_key{slk::EKeyboardVKey::CHAR_R};
     KeyReleaseTracker shoot_key{slk::EKeyboardVKey::SPACE};
 
+    slk::InputApi inputApi;
+
     Timer::time_point last_frame_time_point;
     slk::f32 delta_time_ms = 0.f;
 };
@@ -425,12 +427,12 @@ void appInitialize() {
 
     ddInit();
 
-    slk::InputApi::initialize();
-
     g_app_state = new AppState{};
     g_app_state->game_state.reset();
     g_app_state->new_ennemies.reserve(20);
     g_app_state->last_frame_time_point = AppState::Timer::now();
+    g_app_state->inputApi.initialize();
+    g_app_state->inputApi.registerApi();
 }
 
 void appUpdate() {
@@ -475,10 +477,12 @@ void appUpdate() {
 }
 
 void appShutdown() {
+
+    g_app_state->inputApi.unregisterApi();
+    g_app_state->inputApi.shutdown();
+
     delete g_app_state;
     g_app_state = nullptr;
-
-    slk::InputApi::shutdown();
 
     ddShutdown();
 

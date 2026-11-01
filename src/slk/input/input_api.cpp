@@ -1,6 +1,7 @@
 #include "input_api.hpp"
 #include "events.hpp"
 #include <slk/math/utils.hpp>
+#include <slk/api_hub.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -46,6 +47,9 @@ struct KeyboardState {
 
 namespace slk {
 
+void registerInputApi(InputApi* api);
+void unregisterInputApi(InputApi* api);
+
 // TODO: change kb/mouse_events container type
 // TODO: consider using a single container for all type of events e.g. raw queue
 // TODO: should the queue of events be thread safe
@@ -56,10 +60,8 @@ struct InputApi::State {
     std::vector<slk::GestureEvent> m_gesture_events;
     std::vector<slk::MouseEvent> m_mouse_events;
     std::vector<slk::KeyboardEvent> m_keyboard_events;
-    slk::EInputModifierBits m_modififers;
+    slk::EInputModifierBits m_modifiers;
 };
-
-InputApi* InputApi::ms_instance = nullptr;
 
 InputApi::InputApi() {
     m_state = new State{};
@@ -70,25 +72,21 @@ InputApi::InputApi() {
 }
 
 InputApi::~InputApi() {
+    assert(this != apiHub().m_input);
+
     delete m_state;
 }
 
-
-b8 InputApi::initialize() {
-    assert(!ms_instance);
-
-    ms_instance = new InputApi{};
-
-    return true;
+void InputApi::unregisterApi() {
+    unregisterInputApi(this);
 }
 
-b8 InputApi::shutdown() {
-    assert(ms_instance);
+void InputApi::registerApi() {
+    registerInputApi(this);
+}
 
-    delete (ms_instance->m_state);
-    ms_instance->m_state = nullptr;
-
-    return false;
+InputApi* InputApi::instance() {
+    return apiHub().m_input;
 }
 
 static constexpr u8 MB_MODIFIER_OFFSET = 4U;
@@ -131,10 +129,10 @@ void InputApi::processEvents() {
             mouse_state.m_data_state |= MouseState::HAS_POSITION;
         } else if (evt.m_type == EInputEventType::MOUSE_BUTTON_DOWN) {
             mouse_state.m_curr_buttons_state |= static_cast<EMouseButtonBits>(1U << std::to_underlying(evt.m_button));
-            m_state->m_modififers |= static_cast<EInputModifierBits>(1U << (std::to_underlying(evt.m_button) + MB_MODIFIER_OFFSET));
+            m_state->m_modifiers |= static_cast<EInputModifierBits>(1U << (std::to_underlying(evt.m_button) + MB_MODIFIER_OFFSET));
         } else if (evt.m_type == EInputEventType::MOUSE_BUTTON_UP) {
             mouse_state.m_curr_buttons_state &= ~static_cast<EMouseButtonBits>(1U << std::to_underlying(evt.m_button));
-            m_state->m_modififers &= ~static_cast<EInputModifierBits>(1U << (std::to_underlying(evt.m_button) + MB_MODIFIER_OFFSET));
+            m_state->m_modifiers &= ~static_cast<EInputModifierBits>(1U << (std::to_underlying(evt.m_button) + MB_MODIFIER_OFFSET));
         } else if (evt.m_type == EInputEventType::MOUSE_SCROLL) {
             mouse_state.m_scroll += evt.m_scroll;
         } else {
@@ -180,9 +178,9 @@ void InputApi::processEvents() {
     for (u8 idx = 0; idx != KB_MODIFIERS_COUNT; ++idx) {
         i8 const mod = keyboard_modifiers[idx];
         if (mod < 0) {
-            m_state->m_modififers &= ~static_cast<EInputModifierBits>(1 << idx);
+            m_state->m_modifiers &= ~static_cast<EInputModifierBits>(1 << idx);
         } else if (mod > 0) {
-            m_state->m_modififers |= static_cast<EInputModifierBits>(1 << idx);
+            m_state->m_modifiers |= static_cast<EInputModifierBits>(1 << idx);
         }
     }
 
@@ -191,8 +189,15 @@ void InputApi::processEvents() {
     m_state->m_gesture_events.clear();
 }
 
+b8 InputApi::initialize() {
+    return true;
+}
+
+b8 InputApi::shutdown() {
+    return true;
+}
+
 void InputApi::update() {
-    assert(ms_instance);
 
     MouseState& mouse_state = m_state->m_mouse_state;
     if (mouse_state.m_data_state & MouseState::HAS_POSITION) {
@@ -209,27 +214,22 @@ void InputApi::update() {
 }
 
 EMouseButtonBits InputApi::mouseButtonsState() const {
-    assert(ms_instance);
     return m_state->m_mouse_state.m_curr_buttons_state;
 }
 
 b8 InputApi::areMouseButtonsDown(EMouseButtonBits buttons) const {
-    assert(ms_instance);
     return (m_state->m_mouse_state.m_curr_buttons_state & buttons) == buttons;
 }
 
 b8 InputApi::isMouseButtonDown(EMouseButton button) const {
-    assert(ms_instance);
     return (m_state->m_mouse_state.m_curr_buttons_state & static_cast<EMouseButtonBits>(1 << std::to_underlying(button))) != EMouseButtonBits::NONE;
 }
 
 Vector2f InputApi::mousePosition() const {
-    assert(ms_instance);
     return m_state->m_mouse_state.m_curr_postion;
 }
 
 Vector2f InputApi::mouseMovement() const {
-    assert(ms_instance);
 
     MouseState& mouse_state = m_state->m_mouse_state;
     if (mouse_state.m_data_state & MouseState::HAS_PREV_POSITION)
@@ -239,22 +239,18 @@ Vector2f InputApi::mouseMovement() const {
 }
 
 Vector2f InputApi::mouseScroll() const {
-    assert(ms_instance);
     return m_state->m_mouse_state.m_scroll;
 }
 
 Vector2f InputApi::gestureMagnify() const {
-    assert(ms_instance);
     return m_state->m_gesture_state.m_magnify_delta;
 }
 
 Vector2f InputApi::gestureScroll() const {
-    assert(ms_instance);
     return m_state->m_gesture_state.m_scroll_delta;
 }
 
 u8 InputApi::gestureTouchCount() const {
-    assert(ms_instance);
     return m_state->m_gesture_state.m_point_count;
 }
 
@@ -281,7 +277,6 @@ b8 InputApi::isAnyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) cons
 }
 
 b8 InputApi::isKeyboardKeyDown(EKeyboardVKey key_code) const {
-    assert(ms_instance);
 
     u32 const byte_idx = KeyboardState::getVKeyByteIndex(key_code);
     u8 const byte_offset = KeyboardState::getVKeyByteOffset(key_code);
@@ -291,7 +286,6 @@ b8 InputApi::isKeyboardKeyDown(EKeyboardVKey key_code) const {
 }
 
 void InputApi::forwardEvent(InputEvent const& evt) {
-    assert(ms_instance);
 
     if ((evt.m_type >= EInputEventType::MOUSE_BUTTON_UP) && (evt.m_type <= EInputEventType::MOUSE_SCROLL)) {
         MouseEvent const& spec_evt = static_cast<MouseEvent const&>(evt);
@@ -310,20 +304,14 @@ void InputApi::forwardEvent(InputEvent const& evt) {
 }
 
 EInputModifierBits InputApi::modifiersState() const {
-    assert(ms_instance);
-
-    return m_state->m_modififers;
+    return m_state->m_modifiers;
 }
 
 b8 InputApi::hasAnyModifier(EInputModifierBits mod_mask) const {
-    assert(ms_instance);
-
-    return EInputModifierBits::NONE != (m_state->m_modififers & mod_mask);
+    return EInputModifierBits::NONE != (m_state->m_modifiers & mod_mask);
 }
 
 b8 InputApi::hasModifier(EInputModifier mod_key) const {
-    assert(ms_instance);
-
     return hasAnyModifier(static_cast<EInputModifierBits>(1 << std::to_underlying(mod_key)));
 }
 

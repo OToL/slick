@@ -52,6 +52,8 @@ struct AppState {
     slk::Camera camera;
     GridHdl grid_hdl;
 
+    slk::InputApi inputApi;
+
     Timer::time_point last_frame_time_point;
     slk::f32 last_frame_time_ms;
 
@@ -152,7 +154,7 @@ void renderDbgWnd(AppState& app_state) {
     }
 
     DemoDesc const curr_demo_desc = app_state.demos.currentDesc();
-    if (areAllMaskBitsSet(curr_demo_desc.info.caps, EDemoCapsBits::DEBUG_IMGUI)) {
+    if (allMaskBitsSet(curr_demo_desc.info.caps, EDemoCapBits::DEBUG_IMGUI)) {
         if (ImGui::CollapsingHeader("Demo", ImGuiTreeNodeFlags_DefaultOpen)) {
             app_state.demos.drawImgui(app_state.last_frame_time_ms);
         }
@@ -321,8 +323,6 @@ void appInitialize() {
 
     imguiCreate();
 
-    slk::InputApi::initialize();
-
     g_app_state.camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
     g_app_state.camera.setPerspectiveProjection(0.1f, 10000.0f, 45.0_deg, sapp_widthf() / sapp_heightf());
 
@@ -334,6 +334,9 @@ void appInitialize() {
 
     g_app_state.demos.initialize({emptyDemo(), curvesDemo()});
     g_app_state.demos.setCurrent(EMPTY_DEMO_ID);
+
+    g_app_state.inputApi.initialize();
+    g_app_state.inputApi.registerApi();
 
     // debug draw init
     ddInit();
@@ -352,7 +355,7 @@ void appUpdate() {
     }
 
     if (input->isKeyboardKeyDown(slk::EKeyboardVKey::BACKSLASH) &&
-        !isAnyMaskBitSet(g_app_state.demos.currentDesc().info.caps, EDemoCapsBits::CUSTOM_CAMERA_CONTROL))
+        !anyMaskBitSet(g_app_state.demos.currentDesc().info.caps, EDemoCapBits::CUSTOM_CAMERA_CONTROL))
         g_app_state.camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
 
     auto const time_point = AppState::Timer::now();
@@ -395,6 +398,8 @@ void appUpdate() {
 void appShutdown() {
     ddShutdown();
 
+    g_app_state.inputApi.unregisterApi();
+    g_app_state.inputApi.shutdown();
     g_app_state.demos.shutdown();
 
     imguiDestroy();
@@ -402,10 +407,6 @@ void appShutdown() {
     destroyGrid(g_app_state.grid_hdl);
 
     bgfx::shutdown();
-
-    slk::InputApi::shutdown();
-
-    g_app_state = {};
 }
 
 static ImGuiKey toImGuiKey(sapp_keycode key) {

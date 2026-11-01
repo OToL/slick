@@ -10,14 +10,22 @@ namespace slk {
 
 struct InputEvent;
 
+// TODO: pressed & released
+// TODO: event 
 class InputApi {
 
 public:
 
-    static b8 initialize();
-    static b8 shutdown();
-    static InputApi* instance() {return ms_instance;}
+    InputApi();
+    ~InputApi();
 
+    // Api
+    void unregisterApi();
+    void registerApi();
+    static InputApi* instance();
+
+    b8 initialize();
+    b8 shutdown();
     void update();
 
     // Modifiers
@@ -34,7 +42,6 @@ public:
     b8 areMouseButtonsDown(EMouseButtonBits buttons) const;
 
     // Keyboard
-    // TODO: pressed & released
     b8 isKeyboardKeyDown(EKeyboardVKey key_code) const;
     b8 isAnyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const;
     b8 areKeyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const;
@@ -47,17 +54,10 @@ public:
     // External input events injection
     void forwardEvent(InputEvent const& evt);
 
-private:
-
-    InputApi();
-    ~InputApi();
-
     void processEvents();
 
     struct State;
     State* m_state = nullptr;
-
-    static InputApi* ms_instance;
 };
 
 } // namespace slk

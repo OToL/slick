@@ -14,18 +14,18 @@ namespace slk {
 using DemoId = char const*;
 using DemoHdl = void*;
 
-enum class EDemoCapsBits {
+enum class EDemoCapBits {
     NONE = 0,
     CUSTOM_CAMERA_CONTROL = 1 << 0,
     DEBUG_IMGUI = 1 << 1,
 };
 
-sb_declare_enum_mask_operators(EDemoCapsBits)
+sb_declare_enum_mask_operators(EDemoCapBits)
 
 struct DemoInfo {
     std::string_view name;
     std::string_view description;
-    EDemoCapsBits caps;
+    EDemoCapBits caps;
 };
 
 struct DemoApi {

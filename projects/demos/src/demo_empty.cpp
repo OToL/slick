@@ -37,7 +37,7 @@ DemoDesc emptyDemo()
         .info = DemoInfo {
             .name = "Empty demo",
             .description = "Empty demo",
-            .caps = EDemoCapsBits::NONE
+            .caps = EDemoCapBits::NONE
         },
         .api = {
             .init = &init,
