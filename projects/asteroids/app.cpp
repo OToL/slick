@@ -141,29 +141,29 @@ private:
 struct AppState {
     using Timer = std::chrono::high_resolution_clock;
 
-    GameState game_state;
-    std::vector<Ennemy> new_ennemies;
+    GameState m_game_state;
+    std::vector<Ennemy> m_new_ennemies;
 
-    KeyReleaseTracker reset_key{slk::EKeyboardVKey::CHAR_R};
-    KeyReleaseTracker shoot_key{slk::EKeyboardVKey::SPACE};
+    KeyReleaseTracker m_reset_key{slk::EKeyboardVKey::CHAR_R};
+    KeyReleaseTracker m_shoot_key{slk::EKeyboardVKey::SPACE};
 
-    slk::InputApi inputApi;
+    slk::InputApi m_inputApi;
 
-    Timer::time_point last_frame_time_point;
-    slk::f32 delta_time_ms = 0.f;
+    Timer::time_point m_last_frame_time_point;
+    slk::f32 m_delta_time_ms = 0.f;
 };
 
 AppState* g_app_state = nullptr;
 
 void updateGame(AppState& app_state, slk::InputApi const& input) {
-    GameState& game_state = app_state.game_state;
-    std::vector<Ennemy>& new_ennemies = app_state.new_ennemies;
-    slk::f32 const delta_time_ms = app_state.delta_time_ms;
+    GameState& game_state = app_state.m_game_state;
+    std::vector<Ennemy>& new_ennemies = app_state.m_new_ennemies;
+    slk::f32 const delta_time_ms = app_state.m_delta_time_ms;
 
     game_state.cannon.update(delta_time_ms);
 
-    slk::b8 const reset_released = app_state.reset_key.update(input);
-    slk::b8 const shoot_released = app_state.shoot_key.update(input);
+    slk::b8 const reset_released = app_state.m_reset_key.update(input);
+    slk::b8 const shoot_released = app_state.m_shoot_key.update(input);
 
     if (game_state.ennemies.empty() || reset_released) {
         game_state.reset();
@@ -428,11 +428,11 @@ void appInitialize() {
     ddInit();
 
     g_app_state = new AppState{};
-    g_app_state->game_state.reset();
-    g_app_state->new_ennemies.reserve(20);
-    g_app_state->last_frame_time_point = AppState::Timer::now();
-    g_app_state->inputApi.initialize();
-    g_app_state->inputApi.registerApi();
+    g_app_state->m_game_state.reset();
+    g_app_state->m_new_ennemies.reserve(20);
+    g_app_state->m_last_frame_time_point = AppState::Timer::now();
+    g_app_state->m_inputApi.initialize();
+    g_app_state->m_inputApi.registerApi();
 }
 
 void appUpdate() {
@@ -447,8 +447,8 @@ void appUpdate() {
     }
 
     auto const time_point = AppState::Timer::now();
-    g_app_state->delta_time_ms = std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state->last_frame_time_point).count() / 1000.f;
-    g_app_state->last_frame_time_point = time_point;
+    g_app_state->m_delta_time_ms = std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state->m_last_frame_time_point).count() / 1000.f;
+    g_app_state->m_last_frame_time_point = time_point;
 
     updateGame(*g_app_state, *input);
 
@@ -469,7 +469,7 @@ void appUpdate() {
     // 2D: no depth test/write, draw order is submission order
     dde.setState(false, false, true);
 
-    renderGame(g_app_state->game_state, dde);
+    renderGame(g_app_state->m_game_state, dde);
 
     dde.end();
 
@@ -478,8 +478,8 @@ void appUpdate() {
 
 void appShutdown() {
 
-    g_app_state->inputApi.unregisterApi();
-    g_app_state->inputApi.shutdown();
+    g_app_state->m_inputApi.unregisterApi();
+    g_app_state->m_inputApi.shutdown();
 
     delete g_app_state;
     g_app_state = nullptr;

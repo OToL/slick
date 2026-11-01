@@ -45,21 +45,21 @@ struct InputSettings {
 struct AppState {
     using Timer = std::chrono::high_resolution_clock;
 
-    Demos demos;
+    Demos m_demos;
 
-    InputSettings input_settings;
+    InputSettings m_input_settings;
 
-    slk::Camera camera;
-    GridHdl grid_hdl;
+    slk::Camera m_camera;
+    GridHdl m_grid_hdl;
 
-    slk::InputApi inputApi;
+    slk::InputApi m_inputApi;
 
-    Timer::time_point last_frame_time_point;
-    slk::f32 last_frame_time_ms;
+    Timer::time_point m_last_frame_time_point;
+    slk::f32 m_last_frame_time_ms;
 
-    slk::b8 imgui_wnd_focused = false;
-    slk::b8 orbitting = false;
-    slk::Vector3f orbit_pivot = {};
+    slk::b8 m_imgui_wnd_focused = false;
+    slk::b8 m_orbitting = false;
+    slk::Vector3f m_orbit_pivot = {};
 } g_app_state{};
 
 void renderDbgWnd(AppState& app_state) {
@@ -91,10 +91,10 @@ void renderDbgWnd(AppState& app_state) {
     // Must be called after ImGui::Begin because it is related to the currently processed window
     // app_state.imgui_wnd_focused = ImGui::IsWindowFocused();
 
-    ImGui::Text("Frame Time: %.2f ms", g_app_state.last_frame_time_ms);
+    ImGui::Text("Frame Time: %.2f ms", g_app_state.m_last_frame_time_ms);
 
-    auto const demos = g_app_state.demos.demos();
-    auto const curr_demo_id = g_app_state.demos.currentId();
+    auto const demos = g_app_state.m_demos.demos();
+    auto const curr_demo_id = g_app_state.m_demos.currentId();
     auto const curr_demo_it = std::ranges::find_if(demos, [curr_demo_id](DemoDesc const& desc) { return strcmp(curr_demo_id, desc.id) == 0; });
     assert(curr_demo_it != demos.end());
 
@@ -144,23 +144,23 @@ void renderDbgWnd(AppState& app_state) {
     }
     if (ImGui::CollapsingHeader("Settings")) {
         ImGui::PushItemWidth(ImGui::GetFontSize() * 8.f);
-        ImGui::InputFloat("Translation Speed", &app_state.input_settings.camera_translate_speed, 0.001f, 1.0f, "%.6f");
-        ImGui::InputFloat("Rotation Speed ", &app_state.input_settings.camera_rotation_speed, 0.001f, 1.0f, "%.6f");
+        ImGui::InputFloat("Translation Speed", &app_state.m_input_settings.camera_translate_speed, 0.001f, 1.0f, "%.6f");
+        ImGui::InputFloat("Rotation Speed ", &app_state.m_input_settings.camera_rotation_speed, 0.001f, 1.0f, "%.6f");
         ImGui::PopItemWidth();
     }
 
     if (next_demo_idx != curr_demo_idx) {
-        g_app_state.demos.setCurrent(demos[next_demo_idx].id);
+        g_app_state.m_demos.setCurrent(demos[next_demo_idx].id);
     }
 
-    DemoDesc const curr_demo_desc = app_state.demos.currentDesc();
+    DemoDesc const curr_demo_desc = app_state.m_demos.currentDesc();
     if (allMaskBitsSet(curr_demo_desc.info.caps, EDemoCapBits::DEBUG_IMGUI)) {
         if (ImGui::CollapsingHeader("Demo", ImGuiTreeNodeFlags_DefaultOpen)) {
-            app_state.demos.drawImgui(app_state.last_frame_time_ms);
+            app_state.m_demos.drawImgui(app_state.m_last_frame_time_ms);
         }
     }
 
-    app_state.imgui_wnd_focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
+    app_state.m_imgui_wnd_focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
 
     ImGui::End();
 
@@ -169,16 +169,16 @@ void renderDbgWnd(AppState& app_state) {
 
 void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& input) {
     // Frame dependent movement delta
-    slk::f32 const translate_frame_factor = app_state.input_settings.camera_translate_speed * app_state.last_frame_time_ms;
-    slk::f32 const rotate_frame_factor = app_state.input_settings.camera_rotation_speed * app_state.last_frame_time_ms;
+    slk::f32 const translate_frame_factor = app_state.m_input_settings.camera_translate_speed * app_state.m_last_frame_time_ms;
+    slk::f32 const rotate_frame_factor = app_state.m_input_settings.camera_rotation_speed * app_state.m_last_frame_time_ms;
 
     slk::Vector2f const mouse_scroll = input.mouseScroll();
     slk::Vector2f const gesture_movement = input.mouseMovement();
     slk::Vector2f const gesture_magnify = input.gestureMagnify();
     slk::Vector2f const gesture_scroll = input.gestureScroll();
 
-    slk::b8 const was_orbitting = g_app_state.orbitting;
-    g_app_state.orbitting = false;
+    slk::b8 const was_orbitting = g_app_state.m_orbitting;
+    g_app_state.m_orbitting = false;
 
     // Panning
     if (!was_orbitting &&
@@ -249,31 +249,31 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
             }
 
             if (input.hasModifier(slk::EInputModifier::ALT)) {
-                g_app_state.orbitting = was_orbitting;
+                g_app_state.m_orbitting = was_orbitting;
 
-                if (!g_app_state.orbitting) {
+                if (!g_app_state.m_orbitting) {
                     slk::Plane const plane = {.m_normal = slk::Vector3f::UNITY, .m_dist = 0.f};
 
                     if (auto const res = slk::intersect(ray, plane)) {
-                        g_app_state.orbitting = true;
-                        g_app_state.orbit_pivot = *res;
+                        g_app_state.m_orbitting = true;
+                        g_app_state.m_orbit_pivot = *res;
                     }
                 }
             }
 
-            if (g_app_state.orbitting) {
-                slk::Vector3f const offset = g_app_state.orbit_pivot - cam.m_pos;
+            if (g_app_state.m_orbitting) {
+                slk::Vector3f const offset = g_app_state.m_orbit_pivot - cam.m_pos;
                 slk::Vector3f const local = {offset.dot(prev_cam_orient.xAxis()), offset.dot(prev_cam_orient.yAxis()),
                                              offset.dot(prev_cam_orient.zAxis())};
 
-                cam.m_pos = g_app_state.orbit_pivot - (cam.right() * local.m_x + cam.up() * local.m_y + cam.forward() * local.m_z);
+                cam.m_pos = g_app_state.m_orbit_pivot - (cam.right() * local.m_x + cam.up() * local.m_y + cam.forward() * local.m_z);
                 translate = {};
                 panning = {};
 
                 DebugDrawEncoder dde;
                 dde.begin(0);
                 dde.setColor(slk::ColorU32::RED.m_abgr);
-                dde.draw(bx::Sphere{.center = bx::Vec3{g_app_state.orbit_pivot.m_x, g_app_state.orbit_pivot.m_y, g_app_state.orbit_pivot.m_z},
+                dde.draw(bx::Sphere{.center = bx::Vec3{g_app_state.m_orbit_pivot.m_x, g_app_state.m_orbit_pivot.m_y, g_app_state.m_orbit_pivot.m_z},
                                     .radius = .1f});
                 dde.end();
             }
@@ -296,8 +296,8 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
         slk::b8 const is_down = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_Q, slk::EKeyboardVKey::CHAR_F});
 
         slk::f32 y_offset = 0;
-        y_offset -= is_down * app_state.input_settings.camera_translate_speed;
-        y_offset += is_up * app_state.input_settings.camera_translate_speed;
+        y_offset -= is_down * app_state.m_input_settings.camera_translate_speed;
+        y_offset += is_up * app_state.m_input_settings.camera_translate_speed;
 
         if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_R, slk::EKeyboardVKey::CHAR_F})) {
             cam.pan(0.f, y_offset);
@@ -318,25 +318,25 @@ void appInitialize() {
     bgfx::init(bgfx_init);
     // bgfx::setDebug(BGFX_DEBUG_STATS);
 
-    g_app_state.grid_hdl = createGrid();
-    assert(g_app_state.grid_hdl);
+    g_app_state.m_grid_hdl = createGrid();
+    assert(g_app_state.m_grid_hdl);
 
     imguiCreate();
 
-    g_app_state.camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
-    g_app_state.camera.setPerspectiveProjection(0.1f, 10000.0f, 45.0_deg, sapp_widthf() / sapp_heightf());
+    g_app_state.m_camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
+    g_app_state.m_camera.setPerspectiveProjection(0.1f, 10000.0f, 45.0_deg, sapp_widthf() / sapp_heightf());
 
-    g_app_state.input_settings.camera_rotation_speed = CAMERA_DEFAULT_ROTATE_SPEED;
-    g_app_state.input_settings.camera_translate_speed = CAMERA_DEFAULT_TRANSLATE_SPEED;
+    g_app_state.m_input_settings.camera_rotation_speed = CAMERA_DEFAULT_ROTATE_SPEED;
+    g_app_state.m_input_settings.camera_translate_speed = CAMERA_DEFAULT_TRANSLATE_SPEED;
 
-    g_app_state.last_frame_time_point = std::chrono::high_resolution_clock::now();
-    g_app_state.last_frame_time_ms = 0.f;
+    g_app_state.m_last_frame_time_point = std::chrono::high_resolution_clock::now();
+    g_app_state.m_last_frame_time_ms = 0.f;
 
-    g_app_state.demos.initialize({emptyDemo(), curvesDemo()});
-    g_app_state.demos.setCurrent(EMPTY_DEMO_ID);
+    g_app_state.m_demos.initialize({emptyDemo(), curvesDemo()});
+    g_app_state.m_demos.setCurrent(EMPTY_DEMO_ID);
 
-    g_app_state.inputApi.initialize();
-    g_app_state.inputApi.registerApi();
+    g_app_state.m_inputApi.initialize();
+    g_app_state.m_inputApi.registerApi();
 
     // debug draw init
     ddInit();
@@ -355,24 +355,24 @@ void appUpdate() {
     }
 
     if (input->isKeyboardKeyDown(slk::EKeyboardVKey::BACKSLASH) &&
-        !anyMaskBitSet(g_app_state.demos.currentDesc().info.caps, EDemoCapBits::CUSTOM_CAMERA_CONTROL))
-        g_app_state.camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
+        !anyMaskBitSet(g_app_state.m_demos.currentDesc().info.caps, EDemoCapBits::CUSTOM_CAMERA_CONTROL))
+        g_app_state.m_camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
 
     auto const time_point = AppState::Timer::now();
-    g_app_state.last_frame_time_ms =
-        std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state.last_frame_time_point).count() / 1000.f;
-    g_app_state.last_frame_time_point = time_point;
+    g_app_state.m_last_frame_time_ms =
+        std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state.m_last_frame_time_point).count() / 1000.f;
+    g_app_state.m_last_frame_time_point = time_point;
 
-    if (!g_app_state.imgui_wnd_focused)
-        updateCamera(g_app_state, g_app_state.camera, *input);
+    if (!g_app_state.m_imgui_wnd_focused)
+        updateCamera(g_app_state, g_app_state.m_camera, *input);
 
-    if (!g_app_state.demos.update(g_app_state.last_frame_time_ms, g_app_state.camera)) {
+    if (!g_app_state.m_demos.update(g_app_state.m_last_frame_time_ms, g_app_state.m_camera)) {
         sapp_request_quit();
         return;
     }
 
-    slk::Matrix4f const proj = g_app_state.camera.projectionMatrix(slk::EHandedness::DEFAULT, bgfx::getCaps()->homogeneousDepth);
-    slk::Matrix4f const view = g_app_state.camera.viewMatrix();
+    slk::Matrix4f const proj = g_app_state.m_camera.projectionMatrix(slk::EHandedness::DEFAULT, bgfx::getCaps()->homogeneousDepth);
+    slk::Matrix4f const view = g_app_state.m_camera.viewMatrix();
 
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xDDDDDDFF, 1.0f, 0);
     bgfx::setViewRect(0, 0, 0, sapp_width(), sapp_height());
@@ -385,11 +385,11 @@ void appUpdate() {
 
     renderDbgWnd(g_app_state);
 
-    g_app_state.demos.draw3d(g_app_state.last_frame_time_ms, g_app_state.camera);
+    g_app_state.m_demos.draw3d(g_app_state.m_last_frame_time_ms, g_app_state.m_camera);
 
-    renderGrid(g_app_state.grid_hdl, THIN_COLOR, THICK_COLOR, true);
+    renderGrid(g_app_state.m_grid_hdl, THIN_COLOR, THICK_COLOR, true);
 
-    g_app_state.demos.draw2d(g_app_state.last_frame_time_ms);
+    g_app_state.m_demos.draw2d(g_app_state.m_last_frame_time_ms);
 
 
     bgfx::frame();
@@ -398,13 +398,13 @@ void appUpdate() {
 void appShutdown() {
     ddShutdown();
 
-    g_app_state.inputApi.unregisterApi();
-    g_app_state.inputApi.shutdown();
-    g_app_state.demos.shutdown();
+    g_app_state.m_inputApi.unregisterApi();
+    g_app_state.m_inputApi.shutdown();
+    g_app_state.m_demos.shutdown();
 
     imguiDestroy();
 
-    destroyGrid(g_app_state.grid_hdl);
+    destroyGrid(g_app_state.m_grid_hdl);
 
     bgfx::shutdown();
 }

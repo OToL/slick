@@ -63,9 +63,9 @@ struct InputApi::State {
     slk::EInputModifierBits m_modifiers;
 };
 
-InputApi::InputApi() {
-    m_state = new State{};
-
+InputApi::InputApi() : 
+    m_state(new State{})
+{
     m_state->m_mouse_events.reserve(128);
     m_state->m_keyboard_events.reserve(128);
     m_state->m_gesture_events.reserve(5);

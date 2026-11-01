@@ -11,7 +11,7 @@ namespace slk {
 struct InputEvent;
 
 // TODO: pressed & released
-// TODO: event 
+// TODO: push events to client
 class InputApi {
 
 public:
@@ -19,14 +19,14 @@ public:
     InputApi();
     ~InputApi();
 
+    b8 initialize();
+    b8 shutdown();
+    void update();
+
     // Api
     void unregisterApi();
     void registerApi();
     static InputApi* instance();
-
-    b8 initialize();
-    b8 shutdown();
-    void update();
 
     // Modifiers
     EInputModifierBits modifiersState() const; 
@@ -57,7 +57,7 @@ public:
     void processEvents();
 
     struct State;
-    State* m_state = nullptr;
+    State* const m_state = nullptr;
 };
 
 } // namespace slk
