@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core.hpp"
+#include <slk/core.hpp>
 
 namespace slk {
 

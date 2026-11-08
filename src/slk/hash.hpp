@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core.hpp"
-#include "bits.hpp"
+#include <slk/std/bits.hpp>
 
 #include <rapidhash/rapidhash.h>
 
