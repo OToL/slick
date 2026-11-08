@@ -76,11 +76,11 @@ void destroyGrid(GridHdl grid) {
     free(grid);
 }
 
-void renderGrid(GridHdl grid, slk::ColorU32 const& thin_color, slk::ColorU32 const& thick_color, bool debug_visualize) {
+void renderGrid(GridHdl grid, slk::ColorU32 thin_color, slk::ColorU32 thick_color, bool debug_visualize) {
     assert(grid);
 
-    const float bgfx_thin_color[4] = {thin_color.m_red / 255.f, thin_color.m_green / 255.f, thin_color.m_blue / 255.f, thin_color.m_alpha / 255.0f};
-    const float bgfx_thick_color[4] = {thick_color.m_red / 255.f, thick_color.m_green / 255.f, thick_color.m_blue / 255.f, thick_color.m_alpha / 255.0f};
+    const float bgfx_thin_color[4] = {thin_color.r() / 255.f, thin_color.g() / 255.f, thin_color.b() / 255.f, thin_color.a() / 255.0f};
+    const float bgfx_thick_color[4] = {thick_color.r() / 255.f, thick_color.g() / 255.f, thick_color.b() / 255.f, thick_color.a() / 255.0f};
 
     // TODO: pass this by parameter
     const float grid_scalar_params[4] = {

@@ -247,14 +247,14 @@ slk::b8 update(DemoHdl /* hdl */, slk::f32 /* frame_delta_ms */, slk::Camera& ca
 
 void draw_bezier(std::span<slk::Vector3f const> const& data, DebugDrawEncoder& dde) {
     // curve
-    dde.setColor(slk::ColorU32::RED.m_abgr);
+    dde.setColor(slk::ColorU32::RED().abgr());
     dde.moveTo(data[0].m_x, data[0].m_y, data[0].m_z);
     for (slk::Vector3f const& point : data.subspan(1)) {
         dde.lineTo(point.m_x, point.m_y, point.m_z);
     }
 
     for (slk::Vector3f const& point : data) {
-        dde.setColor(slk::ColorU32::PINK.m_abgr);
+        dde.setColor(slk::ColorU32::PINK().abgr());
         slk::Vector3f const max = point + slk::Vector3f{0.1f};
         slk::Vector3f const min = point - slk::Vector3f{0.1f};
 
@@ -276,10 +276,10 @@ void draw_hermite(std::span<slk::Vector3f const> const& data, DebugDrawEncoder& 
         slk::Vector3f const max = point + slk::Vector3f{0.1f};
         slk::Vector3f const min = point - slk::Vector3f{0.1f};
 
-        dde.setColor(slk::ColorU32::RED.m_abgr);
+        dde.setColor(slk::ColorU32::RED().abgr());
         dde.draw(bx::Aabb{.min = bx::Vec3{min.m_x, min.m_y, min.m_z}, .max = bx::Vec3{max.m_x, max.m_y, max.m_z}});
 
-        dde.setColor(slk::ColorU32::BLUE.m_abgr);
+        dde.setColor(slk::ColorU32::BLUE().abgr());
         dde.draw(bx::Cylinder{
             .pos = bx::Vec3{point.m_x, point.m_y, point.m_z}, .end = bx::Vec3{tangeant_end.m_x, tangeant_end.m_y, tangeant_end.m_z}, .radius = .03f});
     }
@@ -432,7 +432,7 @@ void draw3d(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& /* cam */) 
         }
     } else if (test_data.type == CurveType::CARDINAL) {
         for (slk::Vector3f const& point : test_data.ctrl_points) {
-            dde.setColor(slk::ColorU32::BLACK.m_abgr);
+            dde.setColor(slk::ColorU32::BLACK().abgr());
             slk::Vector3f const max = point + slk::Vector3f{0.1f};
             slk::Vector3f const min = point - slk::Vector3f{0.1f};
 
@@ -483,17 +483,17 @@ void draw3d(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& /* cam */) 
     // TODO: vector3 conversion
 
     // Current curve interpolation
-    dde.setColor(slk::ColorU32::GREEN.m_abgr);
+    dde.setColor(slk::ColorU32::GREEN().abgr());
     dde.draw(bx::Sphere{.center = bx::Vec3{curr_point.m_x, curr_point.m_y, curr_point.m_z}, .radius = .2f});
 
     // Axis
-    dde.setColor(slk::ColorU32::RED.m_abgr);
+    dde.setColor(slk::ColorU32::RED().abgr());
     dde.draw(bx::Cylinder{.pos = bx::Vec3{0, 0, 0}, .end = bx::Vec3{1, 0, 0}, .radius = .1f});
 
-    dde.setColor(slk::ColorU32::BLUE.m_abgr);
+    dde.setColor(slk::ColorU32::BLUE().abgr());
     dde.draw(bx::Cylinder{.pos = bx::Vec3{0, 0, 0}, .end = bx::Vec3{0, 0, 1}, .radius = .1f});
 
-    dde.setColor(slk::ColorU32::GREEN.m_abgr);
+    dde.setColor(slk::ColorU32::GREEN().abgr());
     dde.draw(bx::Cylinder{.pos = bx::Vec3{0, 0, 0}, .end = bx::Vec3{0, 1, 0}, .radius = .1f});
 
     dde.end();

@@ -5,22 +5,21 @@
 #include <slk/math/math.hpp>
 #include <slk/math/matrix3.hpp>
 #include <slk/math/fwd.hpp>
-#include "dispatch_tag.hpp"
 
 namespace slk {
 
 // TODO: Use a QTransform or Transform struct
 //       i.e. compact representation of translation/orientation/scale
-struct Camera {
+struct [[nodiscard]] Camera {
 
     Camera();
-    Camera(slk::ETag<EProjection::ORTHO>, f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset);
-    Camera(slk::ETag<EProjection::PERSPECTIVE>, f32 near, f32 far, f32 fovy, f32 aspect);
+    Camera(OrthoProjectionParams const& params, f32 near, f32 far);
+    Camera(PerspectiveProjectionParams const& params, f32 near, f32 far);
 
     // axis
-    Vector3f right() const;
-    Vector3f up() const;
-    Vector3f forward() const;
+    Vector3f rightAxis() const;
+    Vector3f upAxis() const;
+    Vector3f forwardAxis() const;
 
     // Euler angles of the orientation, decomposed as Ry(yaw) * Rx(pitch) * Rz(roll)
     // Note: same sign as the rotation matrices, rotate() applies -delta_yaw & -delta_pitch
@@ -32,7 +31,7 @@ struct Camera {
 
     // movements
     void rotate(f32 delta_yaw, f32 delta_pitch);
-    void translate(Vector3f const& vec);
+    void translate(Vector3f vec);
     void pan(f32 delta_x, f32 delta_y);
 
     // view/proj
@@ -40,32 +39,22 @@ struct Camera {
     Matrix4f viewMatrix() const;
 
     // utilities
-    Ray3f rayFromNdc(Vector2f ndc);
+    Ray3f rayFromNdc(Vector2f ndc) const;
 
     // projections
-    void setPerspectiveProjection(f32 near, f32 far, f32 fovy, f32 aspect);
-    void setOrthoProjection(f32 near, f32 far, f32 left, f32 right, f32 top, f32 bottom, f32 offset);
+    void setPerspectiveProjection(PerspectiveProjectionParams const& params, f32 near, f32 far);
+    void setOrthoProjection(OrthoProjectionParams const& params, f32 near, f32 far);
     Matrix4f projectionMatrix(EHandedness hand, bool homogeneous_ndc) const;
 
     Matrix3f m_orientation;
     Vector3f m_pos;
     f32 m_near;
     f32 m_far;
+
     EProjection m_projection;
-
     union {
-        struct {
-            float m_fovy;
-            float m_aspect; // width/height ratio
-        };
-
-        struct {
-            float m_left;
-            float m_right;
-            float m_top;
-            float m_bottom;
-            float m_offset;
-        };
+        PerspectiveProjectionParams m_perspective;
+        OrthoProjectionParams m_ortho;
     };
 
 };

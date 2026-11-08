@@ -1,7 +1,7 @@
 #include "input_api.hpp"
 #include "events.hpp"
 #include <slk/math/utils.hpp>
-#include <slk/api_hub.hpp>
+#include <slk/api_registry.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -47,9 +47,6 @@ struct KeyboardState {
 
 namespace slk {
 
-void registerInputApi(InputApi* api);
-void unregisterInputApi(InputApi* api);
-
 // TODO: change kb/mouse_events container type
 // TODO: consider using a single container for all type of events e.g. raw queue
 // TODO: should the queue of events be thread safe
@@ -72,21 +69,9 @@ InputApi::InputApi() :
 }
 
 InputApi::~InputApi() {
-    assert(this != apiHub().m_input);
+    assert(this != tryApi<InputApi>());
 
     delete m_state;
-}
-
-void InputApi::unregisterApi() {
-    unregisterInputApi(this);
-}
-
-void InputApi::registerApi() {
-    registerInputApi(this);
-}
-
-InputApi* InputApi::instance() {
-    return apiHub().m_input;
 }
 
 static constexpr u8 MB_MODIFIER_OFFSET = 4U;

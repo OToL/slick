@@ -14,6 +14,7 @@
 #include <slk/math/utils.hpp>
 #include <slk/input/input_api.hpp>
 #include <slk/input/events.hpp>
+#include <slk/api_registry.hpp>
 
 #include <sokol/sokol_app.h>
 
@@ -45,7 +46,7 @@ std::mt19937 pseudo_rndr(RAND_SEED);
 std::uniform_real_distribution dist_rndr(0.f, 1.f); // [0, 1[
 
 template <typename T>
-void removeSwap(std::vector<T> & vec, typename std::vector<T>::iterator rem_it) {
+void removeSwap(std::vector<T>& vec, typename std::vector<T>::iterator rem_it) {
     assert(rem_it >= vec.begin() && rem_it < vec.end());
 
     // guard against self swap/move because some types may not handle it properly
@@ -64,11 +65,11 @@ void resetRandom() {
     pseudo_rndr = std::mt19937(RAND_SEED);
 }
 
-slk::Vector2f get_rand_pos_in_abb(slk::AABB2f const & aabb) {
+slk::Vector2f get_rand_pos_in_abb(slk::AABB2f const& aabb) {
     return aabb.m_min + slk::Vector2f{
-                          static_cast<slk::f32>(getRandom()) * aabb.width(),
-                          static_cast<slk::f32>(getRandom()) * aabb.height(),
-                      };
+                            static_cast<slk::f32>(getRandom()) * aabb.width(),
+                            static_cast<slk::f32>(getRandom()) * aabb.height(),
+                        };
 }
 
 struct GameState {
@@ -122,7 +123,8 @@ constexpr slk::f32 CANNON_ROT_SPEED = 0.005f;
 // slk::InputApi only exposes key down states (no pressed/released yet)
 class KeyReleaseTracker {
 public:
-    explicit KeyReleaseTracker(slk::EKeyboardVKey key) : m_key(key) { }
+    explicit KeyReleaseTracker(slk::EKeyboardVKey key)
+        : m_key(key) { }
 
     // Must be called once per frame
     slk::b8 update(slk::InputApi const& input) {
@@ -182,7 +184,7 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
 
     // projectiles integration + environment collision
     for (auto proj_iter = begin(game_state.projectiles); proj_iter != end(game_state.projectiles);) {
-        Projectile & proj = *proj_iter;
+        Projectile& proj = *proj_iter;
 
         proj.prev_pos = proj.curr_pos;
         proj.curr_pos = proj.prev_pos + proj.velocity * delta_time_ms;
@@ -196,7 +198,7 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
     }
 
     // ennemies integration + environment collisions
-    for (auto & ennemy : game_state.ennemies) {
+    for (auto& ennemy : game_state.ennemies) {
         const slk::Vector2f move = ennemy.velocity * delta_time_ms;
 
         ennemy.prev_position = ennemy.position;
@@ -244,14 +246,14 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
                 {slk::Vector2f{0.f, 1.f}, -game_state.env_aabb.min.y},
             };
 
-            const auto plane_test = [](Plane const & plane, slk::Vector2f const & point) {
+            const auto plane_test = [](Plane const& plane, slk::Vector2f const& point) {
                 auto res = point.dot(plane.normal) + plane.d;
                 return res;
             };
 
             // test ennemy's aaabb max against top and right environment planes and snap it if behind
             for (int i = 0; i != 2; ++i) {
-                Plane const & plane = planes[i];
+                Plane const& plane = planes[i];
                 if (const slk::f32 res = plane_test(plane, world_aabb.max); res <= 0) {
                     ennemy.position += plane.normal * -res;
                     world_aabb = ennemy.extents.displaced(ennemy.position);
@@ -260,7 +262,7 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
             }
             // test ennemy's aaabb min against bottom and left environment planes and snap it if behind
             for (int i = 2; i != 4; ++i) {
-                Plane const & plane = planes[i];
+                Plane const& plane = planes[i];
                 if (const auto res = plane_test(plane, world_aabb.min); res <= 0) {
                     ennemy.position += plane.normal * -res;
                     world_aabb = ennemy.extents.displaced(ennemy.position);
@@ -291,22 +293,30 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
                     // 1. deduce the collision normal
                     // 2. cancel out the penetration (only on first ennemy to simplify)
 
-                    if (prev_world_ennemy1_aabb.m_min.m_x >= prev_world_ennemy2_aabb.m_max.m_x && world_ennemy1_aabb.m_min.m_x < world_ennemy2_aabb.m_max.m_x) {
-                        ennemy_iter->position.m_x += (world_ennemy2_aabb.m_max.m_x - world_ennemy1_aabb.m_min.m_x) + std::numeric_limits<float>::epsilon();
+                    if (prev_world_ennemy1_aabb.m_min.m_x >= prev_world_ennemy2_aabb.m_max.m_x &&
+                        world_ennemy1_aabb.m_min.m_x < world_ennemy2_aabb.m_max.m_x) {
+                        ennemy_iter->position.m_x +=
+                            (world_ennemy2_aabb.m_max.m_x - world_ennemy1_aabb.m_min.m_x) + std::numeric_limits<float>::epsilon();
                         normal += slk::Vector2f(1, 0);
                     }
 
-                    if (prev_world_ennemy1_aabb.m_min.m_y >= prev_world_ennemy2_aabb.m_max.m_y && world_ennemy1_aabb.m_min.m_y < world_ennemy2_aabb.m_max.m_y) {
-                        ennemy_iter->position.m_y += (world_ennemy2_aabb.m_max.m_y - world_ennemy1_aabb.m_min.m_y) + std::numeric_limits<float>::epsilon();
+                    if (prev_world_ennemy1_aabb.m_min.m_y >= prev_world_ennemy2_aabb.m_max.m_y &&
+                        world_ennemy1_aabb.m_min.m_y < world_ennemy2_aabb.m_max.m_y) {
+                        ennemy_iter->position.m_y +=
+                            (world_ennemy2_aabb.m_max.m_y - world_ennemy1_aabb.m_min.m_y) + std::numeric_limits<float>::epsilon();
                         normal += slk::Vector2f(0, 1);
                     }
 
-                    if (prev_world_ennemy1_aabb.m_max.m_x <= prev_world_ennemy2_aabb.m_min.m_x && world_ennemy1_aabb.m_max.m_x > world_ennemy2_aabb.m_min.m_x) {
-                        ennemy_iter->position.m_x += (world_ennemy2_aabb.m_min.m_x - world_ennemy1_aabb.m_max.m_x) - std::numeric_limits<float>::epsilon();
+                    if (prev_world_ennemy1_aabb.m_max.m_x <= prev_world_ennemy2_aabb.m_min.m_x &&
+                        world_ennemy1_aabb.m_max.m_x > world_ennemy2_aabb.m_min.m_x) {
+                        ennemy_iter->position.m_x +=
+                            (world_ennemy2_aabb.m_min.m_x - world_ennemy1_aabb.m_max.m_x) - std::numeric_limits<float>::epsilon();
                         normal += slk::Vector2f(-1, 0);
                     }
-                    if (prev_world_ennemy1_aabb.m_max.m_y <= prev_world_ennemy2_aabb.m_min.m_y && world_ennemy1_aabb.m_max.m_y > world_ennemy2_aabb.m_min.m_y) {
-                        ennemy_iter->position.m_y += (world_ennemy2_aabb.m_min.m_y - world_ennemy1_aabb.m_max.m_y) - std::numeric_limits<float>::epsilon();
+                    if (prev_world_ennemy1_aabb.m_max.m_y <= prev_world_ennemy2_aabb.m_min.m_y &&
+                        world_ennemy1_aabb.m_max.m_y > world_ennemy2_aabb.m_min.m_y) {
+                        ennemy_iter->position.m_y +=
+                            (world_ennemy2_aabb.m_min.m_y - world_ennemy1_aabb.m_max.m_y) - std::numeric_limits<float>::epsilon();
                         normal += slk::Vector2f(0, -1);
                     }
 
@@ -331,7 +341,7 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
     }
 
     // snap all ennemies to not let them escape after resolution of ennemy/ennemy collisions
-    for (auto & ennemy : game_state.ennemies) {
+    for (auto& ennemy : game_state.ennemies) {
         slk::AABB2f ennemy_aabb = ennemy.extents.displaced(ennemy.position);
 
         auto diff_max = slk::max(ennemy_aabb.m_max - game_state.env_aabb.m_max, slk::Vector2f::zero());
@@ -378,14 +388,14 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
 }
 
 void renderGame(GameState const& game_state, DebugDrawEncoder& dde) {
-    constexpr slk::ColorU32 BLACK = slk::ColorU32::black();
+    constexpr slk::ColorU32 BLACK = slk::ColorU32::BLACK();
 
     // Draw environment
-   draw_aabb(dde, ENV_AABB, slk::Vector2f::zero(), BLACK);
+    draw_aabb(dde, ENV_AABB, slk::Vector2f::zero(), BLACK);
 
     // Draw canon
-    draw_triangle(dde, game_state.cannon.getPos(), game_state.cannon.getRotation(), game_state.cannon.getWidth(),
-                  game_state.cannon.getHeight(), BLACK);
+    draw_triangle(dde, game_state.cannon.getPos(), game_state.cannon.getRotation(), game_state.cannon.getWidth(), game_state.cannon.getHeight(),
+                  BLACK);
 
     // Compute ennemies' clock rotations
     auto const wall_clock_time = std::chrono::system_clock::now();
@@ -401,16 +411,16 @@ void renderGame(GameState const& game_state, DebugDrawEncoder& dde) {
     const slk::Matrix2f sec_rot = slk::Matrix2f::makeRotation(curr_sec_angle);
 
     // Render ennemies
-    for (auto const & ennemy : game_state.ennemies) {
-        draw_aabb(dde, ennemy.extents, ennemy.position, slk::ColorU32::red());
+    for (auto const& ennemy : game_state.ennemies) {
+        draw_aabb(dde, ennemy.extents, ennemy.position, slk::ColorU32::RED());
 
-        draw_line(dde, ennemy.position, ennemy.position + hour_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.2f, slk::ColorU32::red());
-        draw_line(dde, ennemy.position, ennemy.position + min_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.4f, slk::ColorU32::green());
-        draw_line(dde, ennemy.position, ennemy.position + sec_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.3f, slk::ColorU32::blue());
+        draw_line(dde, ennemy.position, ennemy.position + hour_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.2f, slk::ColorU32::RED());
+        draw_line(dde, ennemy.position, ennemy.position + min_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.4f, slk::ColorU32::GREEN());
+        draw_line(dde, ennemy.position, ennemy.position + sec_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.3f, slk::ColorU32::BLUE());
     }
 
     // Render projectiles
-    for (auto const & proj : game_state.projectiles) {
+    for (auto const& proj : game_state.projectiles) {
         draw_line(dde, proj.prev_pos, proj.curr_pos, BLACK);
     }
 }
@@ -432,29 +442,31 @@ void appInitialize() {
     g_app_state->m_new_ennemies.reserve(20);
     g_app_state->m_last_frame_time_point = AppState::Timer::now();
     g_app_state->m_inputApi.initialize();
-    g_app_state->m_inputApi.registerApi();
+    slk::registerApi(&g_app_state->m_inputApi);
 }
 
 void appUpdate() {
     constexpr slk::u32 CLEAR_COLOR = 0xF5F5F5FF; // RGBA
 
-    slk::InputApi* const input = slk::InputApi::instance();
-    input->update();
+    slk::InputApi& input = slk::inputApi();
+    input.update();
 
-    if (input->isKeyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
+    if (input.isKeyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
         sapp_request_quit();
         return;
     }
 
     auto const time_point = AppState::Timer::now();
-    g_app_state->m_delta_time_ms = std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state->m_last_frame_time_point).count() / 1000.f;
+    g_app_state->m_delta_time_ms =
+        std::chrono::duration_cast<std::chrono::microseconds>(time_point - g_app_state->m_last_frame_time_point).count() / 1000.f;
     g_app_state->m_last_frame_time_point = time_point;
 
-    updateGame(*g_app_state, *input);
+    updateGame(*g_app_state, input);
 
     // orthographic projection mapping the world (in pixels, y up) to the whole window
-    slk::Matrix4f const proj = slk::makeOrthoProjectionMatrix(0.f, WORLD_WIDTH, 0.f, WORLD_HEIGHT, -1.f, 1.f, 0.f,
-                                                              bgfx::getCaps()->homogeneousDepth, slk::EHandedness::DEFAULT);
+    slk::Matrix4f const proj = slk::makeOrthoProjectionMatrix(
+        slk::OrthoProjectionParams{.m_left = 0.f, .m_right = WORLD_WIDTH, .m_top = WORLD_HEIGHT, .m_bottom = 0.f, .m_offset = 0.f}, -1.f, 1.f,
+        bgfx::getCaps()->homogeneousDepth, slk::EHandedness::DEFAULT);
 
     bgfx::setViewClear(MAIN_VIEW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, CLEAR_COLOR, 1.0f, 0);
     bgfx::setViewRect(MAIN_VIEW_ID, 0, 0, sapp_width(), sapp_height());
@@ -477,8 +489,7 @@ void appUpdate() {
 }
 
 void appShutdown() {
-
-    g_app_state->m_inputApi.unregisterApi();
+    slk::unregisterApi(&g_app_state->m_inputApi);
     g_app_state->m_inputApi.shutdown();
 
     delete g_app_state;
@@ -496,7 +507,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk_event.m_type = slk::EInputEventType::KEYBOARD_KEY_DOWN;
             slk_event.m_key_repeat = evt->key_repeat;
             slk_event.m_vkey = static_cast<slk::EKeyboardVKey>(evt->key_code);
-            slk::InputApi::instance()->forwardEvent(slk_event);
+            slk::InputApi().forwardEvent(slk_event);
 
             break;
         }
@@ -506,7 +517,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk_event.m_type = slk::EInputEventType::KEYBOARD_KEY_UP;
             slk_event.m_key_repeat = evt->key_repeat;
             slk_event.m_vkey = static_cast<slk::EKeyboardVKey>(evt->key_code);
-            slk::InputApi::instance()->forwardEvent(slk_event);
+            slk::api<slk::InputApi>().forwardEvent(slk_event);
 
             break;
         }

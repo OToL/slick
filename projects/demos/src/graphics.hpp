@@ -22,6 +22,6 @@ using GridHdl = GridHdlImpl*;
 
 GridHdl createGrid();
 void destroyGrid(GridHdl grid);
-void renderGrid(GridHdl grid, slk::ColorU32 const& thin_color, slk::ColorU32 const& thick_color, bool debug_visualize);
+void renderGrid(GridHdl grid, slk::ColorU32 thin_color, slk::ColorU32 thick_color, bool debug_visualize);
 
 bgfx::ShaderHandle loadShader(const char* file_name);

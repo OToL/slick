@@ -4,6 +4,7 @@
 #include "demo_curves.hpp"
 #include "app.hpp"
 
+#include <slk/hash.hpp>
 #include <slk/color.hpp>
 #include <slk/camera.hpp>
 #include <slk/math/utils.hpp>
@@ -63,10 +64,12 @@ struct AppState {
 } g_app_state{};
 
 void renderDbgWnd(AppState& app_state) {
-    slk::InputApi const* const input = slk::InputApi::instance();
-    slk::Vector2f const mouse_pos = input->mousePosition();
-    slk::Vector2f const mouse_scroll = input->mouseScroll();
-    slk::EMouseButtonBits const mouse_buttons_state = input->mouseButtonsState();
+    [[maybe_unused]] slk::Hash64 var = "hell"_h64;
+
+    slk::InputApi const& input = slk::InputApi();
+    slk::Vector2f const mouse_pos = input.mousePosition();
+    slk::Vector2f const mouse_scroll = input.mouseScroll();
+    slk::EMouseButtonBits const mouse_buttons_state = input.mouseButtonsState();
     slk::u8 const imgui_button_state = ((mouse_buttons_state & slk::EMouseButtonBits::LEFT) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_LEFT : 0) |
                                        ((mouse_buttons_state & slk::EMouseButtonBits::RIGHT) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_RIGHT : 0) |
                                        ((mouse_buttons_state & slk::EMouseButtonBits::MIDDLE) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_MIDDLE : 0);
@@ -126,21 +129,21 @@ void renderDbgWnd(AppState& app_state) {
 
         ImGui::Text("Mouse Position: %.2f %.2f", mouse_pos.m_x, mouse_pos.m_y);
         ImGui::Text("Mouse button state: %d", mouse_buttons_state);
-        ImGui::Text("Mouse buttons state: %d %d %d", input->isMouseButtonDown(slk::EMouseButton::LEFT),
-                    input->isMouseButtonDown(slk::EMouseButton::MIDDLE), input->isMouseButtonDown(slk::EMouseButton::RIGHT));
+        ImGui::Text("Mouse buttons state: %d %d %d", input.isMouseButtonDown(slk::EMouseButton::LEFT),
+                    input.isMouseButtonDown(slk::EMouseButton::MIDDLE), input.isMouseButtonDown(slk::EMouseButton::RIGHT));
         ImGui::Text("Mouse Scroll: %.2f %.2f", mouse_scroll.m_x, mouse_scroll.m_y);
 
-        ImGui::Text("Keyboard SPACE key state: %d", input->isKeyboardKeyDown(slk::EKeyboardVKey::SPACE));
+        ImGui::Text("Keyboard SPACE key state: %d", input.isKeyboardKeyDown(slk::EKeyboardVKey::SPACE));
 
         ImGui::Text("Modifiers State:");
-        ImGui::Text("   CTRL: %d", input->hasModifier(slk::EInputModifier::CTRL));
-        ImGui::Text("   SHIFT %d", input->hasModifier(slk::EInputModifier::SHIFT));
-        ImGui::Text("   ALT %d", input->hasModifier(slk::EInputModifier::ALT));
-        ImGui::Text("   LMB: %d", input->hasModifier(slk::EInputModifier::LMB));
-        ImGui::Text("   MMB %d", input->hasModifier(slk::EInputModifier::MMB));
-        ImGui::Text("   RMB %d", input->hasModifier(slk::EInputModifier::RMB));
+        ImGui::Text("   CTRL: %d", input.hasModifier(slk::EInputModifier::CTRL));
+        ImGui::Text("   SHIFT %d", input.hasModifier(slk::EInputModifier::SHIFT));
+        ImGui::Text("   ALT %d", input.hasModifier(slk::EInputModifier::ALT));
+        ImGui::Text("   LMB: %d", input.hasModifier(slk::EInputModifier::LMB));
+        ImGui::Text("   MMB %d", input.hasModifier(slk::EInputModifier::MMB));
+        ImGui::Text("   RMB %d", input.hasModifier(slk::EInputModifier::RMB));
 
-        ImGui::Text("Touch in progress: %d", input->gestureTouchCount());
+        ImGui::Text("Touch in progress: %d", input.gestureTouchCount());
     }
     if (ImGui::CollapsingHeader("Settings")) {
         ImGui::PushItemWidth(ImGui::GetFontSize() * 8.f);
@@ -266,13 +269,13 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
                 slk::Vector3f const local = {offset.dot(prev_cam_orient.xAxis()), offset.dot(prev_cam_orient.yAxis()),
                                              offset.dot(prev_cam_orient.zAxis())};
 
-                cam.m_pos = g_app_state.m_orbit_pivot - (cam.right() * local.m_x + cam.up() * local.m_y + cam.forward() * local.m_z);
+                cam.m_pos = g_app_state.m_orbit_pivot - (cam.rightAxis() * local.m_x + cam.upAxis() * local.m_y + cam.forwardAxis() * local.m_z);
                 translate = {};
                 panning = {};
 
                 DebugDrawEncoder dde;
                 dde.begin(0);
-                dde.setColor(slk::ColorU32::RED.m_abgr);
+                dde.setColor(slk::ColorU32::RED().abgr());
                 dde.draw(bx::Sphere{.center = bx::Vec3{g_app_state.m_orbit_pivot.m_x, g_app_state.m_orbit_pivot.m_y, g_app_state.m_orbit_pivot.m_z},
                                     .radius = .1f});
                 dde.end();
@@ -324,7 +327,8 @@ void appInitialize() {
     imguiCreate();
 
     g_app_state.m_camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
-    g_app_state.m_camera.setPerspectiveProjection(0.1f, 10000.0f, 45.0_deg, sapp_widthf() / sapp_heightf());
+    g_app_state.m_camera.setPerspectiveProjection(slk::PerspectiveProjectionParams{.m_fovy = 45.0_deg, .m_aspect = sapp_widthf() / sapp_heightf()},
+                                                  0.1f, 10000.0f);
 
     g_app_state.m_input_settings.camera_rotation_speed = CAMERA_DEFAULT_ROTATE_SPEED;
     g_app_state.m_input_settings.camera_translate_speed = CAMERA_DEFAULT_TRANSLATE_SPEED;
@@ -336,25 +340,25 @@ void appInitialize() {
     g_app_state.m_demos.setCurrent(EMPTY_DEMO_ID);
 
     g_app_state.m_inputApi.initialize();
-    g_app_state.m_inputApi.registerApi();
+    slk::registerApi(&g_app_state.m_inputApi);
 
     // debug draw init
     ddInit();
 }
 
 void appUpdate() {
-    constexpr slk::ColorU32 THIN_COLOR{255, 161, 161, 161};
-    constexpr slk::ColorU32 THICK_COLOR{255, 83, 83, 83};
+    constexpr slk::ColorU32 THIN_COLOR = slk::ColorU32::makeRgba(161, 161, 161, 255);
+    constexpr slk::ColorU32 THICK_COLOR = slk::ColorU32::makeRgba(83, 83, 83, 255);
 
-    slk::InputApi* const input = slk::InputApi::instance();
-    input->update();
+    slk::InputApi& input = slk::inputApi();
+    input.update();
 
-    if (input->isKeyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
+    if (input.isKeyboardKeyDown(slk::EKeyboardVKey::ESCAPE)) {
         sapp_request_quit();
         return;
     }
 
-    if (input->isKeyboardKeyDown(slk::EKeyboardVKey::BACKSLASH) &&
+    if (input.isKeyboardKeyDown(slk::EKeyboardVKey::BACKSLASH) &&
         !anyMaskBitSet(g_app_state.m_demos.currentDesc().info.caps, EDemoCapBits::CUSTOM_CAMERA_CONTROL))
         g_app_state.m_camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
 
@@ -364,7 +368,7 @@ void appUpdate() {
     g_app_state.m_last_frame_time_point = time_point;
 
     if (!g_app_state.m_imgui_wnd_focused)
-        updateCamera(g_app_state, g_app_state.m_camera, *input);
+        updateCamera(g_app_state, g_app_state.m_camera, input);
 
     if (!g_app_state.m_demos.update(g_app_state.m_last_frame_time_ms, g_app_state.m_camera)) {
         sapp_request_quit();
@@ -391,14 +395,13 @@ void appUpdate() {
 
     g_app_state.m_demos.draw2d(g_app_state.m_last_frame_time_ms);
 
-
     bgfx::frame();
 }
 
 void appShutdown() {
     ddShutdown();
 
-    g_app_state.m_inputApi.unregisterApi();
+    slk::unregisterApi(&g_app_state.m_inputApi);
     g_app_state.m_inputApi.shutdown();
     g_app_state.m_demos.shutdown();
 
@@ -557,7 +560,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk_event.m_type = slk::EInputEventType::MOUSE_MOVE;
             slk_event.m_postion = slk::Vector2f{evt->mouse_x, evt->mouse_y};
 
-            slk::InputApi::instance()->forwardEvent(slk_event);
+            slk::inputApi().forwardEvent(slk_event);
 
             break;
         }
@@ -565,7 +568,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.m_type = slk::EInputEventType::MOUSE_BUTTON_DOWN;
             slk_event.m_button = static_cast<slk::EMouseButton>(evt->mouse_button);
-            slk::InputApi::instance()->forwardEvent(slk_event);
+            slk::inputApi().forwardEvent(slk_event);
 
             break;
         }
@@ -573,7 +576,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.m_type = slk::EInputEventType::MOUSE_BUTTON_UP;
             slk_event.m_button = static_cast<slk::EMouseButton>(evt->mouse_button);
-            slk::InputApi::instance()->forwardEvent(slk_event);
+            slk::inputApi().forwardEvent(slk_event);
 
             break;
         }
@@ -582,7 +585,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk::MouseEvent slk_event;
             slk_event.m_type = slk::EInputEventType::MOUSE_SCROLL;
             slk_event.m_scroll = {evt->scroll_x, evt->scroll_y};
-            slk::InputApi::instance()->forwardEvent(slk_event);
+            slk::inputApi().forwardEvent(slk_event);
 
             break;
         }
@@ -594,7 +597,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk_event.m_type = slk::EInputEventType::KEYBOARD_KEY_DOWN;
             slk_event.m_key_repeat = evt->key_repeat;
             slk_event.m_vkey = static_cast<slk::EKeyboardVKey>(evt->key_code);
-            slk::InputApi::instance()->forwardEvent(slk_event);
+            slk::inputApi().forwardEvent(slk_event);
 
             break;
         }
@@ -606,7 +609,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk_event.m_type = slk::EInputEventType::KEYBOARD_KEY_UP;
             slk_event.m_key_repeat = evt->key_repeat;
             slk_event.m_vkey = static_cast<slk::EKeyboardVKey>(evt->key_code);
-            slk::InputApi::instance()->forwardEvent(slk_event);
+            slk::inputApi().forwardEvent(slk_event);
 
             break;
         }
@@ -633,7 +636,7 @@ void appNotifyGestureTouchCount(int count) {
     slk::GestureEvent slk_event;
     slk_event.m_type = slk::EInputEventType::GESTURE_TOUCH_COUNT_UPDATE;
     slk_event.m_point_count = count;
-    slk::InputApi::instance()->forwardEvent(slk_event);
+    slk::inputApi().forwardEvent(slk_event);
 }
 
 void appNotifyGestureScroll(int touch_count, float deltax, float deltay) {
@@ -641,7 +644,7 @@ void appNotifyGestureScroll(int touch_count, float deltax, float deltay) {
     slk_event.m_type = slk::EInputEventType::GESTURE_SCROLL;
     slk_event.m_point_count = touch_count;
     slk_event.m_delta = {deltax, deltay};
-    slk::InputApi::instance()->forwardEvent(slk_event);
+    slk::inputApi().forwardEvent(slk_event);
 }
 
 void appNotifyGestureMagnify(int touch_count, float magnification) {
@@ -649,7 +652,7 @@ void appNotifyGestureMagnify(int touch_count, float magnification) {
     slk_event.m_type = slk::EInputEventType::GESTURE_MAGNIFY;
     slk_event.m_point_count = touch_count;
     slk_event.m_delta = {magnification, 0.f};
-    slk::InputApi::instance()->forwardEvent(slk_event);
+    slk::inputApi().forwardEvent(slk_event);
 }
 
 // Mouse wheel scroll from the platform layer, used on macOS instead of sokol's SAPP_EVENTTYPE_MOUSE_SCROLL
@@ -657,5 +660,5 @@ void appNotifyMouseScroll(float deltax, float deltay) {
     slk::MouseEvent slk_event;
     slk_event.m_type = slk::EInputEventType::MOUSE_SCROLL;
     slk_event.m_scroll = {deltax, deltay};
-    slk::InputApi::instance()->forwardEvent(slk_event);
+    slk::inputApi().forwardEvent(slk_event);
 }

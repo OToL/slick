@@ -1,86 +1,77 @@
 #pragma once
 
 #include "core.hpp"
-#include "dispatch_tag.hpp"
+
+import std;
 
 namespace slk {
 
-sb_declare_dispatch_tag(Abgr);
-sb_declare_dispatch_tag(Rgba);
+// stored value: 0xAABBGGRR; in memory: bytes R, G, B, A (RGBA8)
+struct [[nodiscard]] ColorU32 {
+    u32 m_abgr = 0;
 
-// abgr color (0xAABBGGRR)
-struct ColorU32 {
-    union {
-        struct {
-            u8 m_red;
-            u8 m_green;
-            u8 m_blue;
-            u8 m_alpha;
-        };
-        u32 m_abgr;
-    };
+    static constexpr ColorU32 makeRgba(u8 r, u8 g, u8 b, u8 a) {
+        return {u32(r) | u32(g) << 8 | u32(b) << 16 | u32(a) << 24};
+    }
 
-    constexpr ColorU32() = default;
+    // 0xRRGGBBAA, for 0xAABBGGRR values use ColorU32{.m_abgr = ...}
+    static constexpr ColorU32 makePackedRgba(u32 rgba) {
+        return {std::byteswap(rgba)};
+    }
 
-    constexpr explicit ColorU32(u32 value)
-        : m_abgr(value) { }
-
-    constexpr ColorU32(u8 a, u8 b, u8 g, u8 r)
-        : m_red(r)
-        , m_green(g)
-        , m_blue(b)
-        , m_alpha(a) { }
-
-    constexpr ColorU32(RgbaTag, u32 value)
-        : m_red((value & 0xFF000000U) >> 24)
-        , m_green((value & 0x00FF0000U) >> 8)
-        , m_blue((value & 0x0000FF00U) << 8)
-        , m_alpha((value & 0x000000FFU) >> 24)
-
-    { }
-
-    constexpr ColorU32(RgbaTag, u8 r, u8 g, u8 b, u8 a)
-        : ColorU32(a, b, g, r) { }
-
-    constexpr u32 data() const {
+    constexpr u32 abgr() const {
         return m_abgr;
     }
 
     constexpr u32 rgba() const {
-        return (u32)m_red << 24 | (u32)m_green << 16 | (u32)m_blue << 8 | (u32)m_alpha;
+        return std::byteswap(m_abgr);
     }
 
-    static inline constexpr ColorU32 red() {
-        return ColorU32{0xFF0000FFU};
+    constexpr u8 r() const {
+        return u8(m_abgr);
     }
 
-    static inline constexpr ColorU32 green() {
-        return ColorU32{0xFF00FF00U};
+    constexpr u8 g() const {
+        return u8(m_abgr >> 8);
     }
 
-    static inline constexpr ColorU32 blue() {
-        return ColorU32{0xFFFF0000U};
+    constexpr u8 b() const {
+        return u8(m_abgr >> 16);
     }
 
-    static inline constexpr ColorU32 black() {
-        return ColorU32{0xFF000000U};
+    constexpr u8 a() const {
+        return u8(m_abgr >> 24);
     }
 
-    static inline constexpr ColorU32 white() {
-        return ColorU32{0xFFFFFFFFU};
+    constexpr ColorU32 withAlpha(u8 alpha) const {
+        return {(m_abgr & 0x00FFFFFFU) | u32(alpha) << 24};
     }
 
-    static inline constexpr ColorU32 pink() {
-        return ColorU32{0xFFFF00FFU};
+    constexpr b8 operator==(ColorU32 const&) const = default;
+
+    static consteval ColorU32 RED() {
+        return {.m_abgr = 0xFF0000FFU};
     }
 
-    // named 'COLOR_<color>' instead of '<color>' because of collisions with 3rd party libraries e.g. raylib
-    static const ColorU32 RED;
-    static const ColorU32 GREEN;
-    static const ColorU32 BLUE;
-    static const ColorU32 BLACK;
-    static const ColorU32 WHITE;
-    static const ColorU32 PINK;
+    static consteval ColorU32 GREEN() {
+        return {.m_abgr = 0xFF00FF00U};
+    }
+
+    static consteval ColorU32 BLUE() {
+        return {.m_abgr = 0xFFFF0000U};
+    }
+
+    static consteval ColorU32 BLACK() {
+        return {.m_abgr = 0xFF000000U};
+    }
+
+    static consteval ColorU32 WHITE() {
+        return {.m_abgr = 0xFFFFFFFFU};
+    }
+
+    static consteval ColorU32 PINK() {
+        return {.m_abgr = 0xFFFF00FFU};
+    }
 };
 
 } // namespace slk

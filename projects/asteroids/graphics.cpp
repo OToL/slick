@@ -18,7 +18,7 @@ bx::Vec3 to_bxvec3(slk::Vector2f const& vec) {
 } // namespace
 
 // Debug draw lines are 1 pixel wide, so thick lines are drawn as a quad (2 triangles)
-void draw_line(DebugDrawEncoder& dde, slk::Vector2f const& start, slk::Vector2f const& end, slk::ColorU32 const& color, slk::f32 thickness) {
+void draw_line(DebugDrawEncoder& dde, slk::Vector2f const& start, slk::Vector2f const& end, slk::ColorU32 color, slk::f32 thickness) {
     slk::Vector2f const dir = end - start;
     if (dir.length2() == 0.f) {
         return;
@@ -27,12 +27,12 @@ void draw_line(DebugDrawEncoder& dde, slk::Vector2f const& start, slk::Vector2f 
     slk::Vector2f const dir_norm = dir.normalized();
     slk::Vector2f const offset = slk::Vector2f{-dir_norm.m_y, dir_norm.m_x} * (thickness * 0.5f);
 
-    dde.setColor(color.m_abgr);
+    dde.setColor(color.abgr());
     dde.draw(bx::Triangle{to_bxvec3(start + offset), to_bxvec3(start - offset), to_bxvec3(end + offset)});
     dde.draw(bx::Triangle{to_bxvec3(start - offset), to_bxvec3(end - offset), to_bxvec3(end + offset)});
 }
 
-void draw_aabb(DebugDrawEncoder& dde, slk::AABB2f const& aabb, slk::Vector2f const& pos, slk::ColorU32 const& color) {
+void draw_aabb(DebugDrawEncoder& dde, slk::AABB2f const& aabb, slk::Vector2f const& pos, slk::ColorU32 color) {
     slk::Vector2f const min = aabb.m_min + pos;
     slk::Vector2f const max = aabb.m_max + pos;
 
@@ -45,7 +45,7 @@ void draw_aabb(DebugDrawEncoder& dde, slk::AABB2f const& aabb, slk::Vector2f con
     draw_line(dde, {max.m_x, min.m_y}, {max.m_x, max.m_y}, color);
 }
 
-void draw_triangle(DebugDrawEncoder& dde, slk::Vector2f const& pos, slk::f32 rot_rad, slk::f32 width, slk::f32 height, slk::ColorU32 const& color)
+void draw_triangle(DebugDrawEncoder& dde, slk::Vector2f const& pos, slk::f32 rot_rad, slk::f32 width, slk::f32 height, slk::ColorU32 color)
 {
     slk::Vector2f vertices[] = {
         {0, 1},

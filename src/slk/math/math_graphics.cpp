@@ -1,4 +1,5 @@
 #include "graphics.hpp"
+#include "math.hpp"
 
 namespace slk {
 
@@ -10,13 +11,13 @@ Vector2f screenPosToNdc(Vector2f screen_pos, Vector2f screen_dimension)
     };
 }
 
-Matrix4f makeOrthoProjectionMatrix(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far, f32 offset, bool homogeneous_ndc,
+Matrix4f makeOrthoProjectionMatrix(OrthoProjectionParams const& params, f32 near, f32 far, bool homogeneous_ndc,
                                EHandedness handedness) {
-    const f32 aa = 2.0f / (right - left);
-    const f32 bb = 2.0f / (top - bottom);
+    const f32 aa = 2.0f / (params.m_right - params.m_left);
+    const f32 bb = 2.0f / (params.m_top - params.m_bottom);
     const f32 cc = (homogeneous_ndc ? 2.0f : 1.0f) / (far - near);
-    const f32 dd = (left + right) / (left - right);
-    const f32 ee = (top + bottom) / (bottom - top);
+    const f32 dd = (params.m_left + params.m_right) / (params.m_left - params.m_right);
+    const f32 ee = (params.m_top + params.m_bottom) / (params.m_bottom - params.m_top);
     const f32 ff = homogeneous_ndc ? (near + far) / (near - far) : near / (near - far);
 
     // Matrix4 scalar constructor takes columns
@@ -24,7 +25,7 @@ Matrix4f makeOrthoProjectionMatrix(f32 left, f32 right, f32 bottom, f32 top, f32
         aa, 0.f, 0.f, 0.f,
         0.f, bb, 0.f, 0.f,
         0.f, 0.f, EHandedness::RIGHT == handedness ? -cc : cc, 0.f,
-        dd + offset, ee, ff, 1.0f,
+        dd + params.m_offset, ee, ff, 1.0f,
     };
 }
 
@@ -74,10 +75,10 @@ Matrix4f make_perspective_projection_xywh(f32 x, f32 y, f32 width, f32 height, f
     };
 }
 
-Matrix4f makePerspectiveProjectionMatrix(f32 fovy_rad, f32 aspect, f32 near, f32 far, bool homogeneousNdc, EHandedness handedness)
+Matrix4f makePerspectiveProjectionMatrix(PerspectiveProjectionParams const& params, f32 near, f32 far, bool homogeneousNdc, EHandedness handedness)
 {
-    const f32 height = 1.0f/std::tan(fovy_rad*0.5f);
-    const f32 width  = height * 1.0f/aspect;
+    const f32 height = 1.0f/std::tan(params.m_fovy*0.5f);
+    const f32 width  = height * 1.0f/params.m_aspect;
     return make_perspective_projection_xywh(0.0f, 0.0f, width, height, near, far, homogeneousNdc, handedness);
 }
 

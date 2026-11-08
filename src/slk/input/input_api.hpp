@@ -1,6 +1,7 @@
 #pragma once
 
 #include <slk/core.hpp>
+#include <slk/api_registry.hpp>
 #include <slk/math/vector2.hpp>
 #include "key_codes.hpp"
 
@@ -16,17 +17,14 @@ class InputApi {
 
 public:
 
+    sb_declare_api(input);
+
     InputApi();
     ~InputApi();
 
     b8 initialize();
     b8 shutdown();
     void update();
-
-    // Api
-    void unregisterApi();
-    void registerApi();
-    static InputApi* instance();
 
     // Modifiers
     EInputModifierBits modifiersState() const; 
@@ -59,5 +57,7 @@ public:
     struct State;
     State* const m_state = nullptr;
 };
+
+inline InputApi& inputApi() {return api<InputApi>();}
 
 } // namespace slk

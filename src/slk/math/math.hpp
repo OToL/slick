@@ -56,4 +56,17 @@ enum class EProjection : u8
     ORTHO,
 };
 
+struct PerspectiveProjectionParams {
+    float m_fovy;
+    float m_aspect; // width/height ratio
+};
+
+struct OrthoProjectionParams {
+    float m_left;
+    float m_right;
+    float m_top;
+    float m_bottom;
+    float m_offset;
+};
+
 } // namespace slk
