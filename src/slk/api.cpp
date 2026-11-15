@@ -1,7 +1,6 @@
-#include "api_registry.hpp"
+#include "api.hpp"
 
 #include <cassert>
-
 
 namespace slk {
 

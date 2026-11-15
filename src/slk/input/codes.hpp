@@ -4,22 +4,6 @@
 
 namespace slk {
 
-enum class EMouseButton : u8 {
-    LEFT,
-    RIGHT,
-    MIDDLE,
-
-    _COUNT
-};
-
-enum class EMouseButtonBits : u8 {
-    NONE = 0,
-    LEFT = 1 << (u8)EMouseButton::LEFT,
-    RIGHT = 1 << (u8)EMouseButton::RIGHT,
-    MIDDLE = 1 << (u8)EMouseButton::MIDDLE,
-};
-sb_declare_enum_mask_operators(EMouseButtonBits);
-
 enum class EInputModifier : u8 {
     SHIFT, // left or right shift key
     CTRL, // left or right control key
@@ -43,6 +27,22 @@ enum class EInputModifierBits : u8 {
     MMB = 1 << (u8)EInputModifier::MMB,
 };
 sb_declare_enum_mask_operators(EInputModifierBits);
+
+enum class EMouseButton : u8 {
+    LEFT,
+    RIGHT,
+    MIDDLE,
+
+    _COUNT
+};
+
+enum class EMouseButtonBits : u8 {
+    NONE = 0,
+    LEFT = 1 << (u8)EMouseButton::LEFT,
+    RIGHT = 1 << (u8)EMouseButton::RIGHT,
+    MIDDLE = 1 << (u8)EMouseButton::MIDDLE,
+};
+sb_declare_enum_mask_operators(EMouseButtonBits);
 
 enum class EKeyboardVKey : u16 {
     INVALID = 0,

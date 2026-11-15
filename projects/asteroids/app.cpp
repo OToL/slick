@@ -14,7 +14,7 @@
 #include <slk/math/utils.hpp>
 #include <slk/input/input_api.hpp>
 #include <slk/input/events.hpp>
-#include <slk/api_registry.hpp>
+#include <slk/api.hpp>
 
 #include <sokol/sokol_app.h>
 
@@ -170,10 +170,10 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
     if (game_state.ennemies.empty() || reset_released) {
         game_state.reset();
     }
-    if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_J, slk::EKeyboardVKey::LEFT})) {
+    if (input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_J, slk::EKeyboardVKey::LEFT})) {
         game_state.cannon.turn(CANNON_ROT_SPEED * delta_time_ms);
     }
-    if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_L, slk::EKeyboardVKey::RIGHT})) {
+    if (input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_L, slk::EKeyboardVKey::RIGHT})) {
         game_state.cannon.turn(-CANNON_ROT_SPEED * delta_time_ms);
     }
     if (shoot_released) {
@@ -507,7 +507,7 @@ void appNotifyEvent(const sapp_event* evt) {
             slk_event.m_type = slk::EInputEventType::KEYBOARD_KEY_DOWN;
             slk_event.m_key_repeat = evt->key_repeat;
             slk_event.m_vkey = static_cast<slk::EKeyboardVKey>(evt->key_code);
-            slk::InputApi().forwardEvent(slk_event);
+            slk::inputApi().forwardEvent(slk_event);
 
             break;
         }

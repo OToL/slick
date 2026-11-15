@@ -1,11 +1,13 @@
 #pragma once
 
 #include <slk/math/vector2.hpp>
-#include "key_codes.hpp"
+#include "codes.hpp"
 
 namespace slk {
 
 // Order of enum values is used to determine event type (i.e. mouse, gesture, keyboard, etc.)
+// TODO: KEYBOARD_KEY_CHAR
+// TODO: GamePad
 enum class EInputEventType : u8 {
     MOUSE_BUTTON_UP,
     MOUSE_BUTTON_DOWN,
@@ -18,9 +20,6 @@ enum class EInputEventType : u8 {
 
     KEYBOARD_KEY_UP,
     KEYBOARD_KEY_DOWN,
-    // TODO: KEYBOARD_KEY_CHAR, --> update forward evt
-
-    // TODO: GamePad
 
     _COUNT
 };

@@ -8,21 +8,21 @@ using namespace slk::literals;
 
 namespace slk {
 
-Camera::Camera(OrthoProjectionParams const& params, f32 near, f32 far) :
+Camera::Camera(OrthoProjectionParams const& params, f32 znear, f32 zfar) :
     m_orientation(Matrix3f::IDENTITY),
     m_pos(0.f, 0.f, 0.f),
-    m_near(near),
-    m_far(far),
+    m_znear(znear),
+    m_zfar(zfar),
     m_projection(EProjection::ORTHO),
     m_ortho(params)
 {
 }
 
-Camera::Camera(PerspectiveProjectionParams const& params, f32 near, f32 far) :
+Camera::Camera(PerspectiveProjectionParams const& params, f32 znear, f32 zfar) :
     m_orientation(Matrix3f::IDENTITY),
     m_pos(0.f, 0.f, 0.f),
-    m_near(near),
-    m_far(far),
+    m_znear(znear),
+    m_zfar(zfar),
     m_projection(EProjection::PERSPECTIVE),
     m_perspective(params)
 {
@@ -31,8 +31,8 @@ Camera::Camera(PerspectiveProjectionParams const& params, f32 near, f32 far) :
 Camera::Camera() :
     m_orientation(Matrix3f::IDENTITY),
     m_pos(0.f, 0.f, 0.f),
-    m_near(0.1f),
-    m_far(10000.f),
+    m_znear(0.1f),
+    m_zfar(10000.f),
     m_projection(EProjection::PERSPECTIVE),
     m_perspective{
         .m_fovy = 45.0_deg,
@@ -112,19 +112,19 @@ Matrix4f Camera::viewMatrix() const {
     return view_mat;
 }
 
-void Camera::setPerspectiveProjection(PerspectiveProjectionParams const& params, f32 near, f32 far)
+void Camera::setPerspectiveProjection(PerspectiveProjectionParams const& params, f32 znear, f32 zfar)
 {
-    m_near = near;
-    m_far = far;
+    m_znear = znear;
+    m_zfar = zfar;
 
     m_projection = EProjection::PERSPECTIVE;
     m_perspective = params;
 }
 
-void Camera::setOrthoProjection(OrthoProjectionParams const& params, f32 near, f32 far)
+void Camera::setOrthoProjection(OrthoProjectionParams const& params, f32 znear, f32 zfar)
 {
-    m_near = near;
-    m_far = far;
+    m_znear = znear;
+    m_zfar = zfar;
 
     m_projection = EProjection::ORTHO;
     m_ortho = params;
@@ -133,10 +133,10 @@ void Camera::setOrthoProjection(OrthoProjectionParams const& params, f32 near, f
 Matrix4f Camera::projectionMatrix(EHandedness hand, bool homogeneous_ndc) const {
 
     if (m_projection == EProjection::ORTHO) {
-        return makeOrthoProjectionMatrix(m_ortho, m_near, m_far, homogeneous_ndc, hand);
+        return makeOrthoProjectionMatrix(m_ortho, m_znear, m_zfar, homogeneous_ndc, hand);
     }
     else {
-        return makePerspectiveProjectionMatrix(m_perspective, m_near, m_far, homogeneous_ndc, hand);
+        return makePerspectiveProjectionMatrix(m_perspective, m_znear, m_zfar, homogeneous_ndc, hand);
     }
 }
 
@@ -144,7 +144,7 @@ Ray3f Camera::rayFromNdc(Vector2f ndc) const {
     if (m_projection == EProjection::PERSPECTIVE)
     {
         // The camera frustrum is a pyramid and we can do our computations at any
-        // camera `z` value as far as we keep consitent proportions. 
+        // camera `z` value as zfar as we keep consitent proportions. 
         // `z=1` is convenient because:
         //      tan(fovy/2)=half_height/1=half_height 
         //

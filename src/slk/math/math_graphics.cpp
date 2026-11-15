@@ -11,14 +11,14 @@ Vector2f screenPosToNdc(Vector2f screen_pos, Vector2f screen_dimension)
     };
 }
 
-Matrix4f makeOrthoProjectionMatrix(OrthoProjectionParams const& params, f32 near, f32 far, bool homogeneous_ndc,
+Matrix4f makeOrthoProjectionMatrix(OrthoProjectionParams const& params, f32 znear, f32 zfar, bool homogeneous_ndc,
                                EHandedness handedness) {
     const f32 aa = 2.0f / (params.m_right - params.m_left);
     const f32 bb = 2.0f / (params.m_top - params.m_bottom);
-    const f32 cc = (homogeneous_ndc ? 2.0f : 1.0f) / (far - near);
+    const f32 cc = (homogeneous_ndc ? 2.0f : 1.0f) / (zfar - znear);
     const f32 dd = (params.m_left + params.m_right) / (params.m_left - params.m_right);
     const f32 ee = (params.m_top + params.m_bottom) / (params.m_bottom - params.m_top);
-    const f32 ff = homogeneous_ndc ? (near + far) / (near - far) : near / (near - far);
+    const f32 ff = homogeneous_ndc ? (znear + zfar) / (znear - zfar) : znear / (znear - zfar);
 
     // Matrix4 scalar constructor takes columns
     return {
@@ -46,11 +46,11 @@ Matrix4f makeLookAtMatrix(Vector3f eye, Vector3f at, Vector3f ref_up, EHandednes
     };
 }
 
-Matrix4f make_perspective_projection_xywh(f32 x, f32 y, f32 width, f32 height, f32 near, f32 far, bool homogeneousNdc, EHandedness handedness)
+Matrix4f make_perspective_projection_xywh(f32 x, f32 y, f32 width, f32 height, f32 znear, f32 zfar, bool homogeneousNdc, EHandedness handedness)
 {
-    const f32 diff = far-near;
-    const f32 aa = homogeneousNdc ? (     far+near)/diff : far/diff;
-    const f32 bb = homogeneousNdc ? (2.0f*far*near)/diff : near*aa;
+    const f32 diff = zfar-znear;
+    const f32 aa = homogeneousNdc ? (     zfar+znear)/diff : zfar/diff;
+    const f32 bb = homogeneousNdc ? (2.0f*zfar*znear)/diff : znear*aa;
 
     return {
         width,
@@ -75,11 +75,11 @@ Matrix4f make_perspective_projection_xywh(f32 x, f32 y, f32 width, f32 height, f
     };
 }
 
-Matrix4f makePerspectiveProjectionMatrix(PerspectiveProjectionParams const& params, f32 near, f32 far, bool homogeneousNdc, EHandedness handedness)
+Matrix4f makePerspectiveProjectionMatrix(PerspectiveProjectionParams const& params, f32 znear, f32 zfar, bool homogeneousNdc, EHandedness handedness)
 {
     const f32 height = 1.0f/std::tan(params.m_fovy*0.5f);
     const f32 width  = height * 1.0f/params.m_aspect;
-    return make_perspective_projection_xywh(0.0f, 0.0f, width, height, near, far, homogeneousNdc, handedness);
+    return make_perspective_projection_xywh(0.0f, 0.0f, width, height, znear, zfar, homogeneousNdc, handedness);
 }
 
 } // namespace slk

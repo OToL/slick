@@ -1,9 +1,9 @@
 #pragma once
 
 #include <slk/core.hpp>
-#include <slk/api_registry.hpp>
+#include <slk/api.hpp>
 #include <slk/math/vector2.hpp>
-#include "key_codes.hpp"
+#include "codes.hpp"
 
 import std;
 
@@ -27,22 +27,18 @@ public:
     void update();
 
     // Modifiers
-    EInputModifierBits modifiersState() const; 
-    b8 hasAnyModifier(EInputModifierBits mod_mask) const;
-    b8 hasModifier(EInputModifier mod_key) const;
+    EInputModifierBits modifiersDown() const; 
 
     // Mouse
     Vector2f mousePosition() const;
     Vector2f mouseMovement() const;
     Vector2f mouseScroll() const;
-    EMouseButtonBits mouseButtonsState() const;
-    b8 isMouseButtonDown(EMouseButton button) const;
-    b8 areMouseButtonsDown(EMouseButtonBits buttons) const;
+    EMouseButtonBits mouseButtonsDown() const;
 
     // Keyboard
     b8 isKeyboardKeyDown(EKeyboardVKey key_code) const;
-    b8 isAnyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const;
-    b8 areKeyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const;
+    b8 anyKeyboardKeyDown(std::span<EKeyboardVKey const> key_codes) const;
+    b8 allKeyboardKeysDown(std::span<EKeyboardVKey const> key_codes) const;
 
     // Gesture & Touchpad
     u8 gestureTouchCount() const;
@@ -51,8 +47,6 @@ public:
 
     // External input events injection
     void forwardEvent(InputEvent const& evt);
-
-    void processEvents();
 
     struct State;
     State* const m_state = nullptr;

@@ -81,9 +81,8 @@
 
 ## Board
 
+- [ ] Pass on slick naming and design
 - [ ] Bgfx type conversion + namespace
-- [ ] Pass on slick naming
-- [ ] API centralization
 - [ ] Hash support + litterals and use it for DemoId
 
 ## Backlog
@@ -108,6 +107,7 @@
 
 ## Archives
 
+- [x] API centralization
 - [x] Camera management in demos for trackpad and mouse/kb
 - [x] Camera limit angle to avoid gimbal lock
 - [x] Launch (F6) and active project using the launch json --> use dap to populate everything e.g. including active projects

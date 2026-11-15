@@ -13,8 +13,8 @@ namespace slk {
 struct [[nodiscard]] Camera {
 
     Camera();
-    Camera(OrthoProjectionParams const& params, f32 near, f32 far);
-    Camera(PerspectiveProjectionParams const& params, f32 near, f32 far);
+    Camera(OrthoProjectionParams const& params, f32 znear, f32 zfar);
+    Camera(PerspectiveProjectionParams const& params, f32 znear, f32 zfar);
 
     // axis
     Vector3f rightAxis() const;
@@ -42,14 +42,14 @@ struct [[nodiscard]] Camera {
     Ray3f rayFromNdc(Vector2f ndc) const;
 
     // projections
-    void setPerspectiveProjection(PerspectiveProjectionParams const& params, f32 near, f32 far);
-    void setOrthoProjection(OrthoProjectionParams const& params, f32 near, f32 far);
+    void setPerspectiveProjection(PerspectiveProjectionParams const& params, f32 znear, f32 zfar);
+    void setOrthoProjection(OrthoProjectionParams const& params, f32 znear, f32 zfar);
     Matrix4f projectionMatrix(EHandedness hand, bool homogeneous_ndc) const;
 
     Matrix3f m_orientation;
     Vector3f m_pos;
-    f32 m_near;
-    f32 m_far;
+    f32 m_znear;
+    f32 m_zfar;
 
     EProjection m_projection;
     union {

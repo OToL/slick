@@ -66,10 +66,10 @@ struct AppState {
 void renderDbgWnd(AppState& app_state) {
     [[maybe_unused]] slk::Hash64 var = "hell"_h64;
 
-    slk::InputApi const& input = slk::InputApi();
+    slk::InputApi const& input = slk::inputApi();
     slk::Vector2f const mouse_pos = input.mousePosition();
     slk::Vector2f const mouse_scroll = input.mouseScroll();
-    slk::EMouseButtonBits const mouse_buttons_state = input.mouseButtonsState();
+    slk::EMouseButtonBits const mouse_buttons_state = input.mouseButtonsDown();
     slk::u8 const imgui_button_state = ((mouse_buttons_state & slk::EMouseButtonBits::LEFT) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_LEFT : 0) |
                                        ((mouse_buttons_state & slk::EMouseButtonBits::RIGHT) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_RIGHT : 0) |
                                        ((mouse_buttons_state & slk::EMouseButtonBits::MIDDLE) != slk::EMouseButtonBits::NONE ? IMGUI_MBUT_MIDDLE : 0);
@@ -129,19 +129,19 @@ void renderDbgWnd(AppState& app_state) {
 
         ImGui::Text("Mouse Position: %.2f %.2f", mouse_pos.m_x, mouse_pos.m_y);
         ImGui::Text("Mouse button state: %d", mouse_buttons_state);
-        ImGui::Text("Mouse buttons state: %d %d %d", input.isMouseButtonDown(slk::EMouseButton::LEFT),
-                    input.isMouseButtonDown(slk::EMouseButton::MIDDLE), input.isMouseButtonDown(slk::EMouseButton::RIGHT));
+        ImGui::Text("Mouse buttons state: %d %d %d", anyMaskBitSet(input.mouseButtonsDown(), slk::EMouseButtonBits::LEFT),
+                    anyMaskBitSet(input.mouseButtonsDown(), slk::EMouseButtonBits::MIDDLE), anyMaskBitSet(input.mouseButtonsDown(), slk::EMouseButtonBits::RIGHT));
         ImGui::Text("Mouse Scroll: %.2f %.2f", mouse_scroll.m_x, mouse_scroll.m_y);
 
         ImGui::Text("Keyboard SPACE key state: %d", input.isKeyboardKeyDown(slk::EKeyboardVKey::SPACE));
 
         ImGui::Text("Modifiers State:");
-        ImGui::Text("   CTRL: %d", input.hasModifier(slk::EInputModifier::CTRL));
-        ImGui::Text("   SHIFT %d", input.hasModifier(slk::EInputModifier::SHIFT));
-        ImGui::Text("   ALT %d", input.hasModifier(slk::EInputModifier::ALT));
-        ImGui::Text("   LMB: %d", input.hasModifier(slk::EInputModifier::LMB));
-        ImGui::Text("   MMB %d", input.hasModifier(slk::EInputModifier::MMB));
-        ImGui::Text("   RMB %d", input.hasModifier(slk::EInputModifier::RMB));
+        ImGui::Text("   CTRL: %d", anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::CTRL));
+        ImGui::Text("   SHIFT %d", anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::SHIFT));
+        ImGui::Text("   ALT %d", anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::ALT));
+        ImGui::Text("   LMB: %d", anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::LMB));
+        ImGui::Text("   MMB %d", anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::MMB));
+        ImGui::Text("   RMB %d", anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::RMB));
 
         ImGui::Text("Touch in progress: %d", input.gestureTouchCount());
     }
@@ -185,8 +185,8 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
 
     // Panning
     if (!was_orbitting &&
-        (input.isMouseButtonDown(slk::EMouseButton::MIDDLE) || (input.gestureTouchCount() == 3) ||
-         ((input.isMouseButtonDown(slk::EMouseButton::RIGHT) || input.gestureTouchCount() == 2) && input.hasModifier(slk::EInputModifier::SHIFT)))) {
+        (anyMaskBitSet(input.mouseButtonsDown(), slk::EMouseButtonBits::MIDDLE) || (input.gestureTouchCount() == 3) ||
+         ((anyMaskBitSet(input.mouseButtonsDown(), slk::EMouseButtonBits::RIGHT) || input.gestureTouchCount() == 2) && anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::SHIFT)))) {
         slk::Vector2f pan_value{};
         if (input.gestureTouchCount() == 2)
             pan_value = gesture_scroll * 0.1f * translate_frame_factor;
@@ -197,7 +197,7 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
         cam.pan(pan_value.m_x, -pan_value.m_y);
     }
     // 2 fingers & right mouse click basic movements
-    else if ((input.gestureTouchCount() == 2) || input.isMouseButtonDown(slk::EMouseButton::RIGHT)) {
+    else if ((input.gestureTouchCount() == 2) || anyMaskBitSet(input.mouseButtonsDown(), slk::EMouseButtonBits::RIGHT)) {
         slk::Vector2f panning{};
         slk::Vector3f translate{};
         slk::Vector2f rotation{};
@@ -206,10 +206,10 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
 
         if (!was_orbitting) {
             // WASD and Arrows move
-            slk::b8 const is_left = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_A, slk::EKeyboardVKey::LEFT});
-            slk::b8 const is_right = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_D, slk::EKeyboardVKey::RIGHT});
-            slk::b8 const is_up = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_W, slk::EKeyboardVKey::UP});
-            slk::b8 const is_down = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_S, slk::EKeyboardVKey::DOWN});
+            slk::b8 const is_left = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_A, slk::EKeyboardVKey::LEFT});
+            slk::b8 const is_right = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_D, slk::EKeyboardVKey::RIGHT});
+            slk::b8 const is_up = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_W, slk::EKeyboardVKey::UP});
+            slk::b8 const is_down = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_S, slk::EKeyboardVKey::DOWN});
 
             panning.m_x -= is_left * translate_frame_factor;
             panning.m_x += is_right * translate_frame_factor;
@@ -222,7 +222,7 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
                 block_rotation = true;
             }
             // Zoom
-            else if (input.hasModifier(slk::EInputModifier::CTRL)) {
+            else if (anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::CTRL)) {
                 block_rotation = true;
                 if (input.gestureTouchCount() == 2)
                     translate.m_z += gesture_scroll.m_y * 0.02f * translate_frame_factor;
@@ -251,7 +251,7 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
                 cam.rotate(-rotation.m_x, delta_pitch);
             }
 
-            if (input.hasModifier(slk::EInputModifier::ALT)) {
+            if (anyMaskBitSet(input.modifiersDown(), slk::EInputModifierBits::ALT)) {
                 g_app_state.m_orbitting = was_orbitting;
 
                 if (!g_app_state.m_orbitting) {
@@ -292,17 +292,17 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
     }
 
     // Elevation
-    if (((input.gestureTouchCount() >= 2) || input.isMouseButtonDown(slk::EMouseButton::RIGHT)) &&
-        input.isAnyKeyboardKeyDown(
+    if (((input.gestureTouchCount() >= 2) || anyMaskBitSet(input.mouseButtonsDown(), slk::EMouseButtonBits::RIGHT)) &&
+        input.anyKeyboardKeyDown(
             std::array{slk::EKeyboardVKey::CHAR_Q, slk::EKeyboardVKey::CHAR_E, slk::EKeyboardVKey::CHAR_R, slk::EKeyboardVKey::CHAR_F})) {
-        slk::b8 const is_up = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_E, slk::EKeyboardVKey::CHAR_R});
-        slk::b8 const is_down = input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_Q, slk::EKeyboardVKey::CHAR_F});
+        slk::b8 const is_up = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_E, slk::EKeyboardVKey::CHAR_R});
+        slk::b8 const is_down = input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_Q, slk::EKeyboardVKey::CHAR_F});
 
         slk::f32 y_offset = 0;
         y_offset -= is_down * app_state.m_input_settings.camera_translate_speed;
         y_offset += is_up * app_state.m_input_settings.camera_translate_speed;
 
-        if (input.isAnyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_R, slk::EKeyboardVKey::CHAR_F})) {
+        if (input.anyKeyboardKeyDown(std::array{slk::EKeyboardVKey::CHAR_R, slk::EKeyboardVKey::CHAR_F})) {
             cam.pan(0.f, y_offset);
         } else {
             cam.m_pos.m_y += y_offset;
