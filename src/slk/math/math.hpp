@@ -27,14 +27,16 @@ struct Matrix3;
 template <typename T>
 struct Matrix4;
 
+// Parameter passing: by value up to 16 bytes (fits in registers), const& above
 template<typename T>
 using Vector2Param = Vector2<T>;
 template<typename T>
 using Vector3Param = Vector3<T>;
 template<typename T>
-using Vector4Param = Vector4<T> const&;
+using Vector4Param = Vector4<T>;
 template<typename T>
-using AABB2Param = AABB2<T> const&;
+using AABB2Param = AABB2<T>;
+
 template<typename T>
 using Matrix2Param = Matrix2<T>;
 template<typename T>

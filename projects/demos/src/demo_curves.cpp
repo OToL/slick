@@ -288,7 +288,7 @@ void draw_hermite(std::span<slk::Vector3f const> const& data, DebugDrawEncoder& 
 void draw3d(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& /* cam */) {
     DemoState* const app_state = static_cast<DemoState*>(hdl);
 
-    std::vector<slk::Vector3f> interleaved_data;
+    std::vector<slk::HermiteKey<slk::Vector3f>> interleaved_data;
     std::vector<slk::Vector3f> curve_conversion;
     [[maybe_unused]] CurveType conversion_type = CurveType::_COUNT;
 
@@ -304,15 +304,14 @@ void draw3d(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& /* cam */) 
             interleaved_data.reserve(test_data.ctrl_points.size());
             for (auto [pt, tg] : std::views::zip(std::span{test_data.ctrl_points.data(), point_cnt},
                                                  std::span{test_data.ctrl_points.data() + point_cnt, point_cnt})) {
-                interleaved_data.push_back(pt);
-                interleaved_data.push_back(tg);
+                interleaved_data.push_back({.m_point = pt, .m_tangent = tg});
             }
         }
 
         if (app_state->hermite_to_bezier) {
             conversion_type = CurveType::BEZIER;
-            slk::HermiteSplineInfo const hermite_info = slk::computeHermiteSplineInfoFromPoints(test_data.ctrl_points.size() / 2);
-            slk::u32 const bezier_point_cnt = slk::computeBezierSplineInfoFromSections(hermite_info.section_cnt).ctrl_point_cnt;
+            slk::SplineLayout const hermite_layout = slk::computeHermiteSplineLayoutFromPoints(point_cnt);
+            slk::u32 const bezier_point_cnt = slk::computeBezierSplineLayoutFromSections(3, hermite_layout.m_section_cnt).m_point_cnt;
 
             curve_conversion.resize(bezier_point_cnt);
 
@@ -327,20 +326,19 @@ void draw3d(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& /* cam */) 
         if (app_state->carndinal_to_hermite) {
             conversion_type = CurveType::HERMITE;
 
-            slk::u32 const cardinal_section_cnt = test_data.ctrl_points.size() - (app_state->extend_curve ? 1 : 3);
-            slk::HermiteSplineInfo hermite_curve_info = slk::computeHermiteSplineInfoFromSections(cardinal_section_cnt);
-            curve_conversion.resize(hermite_curve_info.item_cnt);
+            slk::ESplineEnds const ends = app_state->extend_curve ? slk::ESplineEnds::CLAMPED : slk::ESplineEnds::OPEN;
+            slk::u32 const cardinal_section_cnt = slk::computeCardinalSplineLayoutFromPoints(test_data.ctrl_points.size(), ends).m_section_cnt;
+            slk::u32 const hermite_point_cnt = slk::computeHermiteSplineLayoutFromSections(cardinal_section_cnt).m_point_cnt;
+            curve_conversion.resize(2 * hermite_point_cnt); // points then tangents
 
-            slk::convertCardinalSplineToHermite<slk::Vector3f>(
-                test_data.ctrl_points, std::span{curve_conversion}.subspan(0, hermite_curve_info.ctrl_point_cnt),
-                std::span{curve_conversion}.subspan(hermite_curve_info.ctrl_point_cnt), app_state->cardinal_tension, app_state->extend_curve);
+            slk::convertCardinalSplineToHermite<slk::Vector3f>(test_data.ctrl_points, std::span{curve_conversion}.subspan(0, hermite_point_cnt),
+                                                               std::span{curve_conversion}.subspan(hermite_point_cnt), app_state->cardinal_tension, ends);
 
             if (app_state->hermite_interleave_data) {
-                interleaved_data.reserve(curve_conversion.size());
-                for (auto [pt, tg] : std::views::zip(std::span{curve_conversion}.subspan(0, hermite_curve_info.ctrl_point_cnt),
-                                                     std::span{curve_conversion}.subspan(hermite_curve_info.ctrl_point_cnt))) {
-                    interleaved_data.push_back(pt);
-                    interleaved_data.push_back(tg);
+                interleaved_data.reserve(hermite_point_cnt);
+                for (auto [pt, tg] : std::views::zip(std::span{curve_conversion}.subspan(0, hermite_point_cnt),
+                                                     std::span{curve_conversion}.subspan(hermite_point_cnt))) {
+                    interleaved_data.push_back({.m_point = pt, .m_tangent = tg});
                 }
             }
         }
@@ -406,7 +404,7 @@ void draw3d(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& /* cam */) 
                 curr_point = slk::evaluateCubicBezierSpline<slk::Vector3f>(curve_conversion, app_state->curr_time);
             } else {
                 if (app_state->hermite_interleave_data) {
-                    curr_point = slk::evaluateHermiteCurve<slk::Vector3f>(std::span<slk::Vector3f const, 4>(interleaved_data), app_state->curr_time);
+                    curr_point = slk::evaluateHermiteCurve<slk::Vector3f>(std::span<slk::HermiteKey<slk::Vector3f> const, 2>(interleaved_data), app_state->curr_time);
 
                 } else {
                     curr_point = slk::evaluateHermiteCurve<slk::Vector3f>(std::span<slk::Vector3f const, 2>(test_data.ctrl_points),
@@ -442,7 +440,7 @@ void draw3d(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& /* cam */) 
         if (app_state->carndinal_to_hermite) {
             if (curve_conversion.size() == 4)
                 if (app_state->hermite_interleave_data) {
-                    curr_point = slk::evaluateHermiteCurve<slk::Vector3f>(std::span<slk::Vector3f, 4>{interleaved_data}, app_state->curr_time);
+                    curr_point = slk::evaluateHermiteCurve<slk::Vector3f>(std::span<slk::HermiteKey<slk::Vector3f> const, 2>{interleaved_data}, app_state->curr_time);
                 } else {
                     curr_point =
                         slk::evaluateHermiteCurve<slk::Vector3f>(std::span<slk::Vector3f, 2>{curve_conversion},
@@ -464,19 +462,21 @@ void draw3d(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& /* cam */) 
                 curr_point =
                     slk::evaluateCardinalCurve(std::span<slk::Vector3f const, 4>{test_data.ctrl_points}, app_state->cardinal_tension, app_state->curr_time);
             } else if (app_state->extend_curve) {
-                curr_point = slk::evaluateCardinalSplineExtended<slk::Vector3f>(test_data.ctrl_points, app_state->cardinal_tension, app_state->curr_time);
+                curr_point = slk::evaluateCardinalSpline<slk::Vector3f>(test_data.ctrl_points, app_state->cardinal_tension, slk::ESplineEnds::CLAMPED,
+                                                                  app_state->curr_time);
             } else {
-                curr_point = slk::evaluateCardinalSpline<slk::Vector3f>(test_data.ctrl_points, app_state->cardinal_tension, app_state->curr_time);
+                curr_point = slk::evaluateCardinalSpline<slk::Vector3f>(test_data.ctrl_points, app_state->cardinal_tension, slk::ESplineEnds::OPEN,
+                                                                  app_state->curr_time);
             }
         }
     } else if (test_data.type == CurveType::BSPLINE) {
         if ((test_data.ctrl_points.size() == 4) & !app_state->extend_curve) {
-            curr_point = slk::evaluateBSplineSection(std::span<slk::Vector3f const, 4>{test_data.ctrl_points}, app_state->curr_time);
+            curr_point = slk::evaluateBSplineCurve(std::span<slk::Vector3f const, 4>{test_data.ctrl_points}, app_state->curr_time);
         }
         if ((test_data.ctrl_points.size() == 4) & app_state->extend_curve) {
-            curr_point = slk::evaluateBSplineExtended<slk::Vector3f>(test_data.ctrl_points, app_state->curr_time);
+            curr_point = slk::evaluateBSpline<slk::Vector3f>(test_data.ctrl_points, slk::ESplineEnds::CLAMPED, app_state->curr_time);
         } else {
-            curr_point = slk::evaluateBSpline<slk::Vector3f>(test_data.ctrl_points, app_state->curr_time);
+            curr_point = slk::evaluateBSpline<slk::Vector3f>(test_data.ctrl_points, slk::ESplineEnds::OPEN, app_state->curr_time);
         }
     }
 
@@ -547,19 +547,16 @@ void drawImgui(DemoHdl hdl, slk::f32 /* frame_delta_ms */) {
         if (app_state->carndinal_to_hermite)
             ImGui::Checkbox("Interleave data", &app_state->hermite_interleave_data);
 
-        if (app_state->carndinal_to_hermite) {
-            slk::u32 const cardinal_section_cnt = test_data.ctrl_points.size() - (app_state->extend_curve ? 1 : 3);
-            app_state->max_time = static_cast<slk::f32>(cardinal_section_cnt);
-        } else {
-            app_state->max_time = slk::computeCardinalSplineInfoFromPoints(test_data.ctrl_points.size(), app_state->extend_curve).section_cnt;
-        }
+        slk::ESplineEnds const ends = app_state->extend_curve ? slk::ESplineEnds::CLAMPED : slk::ESplineEnds::OPEN;
+        app_state->max_time = static_cast<slk::f32>(slk::computeCardinalSplineLayoutFromPoints(test_data.ctrl_points.size(), ends).m_section_cnt);
     } else if (test_data.type == CurveType::BSPLINE) {
         if (app_state->curr_test_idx == std::to_underlying(Test::BSPLINE_SECTION))
             ImGui::Checkbox("Extend", &app_state->extend_curve);
         else
             app_state->extend_curve = false;
 
-        app_state->max_time = slk::computeBSplineInfoFromPoints(test_data.ctrl_points.size(), app_state->extend_curve).section_cnt;
+        slk::ESplineEnds const ends = app_state->extend_curve ? slk::ESplineEnds::CLAMPED : slk::ESplineEnds::OPEN;
+        app_state->max_time = static_cast<slk::f32>(slk::computeBSplineLayoutFromPoints(test_data.ctrl_points.size(), ends).m_section_cnt);
     }
 
     ImGui::BeginDisabled(app_state->playing_back);

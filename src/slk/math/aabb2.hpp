@@ -6,10 +6,10 @@
 namespace slk {
 
 template <typename T>
-struct AABB2 {
+struct [[nodiscard]] AABB2 {
     using ParamType = AABB2Param<T>;
     using ScalarType = typename Vector2<T>::ScalarType;
-    using ExtentType = typename Vector2<T>::ParamType;
+    using ExtentType = Vector2<T>;
     using ExtentParamType = typename ExtentType::ParamType;
 
     ExtentType m_min;
@@ -17,7 +17,7 @@ struct AABB2 {
 
     constexpr AABB2() = default;
 
-    constexpr AABB2(ExtentType min_val, ExtentType max_val)
+    constexpr AABB2(ExtentParamType min_val, ExtentParamType max_val)
         : m_min(min_val)
         , m_max(max_val) { }
 
@@ -33,12 +33,12 @@ struct AABB2 {
         return m_max - m_min;
     }
 
-    constexpr Vector2<ScalarType> half_size() const {
-        return size() * 0.5;
+    constexpr Vector2<ScalarType> halfSize() const {
+        return size() * ScalarType(0.5);
     }
 
     constexpr ExtentType center() const {
-        return m_min + half_size();
+        return m_min + halfSize();
     }
 
     constexpr AABB2& shrink(ExtentParamType v) {
@@ -55,33 +55,34 @@ struct AABB2 {
     }
 
     constexpr AABB2 displaced(ExtentParamType v) const {
-        AABB2 aabb = *this;
-        aabb.displace(v);
-
-        return aabb;
+        return {
+            m_min + v,
+            m_max + v
+        };
     }
 
-    constexpr AABB2& scale(ExtentParamType v) {
-        ExtentType const new_half_diag = size() * v * 0.5;
-        ExtentType const center = center();
+    // scales the box around its center (component-wise)
+    constexpr AABB2& scaleHalf(ExtentParamType v) {
+        ExtentType const new_half_size = halfSize() * v;
+        ExtentType const box_center = center();
 
-        m_min = center - new_half_diag;
-        m_min = center + new_half_diag;
+        m_min = box_center - new_half_size;
+        m_max = box_center + new_half_size;
 
         return *this;
     }
 
     constexpr AABB2 centeredAtOrigin() const {
-        ExtentType const half_val = half_size() * 0.5f;
-        return {-half_val, half_val};
+        ExtentType const half_size = halfSize();
+        return {-half_size, half_size};
     }
 
-    constexpr bool isInside(slk::Vector2<ScalarType> const& v) const {
-        return m_min < v && v < m_max;
+    constexpr bool contains(slk::Vector2<ScalarType> const& v) const {
+        return m_min.allLess(v) && v.allLess(m_max);
     }
 
-    constexpr bool isInside(ParamType aabb) const {
-        return m_min < aabb.m_min && m_max > aabb.m_max;
+    constexpr bool contains(ParamType aabb) const {
+        return m_min.allLess(aabb.m_min) && m_max.allGreater(aabb.m_max);
     }
 
     constexpr bool overlaps(ParamType aabb) const {
@@ -90,7 +91,7 @@ struct AABB2 {
 };
 
 template <typename T>
-constexpr AABB2<T> operator*(AABB2Param<T> aabb, slk::f32 val) {
+constexpr AABB2<T> operator*(AABB2Param<T> aabb, typename AABB2<T>::ScalarType val) {
     return {aabb.m_min * val, aabb.m_max * val};
 }
 

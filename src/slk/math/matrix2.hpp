@@ -4,10 +4,14 @@
 #include "math.hpp"
 #include "vector2.hpp"
 
+#include <assert.h>
+
+import std;
+
 namespace slk {
 
 template <typename T>
-struct Matrix2 {
+struct [[nodiscard]] Matrix2 {
 
     using ParamType = Matrix2Param<T>;
     using RowType = slk::Vector2<T>;
@@ -35,12 +39,13 @@ struct Matrix2 {
         : m_column0(col0)
         , m_column1(col1) { }
 
-    constexpr Matrix2(ScalarType s00, ScalarType s01, ScalarType s10, ScalarType s11)
-        : m_00(s00), m_10(s10)
-        , m_01(s01), m_11(s11)
+    // Values are given column by column (same order as the memory layout)
+    constexpr Matrix2(ScalarType s00, ScalarType s10,
+                      ScalarType s01, ScalarType s11)
+        : Matrix2(ColumnType{s00, s10}, ColumnType{s01, s11}) // keeps the columns as the active union member (constant evaluation)
     {}
 
-    constexpr Matrix2& setRotation(slk::f32 rot_rad) {
+    constexpr Matrix2& setRotation(ScalarType rot_rad) requires std::floating_point<T> {
         auto const cos_val = std::cos(rot_rad);
         auto const sin_val = std::sin(rot_rad);
 
@@ -57,6 +62,21 @@ struct Matrix2 {
         return *this;
     }
 
+    constexpr Matrix2& transpose() {
+        const ScalarType tmp = m_10;
+        m_10 = m_01;
+        m_01 = tmp;
+
+        return *this;
+    }
+
+    constexpr Matrix2 transposed() const {
+        return {
+            m_00, m_01,
+            m_10, m_11,
+        };
+    }
+
     constexpr ScalarType* data() {
         return &m_values[0];
     }
@@ -69,15 +89,7 @@ struct Matrix2 {
         return m_columns[idx];
     }
 
-    constexpr ColumnType column(u32 idx) {
-        return m_columns[idx];
-    }
-
     constexpr RowType row(u32 idx) const {
-        return {m_columns[0][idx], m_columns[1][idx]};
-    }
-
-    constexpr RowType row(u32 idx) {
         return {m_columns[0][idx], m_columns[1][idx]};
     }
 
@@ -85,18 +97,20 @@ struct Matrix2 {
         return m_columns[col_idx][row_idx];
     }
 
-    constexpr Matrix2& set_value(u32 row_idx, u32 col_idx, ScalarType val) const {
+    constexpr Matrix2& setValue(u32 row_idx, u32 col_idx, ScalarType val) {
         m_columns[col_idx][row_idx] = val;
 
         return *this;
     }
 
     constexpr ScalarType determinant() const {
-       return m_00*m_11 - m_01*m_10; 
+       return m_00*m_11 - m_01*m_10;
     }
 
-    constexpr Matrix2& inverse() {
-        const ScalarType inv_det = 1.f/determinant();
+    constexpr Matrix2& inverse() requires std::floating_point<T> {
+        const ScalarType det = determinant();
+        assert(det != 0 && "inverting a singular matrix");
+        const ScalarType inv_det = ScalarType(1)/det;
 
         const ScalarType tmp = m_00;
         m_00 = m_11 * inv_det;
@@ -108,9 +122,16 @@ struct Matrix2 {
         return *this;
     }
 
+    constexpr Matrix2 inversed() const requires std::floating_point<T> {
+        Matrix2 mat_inv = *this;
+        mat_inv.inverse();
+
+        return mat_inv;
+    }
+
     // Transforms factory
 
-    static constexpr Matrix2 makeRotation(slk::f32 rot_rad) {
+    static constexpr Matrix2 makeRotation(ScalarType rot_rad) requires std::floating_point<T> {
         Matrix2 rot_matrix;
         rot_matrix.setRotation(rot_rad);
 
@@ -119,28 +140,20 @@ struct Matrix2 {
 
     // Constants
 
-    static constexpr Matrix2 indentity() {
+    static consteval Matrix2 IDENTITY() {
         return {{1, 0}, {0, 1}};
     }
-
-    static const Matrix2 IDENTITY;
 };
 
-// forward declaration required by Clang and MSVC
-template <>
-const Matrix2<slk::f32> Matrix2<slk::f32>::IDENTITY;
-template <>
-const Matrix2<slk::i32> Matrix2<slk::i32>::IDENTITY;
-
 template <typename T>
-slk::Vector2<T> operator*(slk::Matrix2<T> const& mat, slk::Vector2<T> const& v) {
+constexpr slk::Vector2<T> operator*(slk::Matrix2<T> const& mat, slk::Vector2<T> const& v) {
     return {v.m_x * mat.m_column0.m_x + v.m_y * mat.m_column1.m_x, v.m_x * mat.m_column0.m_y + v.m_y * mat.m_column1.m_y};
 }
 template <typename T>
-slk::Matrix2<T> operator*(slk::Matrix2<T> const& lval, slk::Matrix2<T> const& rval) {
+constexpr slk::Matrix2<T> operator*(slk::Matrix2<T> const& lval, slk::Matrix2<T> const& rval) {
     return {
-        lval * rval.column0,
-        lval * rval.column1,
+        lval * rval.m_column0,
+        lval * rval.m_column1,
     };
 }
 

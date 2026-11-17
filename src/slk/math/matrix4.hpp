@@ -6,10 +6,14 @@
 #include "vector3.hpp"
 #include "matrix3.hpp"
 
+#include <assert.h>
+
+import std;
+
 namespace slk {
 
 template <typename T>
-struct Matrix4 {
+struct [[nodiscard]] Matrix4 {
     using ParamType = Matrix4Param<T>;
     using RowType = slk::Vector4<T>;
     using ColumnType = slk::Vector4<T>;
@@ -42,15 +46,13 @@ struct Matrix4 {
         , m_column2(col2)
         , m_column3(col3) { }
 
-    // This has to be fixed, the init parameter must be colums and not row
+    // Values are given column by column (same order as the memory layout)
     constexpr Matrix4(ScalarType s00, ScalarType s10, ScalarType s20, ScalarType s30,
             ScalarType s01, ScalarType s11, ScalarType s21, ScalarType s31,
             ScalarType s02, ScalarType s12, ScalarType s22, ScalarType s32,
             ScalarType s03, ScalarType s13, ScalarType s23, ScalarType s33)
-        : m_00(s00), m_10(s10), m_20(s20), m_30(s30)
-        , m_01(s01), m_11(s11), m_21(s21), m_31(s31)
-        , m_02(s02), m_12(s12), m_22(s22), m_32(s32)
-        , m_03(s03), m_13(s13), m_23(s23), m_33(s33)
+        : Matrix4(ColumnType{s00, s10, s20, s30}, ColumnType{s01, s11, s21, s31}, ColumnType{s02, s12, s22, s32},
+                  ColumnType{s03, s13, s23, s33}) // keeps the columns as the active union member (constant evaluation)
     {}
 
     constexpr Matrix4& setIdentity() {
@@ -98,14 +100,14 @@ struct Matrix4 {
     }
 
     constexpr RowType row(u32 idx) const {
-        return {m_columns[0][idx], m_columns[1][idx], m_columns[2][idx], 1.f};
+        return {m_columns[0][idx], m_columns[1][idx], m_columns[2][idx], m_columns[3][idx]};
     }
 
-    constexpr RowType translation() const {
+    constexpr ColumnType translation() const {
         return m_column3;
     }
 
-    constexpr Matrix4& setTranslation(RowParamType translation) {
+    constexpr Matrix4& setTranslation(ColumnParamType translation) {
         m_column3 = translation;
 
         return *this;
@@ -119,13 +121,13 @@ struct Matrix4 {
 
     constexpr slk::Matrix3<ScalarType> rotation() const {
         return {
-            m_00, m_01, m_02,
-            m_10, m_11, m_12,
-            m_20, m_21, m_22
+            m_00, m_10, m_20,
+            m_01, m_11, m_21,
+            m_02, m_12, m_22
         };
     }
 
-    constexpr Matrix4& setRotation(Matrix3<ScalarType>::ParamType rot) {
+    constexpr Matrix4& setRotation(Matrix3<ScalarType>::ParamType rot) requires std::floating_point<T> {
         m_column0 = {rot.m_column0.m_x, rot.m_column0.m_y, rot.m_column0.m_z, 0.f};
         m_column1 = {rot.m_column1.m_x, rot.m_column1.m_y, rot.m_column1.m_z, 0.f};
         m_column2 = {rot.m_column2.m_x, rot.m_column2.m_y, rot.m_column2.m_z, 0.f};
@@ -137,22 +139,22 @@ struct Matrix4 {
         return m_columns[col_idx][row_idx];
     }
 
-    constexpr Matrix4& setValue(u32 row_idx, u32 col_idx, ScalarType val) const {
+    constexpr Matrix4& setValue(u32 row_idx, u32 col_idx, ScalarType val) {
         m_columns[col_idx][row_idx] = val;
 
         return *this;
     }
 
-    constexpr ColumnType xAxis() const {
-        return {m_column0.x, m_column0.y, m_column0.z, 1.f};
+    constexpr Vector3<ScalarType> xAxis() const {
+        return {m_column0.m_x, m_column0.m_y, m_column0.m_z};
     }
 
-    constexpr ColumnType yAxis() const {
-        return {m_column1.x, m_column1.y, m_column1.z, 1.f};
+    constexpr Vector3<ScalarType> yAxis() const {
+        return {m_column1.m_x, m_column1.m_y, m_column1.m_z};
     }
 
-    constexpr ColumnType zAxis() const {
-        return {m_column2.x, m_column2.y, m_column2.z, 1.f};
+    constexpr Vector3<ScalarType> zAxis() const {
+        return {m_column2.m_x, m_column2.m_y, m_column2.m_z};
     }
 
     // Sign matrix used for cofactor matrix and determinant
@@ -169,31 +171,32 @@ struct Matrix4 {
             - m_30 * (m_01*(m_12*m_23 - m_22*m_13) - m_11*(m_02*m_23 - m_22*m_03) + m_21*(m_02*m_13 - m_12*m_03) );
     }
 
-    constexpr Matrix4& inverse() {
-		const f32 xx = m_values[ 0];
-		const f32 xy = m_values[ 1];
-		const f32 xz = m_values[ 2];
-		const f32 xw = m_values[ 3];
-		const f32 yx = m_values[ 4];
-		const f32 yy = m_values[ 5];
-		const f32 yz = m_values[ 6];
-		const f32 yw = m_values[ 7];
-		const f32 zx = m_values[ 8];
-		const f32 zy = m_values[ 9];
-		const f32 zz = m_values[10];
-		const f32 zw = m_values[11];
-		const f32 wx = m_values[12];
-		const f32 wy = m_values[13];
-		const f32 wz = m_values[14];
-		const f32 ww = m_values[15];
+    constexpr Matrix4& inverse() requires std::floating_point<T> {
+		const ScalarType xx = m_values[ 0];
+		const ScalarType xy = m_values[ 1];
+		const ScalarType xz = m_values[ 2];
+		const ScalarType xw = m_values[ 3];
+		const ScalarType yx = m_values[ 4];
+		const ScalarType yy = m_values[ 5];
+		const ScalarType yz = m_values[ 6];
+		const ScalarType yw = m_values[ 7];
+		const ScalarType zx = m_values[ 8];
+		const ScalarType zy = m_values[ 9];
+		const ScalarType zz = m_values[10];
+		const ScalarType zw = m_values[11];
+		const ScalarType wx = m_values[12];
+		const ScalarType wy = m_values[13];
+		const ScalarType wz = m_values[14];
+		const ScalarType ww = m_values[15];
 
-		f32 det = 0.0f;
+		ScalarType det = 0;
 		det += xx * (yy*(zz*ww - zw*wz) - yz*(zy*ww - zw*wy) + yw*(zy*wz - zz*wy) );
 		det -= xy * (yx*(zz*ww - zw*wz) - yz*(zx*ww - zw*wx) + yw*(zx*wz - zz*wx) );
 		det += xz * (yx*(zy*ww - zw*wy) - yy*(zx*ww - zw*wx) + yw*(zx*wy - zy*wx) );
 		det -= xw * (yx*(zy*wz - zz*wy) - yy*(zx*wz - zz*wx) + yz*(zx*wy - zy*wx) );
 
-		f32 inv_det = 1.0f/det;
+		assert(det != 0 && "inverting a singular matrix");
+		ScalarType inv_det = ScalarType(1)/det;
 
 		m_values[ 0] = +(yy*(zz*ww - wz*zw) - yz*(zy*ww - wy*zw) + yw*(zy*wz - wy*zz) ) * inv_det;
 		m_values[ 1] = -(xy*(zz*ww - wz*zw) - xz*(zy*ww - wy*zw) + xw*(zy*wz - wy*zz) ) * inv_det;
@@ -218,10 +221,17 @@ struct Matrix4 {
         return *this;
     }
 
-	constexpr Matrix4& setRotationX(f32 rot_rad)
+    constexpr Matrix4 inversed() const requires std::floating_point<T> {
+        Matrix4 mat_inv = *this;
+        mat_inv.inverse();
+
+        return mat_inv;
+    }
+
+	constexpr Matrix4& setRotationX(ScalarType rot_rad) requires std::floating_point<T>
 	{
-		const f32 sx = sin(rot_rad);
-		const f32 cx = cos(rot_rad);
+		const ScalarType sx = std::sin(rot_rad);
+		const ScalarType cx = std::cos(rot_rad);
 
 		m_values[ 0] = 1.0f;
 		m_values[ 1] = 0.f;
@@ -246,10 +256,10 @@ struct Matrix4 {
         return *this;
 	}
 
-	constexpr Matrix4& setRotationY(f32 rot_rad)
+	constexpr Matrix4& setRotationY(ScalarType rot_rad) requires std::floating_point<T>
 	{
-		const f32 sy = sin(rot_rad);
-		const f32 cy = cos(rot_rad);
+		const ScalarType sy = std::sin(rot_rad);
+		const ScalarType cy = std::cos(rot_rad);
 
 		m_values[ 0] = cy;
 		m_values[ 1] = 0.f;
@@ -274,10 +284,10 @@ struct Matrix4 {
         return *this;
 	}
 
-	constexpr Matrix4& setRotationZ(f32 rot_rad)
+	constexpr Matrix4& setRotationZ(ScalarType rot_rad) requires std::floating_point<T>
 	{
-		const f32 sz = sin(rot_rad);
-		const f32 cz = cos(rot_rad);
+		const ScalarType sz = std::sin(rot_rad);
+		const ScalarType cz = std::cos(rot_rad);
 
 		m_values[ 0] = cz;
 		m_values[ 1] = sz;
@@ -302,12 +312,12 @@ struct Matrix4 {
         return *this;
 	}
 
-	constexpr Matrix4& setRotationXY(f32 rotx_rad, f32 roty_rad)
+	constexpr Matrix4& setRotationXY(ScalarType rotx_rad, ScalarType roty_rad) requires std::floating_point<T>
 	{
-		const f32 sx = sin(rotx_rad);
-		const f32 cx = cos(rotx_rad);
-		const f32 sy = sin(roty_rad);
-		const f32 cy = cos(roty_rad);
+		const ScalarType sx = std::sin(rotx_rad);
+		const ScalarType cx = std::cos(rotx_rad);
+		const ScalarType sy = std::sin(roty_rad);
+		const ScalarType cy = std::cos(roty_rad);
 
 		m_values[ 0] = cy;
 		m_values[ 1] = sx*sy;
@@ -332,14 +342,14 @@ struct Matrix4 {
         return *this;
 	}
 
-	constexpr Matrix4& setRotationXYZ(f32 rotx_rad, f32 roty_rad, f32 rotz_rad)
+	constexpr Matrix4& setRotationXYZ(ScalarType rotx_rad, ScalarType roty_rad, ScalarType rotz_rad) requires std::floating_point<T>
 	{
-		const f32 sx = sin(rotx_rad);
-		const f32 cx = cos(rotx_rad);
-		const f32 sy = sin(roty_rad);
-		const f32 cy = cos(roty_rad);
-		const f32 sz = sin(rotz_rad);
-		const f32 cz = cos(rotz_rad);
+		const ScalarType sx = std::sin(rotx_rad);
+		const ScalarType cx = std::cos(rotx_rad);
+		const ScalarType sy = std::sin(roty_rad);
+		const ScalarType cy = std::cos(roty_rad);
+		const ScalarType sz = std::sin(rotz_rad);
+		const ScalarType cz = std::cos(rotz_rad);
 
 		m_values[ 0] = cy*cz;
 		m_values[ 1] = cz*sx*sy + cx*sz;
@@ -364,14 +374,14 @@ struct Matrix4 {
         return *this;
 	}
 
-	constexpr Matrix4& setRotationZYX(f32 rotx_rad, f32 roty_rad, f32 rotz_rad)
+	constexpr Matrix4& setRotationZYX(ScalarType rotx_rad, ScalarType roty_rad, ScalarType rotz_rad) requires std::floating_point<T>
 	{
-		const f32 sx = sin(rotx_rad);
-		const f32 cx = cos(rotx_rad);
-		const f32 sy = sin(roty_rad);
-		const f32 cy = cos(roty_rad);
-		const f32 sz = sin(rotz_rad);
-		const f32 cz = cos(rotz_rad);
+		const ScalarType sx = std::sin(rotx_rad);
+		const ScalarType cx = std::cos(rotx_rad);
+		const ScalarType sy = std::sin(roty_rad);
+		const ScalarType cy = std::cos(roty_rad);
+		const ScalarType sz = std::sin(rotz_rad);
+		const ScalarType cz = std::cos(rotz_rad);
 
 		m_values[ 0] = cy*cz;
 		m_values[ 1] = cy*sz;
@@ -398,21 +408,13 @@ struct Matrix4 {
 
     // Constants
 
-    static constexpr Matrix4 indentity() {
+    static consteval Matrix4 IDENTITY() {
         return {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
     }
-
-    static const Matrix4 IDENTITY;
 };
 
-// forward declaration required by Clang and MSVC
-template <>
-const Matrix4<slk::f32> Matrix4<slk::f32>::IDENTITY;
-template <>
-const Matrix4<slk::i32> Matrix4<slk::i32>::IDENTITY;
-
 template <typename T>
-slk::Vector4<T> operator*(slk::Matrix4<T> const& mat, slk::Vector4<T> const& v) {
+constexpr slk::Vector4<T> operator*(slk::Matrix4<T> const& mat, slk::Vector4<T> const& v) {
     return {
         v.m_x * mat.m_column0.m_x + v.m_y * mat.m_column1.m_x + v.m_z * mat.m_column2.m_x + v.m_w * mat.m_column3.m_x, 
         v.m_x * mat.m_column0.m_y + v.m_y * mat.m_column1.m_y + v.m_z * mat.m_column2.m_y + v.m_w * mat.m_column3.m_y,
@@ -422,7 +424,7 @@ slk::Vector4<T> operator*(slk::Matrix4<T> const& mat, slk::Vector4<T> const& v) 
 }
 
 template <typename T>
-slk::Matrix4<T> operator*(slk::Matrix4<T> const& lval, slk::Matrix4<T> const& rval) {
+constexpr slk::Matrix4<T> operator*(slk::Matrix4<T> const& lval, slk::Matrix4<T> const& rval) {
     return {
         lval * rval.m_column0,
         lval * rval.m_column1,

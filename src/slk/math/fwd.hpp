@@ -49,5 +49,8 @@ namespace slk {
     struct Plane;
 
     struct Ray3f;
+
+    struct PerspectiveProjectionParams;
+    struct OrthoProjectionParams;
 }
 

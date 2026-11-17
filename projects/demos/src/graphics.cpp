@@ -90,7 +90,7 @@ void renderGrid(GridHdl grid, slk::ColorU32 thin_color, slk::ColorU32 thick_colo
         0.f, // fade mode
     };
 
-    bgfx::setTransform(slk::Matrix4f::IDENTITY.data());
+    bgfx::setTransform(slk::Matrix4f::IDENTITY().data());
 
     bgfx::setUniform(grid->scalar_params_u_hdl, grid_scalar_params);
     bgfx::setUniform(grid->thin_color_u_hdl, bgfx_thin_color);

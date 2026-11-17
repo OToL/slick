@@ -3,14 +3,16 @@
 #include <slk/core.hpp>
 #include "math.hpp"
 
+#include <assert.h>
+
 import std;
 
 namespace slk {
 
 template <typename T>
-struct Vector2 {
+struct [[nodiscard]] Vector2 {
     using ScalarType = T;
-    using ParamType = Vector2Param<T>;
+    using ParamType = Vector2<T>;
 
     union {
         struct {
@@ -30,34 +32,21 @@ struct Vector2 {
         : m_x(x)
         , m_y(y) { }
 
-    constexpr ScalarType dot(ParamType v) const {
-        return m_x * v.m_x + m_y * v.m_y;
+    constexpr ScalarType dot(this ParamType self, ParamType v) {
+        return self.m_x * v.m_x + self.m_y * v.m_y;
     }
 
-    constexpr Vector2& mul(ScalarType v) {
-        m_x *= v;
-        m_y *= v;
-
-        return *this;
-    }
-
-    constexpr Vector2 multiplied(ScalarType v) const {
+    constexpr Vector2 scaled(ScalarType v) const {
         return {m_x * v, m_y * v};
     }
 
-    constexpr Vector2& mul(ParamType v) {
-        m_x *= v.m_x;
-        m_y *= v.m_y;
-
-        return *this;
-    }
-
-    constexpr Vector2 multiplied(ParamType v) const {
+    constexpr Vector2 scaled(ParamType v) const {
         return {m_x * v.m_x, m_y * v.m_y};
     }
 
     constexpr Vector2& normalize() {
         auto const length_val = length();
+        assert(length_val != 0 && "normalizing a zero-length vector");
         m_x /= length_val;
         m_y /= length_val;
 
@@ -66,6 +55,7 @@ struct Vector2 {
 
     constexpr Vector2 normalized() const {
         auto const length_val = length();
+        assert(length_val != 0 && "normalizing a zero-length vector");
         return {
             m_x / length_val,
             m_y / length_val,
@@ -86,6 +76,24 @@ struct Vector2 {
 
     constexpr ScalarType const* data() const {
         return &m_values[0];
+    }
+
+    // Component-wise comparisons i.e. true when the comparison holds for every component
+
+    constexpr b8 allLess(ParamType v) const {
+        return m_x < v.m_x && m_y < v.m_y;
+    }
+
+    constexpr b8 allLessEqual(ParamType v) const {
+        return m_x <= v.m_x && m_y <= v.m_y;
+    }
+
+    constexpr b8 allGreater(ParamType v) const {
+        return m_x > v.m_x && m_y > v.m_y;
+    }
+
+    constexpr b8 allGreaterEqual(ParamType v) const {
+        return m_x >= v.m_x && m_y >= v.m_y;
     }
 
     // Operators
@@ -114,78 +122,67 @@ struct Vector2 {
     }
 
     constexpr ScalarType operator[](u32 idx) const {
-        // TODO: add assertion on idx value
-        return m_values[idx];
+        assert(idx < 2 && "index out of range");
+        if consteval { // reading m_values while m_x.. are the active union members is not allowed at compile time
+            return idx == 0 ? m_x : m_y;
+        } else {
+            return m_values[idx];
+        }
+    }
+
+    constexpr ScalarType& operator[](u32 idx) {
+        assert(idx < 2 && "index out of range");
+        if consteval {
+            switch (idx) {
+                case 0: return m_x;
+                default: return m_y;
+            }
+        } else {
+            return m_values[idx];
+        }
     }
 
     // Constants
 
-    static constexpr Vector2 zero() {
+    static consteval Vector2 ZERO() {
         return {0, 0};
     }
-    static constexpr Vector2 unitY() {
+    static consteval Vector2 UNIT_Y() {
         return {0, 1};
     };
-    static constexpr Vector2 unitX() {
+    static consteval Vector2 UNIT_X() {
         return {1, 0};
     };
-    static const Vector2 ZERO;
-    static const Vector2 UNITX;
-    static const Vector2 UNITY;
 };
 
-// forward declaration required by Clang and MSVC
-template <>
-const Vector2<f32> Vector2<f32>::ZERO;
-template <>
-const Vector2<f32> Vector2<f32>::UNITX;
-template <>
-const Vector2<f32> Vector2<f32>::UNITY;
-template <>
-const Vector2<i32> Vector2<i32>::ZERO;
-template <>
-const Vector2<i32> Vector2<i32>::UNITX;
-template <>
-const Vector2<i32> Vector2<i32>::UNITY;
-
 template <typename T>
-inline Vector2<T> operator*(Vector2Param<T> v1, Vector2Param<T> v2) {
-    return {v1.x * v2.x, v1.y * v2.y};
+constexpr Vector2<T> operator*(Vector2Param<T> v1, Vector2Param<T> v2) {
+    return {v1.m_x * v2.m_x, v1.m_y * v2.m_y};
 }
 
 template <typename T>
-inline Vector2<T> operator*(Vector2Param<T> v, T val) {
+constexpr Vector2<T> operator*(Vector2Param<T> v, std::type_identity_t<T> val) {
     return {v.m_x * val, v.m_y * val};
 }
 
 template <typename T>
-inline Vector2<T> operator/(Vector2Param<T> v, T val) {
+constexpr Vector2<T> operator/(Vector2Param<T> v, std::type_identity_t<T> val) {
     return {v.m_x / val, v.m_y / val};
 }
 
 template <typename T>
-inline Vector2<T> operator+(Vector2Param<T> v, T val) {
+constexpr Vector2<T> operator+(Vector2Param<T> v, std::type_identity_t<T> val) {
     return {v.m_x + val, v.m_y + val};
 }
 
 template <typename T>
-inline Vector2<T> operator+(Vector2Param<T> v, Vector2Param<T> val) {
+constexpr Vector2<T> operator+(Vector2Param<T> v, Vector2Param<T> val) {
     return {v.m_x + val.m_x, v.m_y + val.m_y};
 }
 
 template <typename T>
-inline Vector2<T> operator-(Vector2Param<T> v, Vector2Param<T> val) {
+constexpr Vector2<T> operator-(Vector2Param<T> v, Vector2Param<T> val) {
     return {v.m_x - val.m_x, v.m_y - val.m_y};
-}
-
-template <typename T>
-bool operator<(Vector2Param<T> const& v1, Vector2Param<T> const& v2) {
-    return v1.m_x < v2.m_x && v1.m_y < v2.m_y;
-}
-
-template <typename T>
-bool operator>(Vector2Param<T> const& v1, Vector2Param<T> const& v2) {
-    return v1.m_x > v2.m_x && v1.m_y > v2.m_y;
 }
 
 // component wise min/max

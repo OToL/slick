@@ -9,7 +9,7 @@ using namespace slk::literals;
 namespace slk {
 
 Camera::Camera(OrthoProjectionParams const& params, f32 znear, f32 zfar) :
-    m_orientation(Matrix3f::IDENTITY),
+    m_orientation(Matrix3f::IDENTITY()),
     m_pos(0.f, 0.f, 0.f),
     m_znear(znear),
     m_zfar(zfar),
@@ -19,7 +19,7 @@ Camera::Camera(OrthoProjectionParams const& params, f32 znear, f32 zfar) :
 }
 
 Camera::Camera(PerspectiveProjectionParams const& params, f32 znear, f32 zfar) :
-    m_orientation(Matrix3f::IDENTITY),
+    m_orientation(Matrix3f::IDENTITY()),
     m_pos(0.f, 0.f, 0.f),
     m_znear(znear),
     m_zfar(zfar),
@@ -29,7 +29,7 @@ Camera::Camera(PerspectiveProjectionParams const& params, f32 znear, f32 zfar) :
 }
 
 Camera::Camera() :
-    m_orientation(Matrix3f::IDENTITY),
+    m_orientation(Matrix3f::IDENTITY()),
     m_pos(0.f, 0.f, 0.f),
     m_znear(0.1f),
     m_zfar(10000.f),
@@ -42,7 +42,7 @@ Camera::Camera() :
 }
 
 void Camera::setLookAt(Vector3f eye, Vector3f target) {
-    Matrix4f view = makeLookAtMatrix(eye, target, Vector3f::UNITY);
+    Matrix4f view = makeLookAtMatrix(eye, target, Vector3f::UNIT_Y());
     ;
     view.inverse();
 

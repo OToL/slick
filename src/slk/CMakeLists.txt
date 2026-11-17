@@ -5,8 +5,7 @@ add_library(slk
     input/input_api.cpp
     math/curves.cpp
     math/math_graphics.cpp
-    math/intersection.cpp
-    math/math_constants.cpp)
+    math/intersection.cpp)
 
 target_compile_options(slk PRIVATE
     -Werror

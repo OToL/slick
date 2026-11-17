@@ -27,9 +27,10 @@ using b8 = bool;
 #define SB_FEATURE_ENABLED 2
 #define SB_FEATURE_DISABLED 1
 
-#define sb_feature_enabled(name) 2 == ((SB_FEATURE_##name + 1) / SB_FEATURE_##name)
+// (value + 1) / value: ENABLED (2) -> 1, DISABLED (1) -> 2, undefined feature (0) -> compile error (division by zero)
+#define sb_feature_enabled(name) (1 == ((SB_FEATURE_##name + 1) / SB_FEATURE_##name))
 
-#define sb_feature_disabled(name) 2 != ((SB_FEATURE_##name + 1) / SB_FEATURE_##name)
+#define sb_feature_disabled(name) (2 == ((SB_FEATURE_##name + 1) / SB_FEATURE_##name))
 
 // Enumeration used as mask
 #define sb_declare_enum_mask_operators(mask_type)                                                                                                    \

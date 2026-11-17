@@ -1,6 +1,5 @@
 #pragma once
 
-#include "math.hpp"
 #include "constants.hpp"
 
 import std;

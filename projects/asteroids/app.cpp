@@ -190,7 +190,7 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
         proj.curr_pos = proj.prev_pos + proj.velocity * delta_time_ms;
 
         // out of environment bound
-        if (!game_state.env_aabb.isInside(proj.curr_pos)) {
+        if (!game_state.env_aabb.contains(proj.curr_pos)) {
             removeSwap(game_state.projectiles, proj_iter);
         } else {
             ++proj_iter;
@@ -206,8 +206,8 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
         auto ennemy_world_aabb = ennemy.extents.displaced(ennemy.position);
 
         // the ennemy is exiting the environment
-        if (!game_state.env_aabb.isInside(ennemy_world_aabb)) {
-            slk::Vector2f normal = slk::Vector2f::ZERO;
+        if (!game_state.env_aabb.contains(ennemy_world_aabb)) {
+            slk::Vector2f normal = slk::Vector2f::ZERO();
 
             // simple snapping
 #if 1
@@ -218,14 +218,14 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
                 slk::Vector2f{0.f, 1.f},
             };
 
-            auto diff_max = slk::max(ennemy_world_aabb.m_max - game_state.env_aabb.m_max, slk::Vector2f::zero());
+            auto diff_max = slk::max(ennemy_world_aabb.m_max - game_state.env_aabb.m_max, slk::Vector2f::ZERO());
             ennemy.position -= diff_max;
 
             for (slk::u32 i = 0; i != 2; ++i) {
                 normal += plane_normals[i] * (float)(diff_max.m_values[i] > 0);
             }
 
-            auto diff_min = slk::min(ennemy_world_aabb.m_min - game_state.env_aabb.m_min, slk::Vector2f::zero());
+            auto diff_min = slk::min(ennemy_world_aabb.m_min - game_state.env_aabb.m_min, slk::Vector2f::ZERO());
             ennemy.position -= diff_min;
 
             for (slk::u32 i = 2; i != 4; ++i) {
@@ -287,7 +287,7 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
                 if (world_ennemy1_aabb.overlaps(world_ennemy2_aabb)) {
                     const slk::AABB2f prev_world_ennemy1_aabb = ennemy_iter->extents.displaced(ennemy_iter->prev_position);
                     const slk::AABB2f prev_world_ennemy2_aabb = ennemy_iter2->extents.displaced(ennemy_iter2->prev_position);
-                    slk::Vector2f normal = slk::Vector2f::zero();
+                    slk::Vector2f normal = slk::Vector2f::ZERO();
 
                     // find-out first ennemy incoming side with respect to the other one to ...
                     // 1. deduce the collision normal
@@ -344,10 +344,10 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
     for (auto& ennemy : game_state.ennemies) {
         slk::AABB2f ennemy_aabb = ennemy.extents.displaced(ennemy.position);
 
-        auto diff_max = slk::max(ennemy_aabb.m_max - game_state.env_aabb.m_max, slk::Vector2f::zero());
+        auto diff_max = slk::max(ennemy_aabb.m_max - game_state.env_aabb.m_max, slk::Vector2f::ZERO());
         ennemy.position -= diff_max;
 
-        auto diff_min = slk::min(ennemy_aabb.m_min - game_state.env_aabb.m_min, slk::Vector2f::zero());
+        auto diff_min = slk::min(ennemy_aabb.m_min - game_state.env_aabb.m_min, slk::Vector2f::ZERO());
         ennemy.position -= diff_min;
     }
 
@@ -356,7 +356,7 @@ void updateGame(AppState& app_state, slk::InputApi const& input) {
         slk::b8 has_hit = false;
         for (auto ennemy_iter = begin(game_state.ennemies); ennemy_iter != end(game_state.ennemies); ++ennemy_iter) {
             slk::AABB2f world_aabb = ennemy_iter->extents.displaced(ennemy_iter->position);
-            if (world_aabb.isInside(proj_iter->curr_pos)) {
+            if (world_aabb.contains(proj_iter->curr_pos)) {
                 const slk::f32 curr_width = ennemy_iter->extents.width();
                 if (curr_width >= 32) {
                     const slk::AABB2f new_extents = ennemy_iter->extents * 0.5f;
@@ -391,7 +391,7 @@ void renderGame(GameState const& game_state, DebugDrawEncoder& dde) {
     constexpr slk::ColorU32 BLACK = slk::ColorU32::BLACK();
 
     // Draw environment
-    draw_aabb(dde, ENV_AABB, slk::Vector2f::zero(), BLACK);
+    draw_aabb(dde, ENV_AABB, slk::Vector2f::ZERO(), BLACK);
 
     // Draw canon
     draw_triangle(dde, game_state.cannon.getPos(), game_state.cannon.getRotation(), game_state.cannon.getWidth(), game_state.cannon.getHeight(),
@@ -414,9 +414,9 @@ void renderGame(GameState const& game_state, DebugDrawEncoder& dde) {
     for (auto const& ennemy : game_state.ennemies) {
         draw_aabb(dde, ennemy.extents, ennemy.position, slk::ColorU32::RED());
 
-        draw_line(dde, ennemy.position, ennemy.position + hour_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.2f, slk::ColorU32::RED());
-        draw_line(dde, ennemy.position, ennemy.position + min_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.4f, slk::ColorU32::GREEN());
-        draw_line(dde, ennemy.position, ennemy.position + sec_rot * slk::Vector2f::unitY() * ennemy.extents.width() * 0.3f, slk::ColorU32::BLUE());
+        draw_line(dde, ennemy.position, ennemy.position + hour_rot * slk::Vector2f::UNIT_Y() * ennemy.extents.width() * 0.2f, slk::ColorU32::RED());
+        draw_line(dde, ennemy.position, ennemy.position + min_rot * slk::Vector2f::UNIT_Y() * ennemy.extents.width() * 0.4f, slk::ColorU32::GREEN());
+        draw_line(dde, ennemy.position, ennemy.position + sec_rot * slk::Vector2f::UNIT_Y() * ennemy.extents.width() * 0.3f, slk::ColorU32::BLUE());
     }
 
     // Render projectiles
@@ -470,7 +470,7 @@ void appUpdate() {
 
     bgfx::setViewClear(MAIN_VIEW_ID, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, CLEAR_COLOR, 1.0f, 0);
     bgfx::setViewRect(MAIN_VIEW_ID, 0, 0, sapp_width(), sapp_height());
-    bgfx::setViewTransform(MAIN_VIEW_ID, slk::Matrix4f::IDENTITY.data(), proj.data());
+    bgfx::setViewTransform(MAIN_VIEW_ID, slk::Matrix4f::IDENTITY().data(), proj.data());
 
     // This dummy draw call is here to make sure that the view is cleared
     // if no other draw calls are submitted to it.

@@ -315,10 +315,10 @@ void InputApi::update() {
         mouse_state.m_prev_position = mouse_state.m_curr_postion;
     }
     mouse_state.m_prev_buttons_state = mouse_state.m_curr_buttons_state;
-    mouse_state.m_scroll = Vector2f::ZERO;
+    mouse_state.m_scroll = Vector2f::ZERO();
 
-    m_state->m_gesture_state.m_scroll_delta = Vector2f::ZERO;
-    m_state->m_gesture_state.m_magnify_delta = Vector2f::ZERO;
+    m_state->m_gesture_state.m_scroll_delta = Vector2f::ZERO();
+    m_state->m_gesture_state.m_magnify_delta = Vector2f::ZERO();
 
     processEvents(*m_state);
 }
