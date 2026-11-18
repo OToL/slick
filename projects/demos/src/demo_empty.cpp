@@ -33,19 +33,19 @@ namespace {
 DemoDesc emptyDemo()
 {
     return {
-        .id = EMPTY_DEMO_ID,
-        .info = DemoInfo {
-            .name = "Empty demo",
-            .description = "Empty demo",
-            .caps = EDemoCapBits::NONE
+        .m_id = EMPTY_DEMO_ID,
+        .m_info = DemoInfo {
+            .m_name = "Empty demo",
+            .m_descriptionm = "Empty demo",
+            .m_caps = EDemoCapBits::NONE
         },
-        .api = {
-            .init = &init,
-            .shutdown = &shutdown,
-            .update = &update,
-            .drawImgui = nullptr,
-            .draw3d = &draw3d,
-            .draw2d = &draw2d
+        .m_api = {
+            .m_init = &init,
+            .m_shutdown = &shutdown,
+            .m_update = &update,
+            .m_drawImgui = nullptr,
+            .m_draw3d = &draw3d,
+            .m_draw2d = &draw2d
         }
     };
 }

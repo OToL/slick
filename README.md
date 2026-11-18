@@ -81,32 +81,33 @@
 
 ## Board
 
-- [ ] Pass on slick naming and design
 - [ ] Bgfx type conversion + namespace
-- [ ] Hash support + litterals and use it for DemoId
+- [ ] Update `Depot Structure`
 
 ## Backlog
 
+### Engine
 - [ ] Implementation Transform and/or QTransform ... should we include the scale or implement STranform and/or QSTransform
-- [ ] Load launch.json only when it has changed
-- [ ] pass Demo grid `grid_scalar_params` as parameter
+- [ ] Pass Demo grid `grid_scalar_params` as parameter
 - [ ] Infinite Grid e.g. offset the grid when too far
+- [ ] Trace
+- [ ] Contracts (assert+expect)
+- [ ] Memory Management
+- [ ] Result<>+`Error Enum` from std::expected<>
+
+### Dev Env
+- [ ] Load launch.json only when it has changed
 - [ ] Use rag for extern knowledge
-- [ ] Claude skill to use nvim
 - [ ] Ignore cmake errors from 3rdparty
-- [ ] Instruct claude to use servers (e.g. lsp and dap) when asking for something related
-- [ ] Give some intruction to claude about cmake and build
 - [ ] Try Metal GPU capture + maybe claude skill
-- [ ] Use launch.json for F6
-- [ ] Error managenent (look at c++ contract)
-- [ ] Rework src folder e.g. utils, etc.
-- [ ] Update `Depot Structure`
 - [ ] Enable sanitizers (UB, fuzzer, Adress, etc.)
-- [ ] Try clang-tidy
-- [ ] Impolement own parser for launch.json instead of using the dap config + timestamp to not parse the file each time
+- [ ] clang-tidy
 
 ## Archives
 
+- [x] Rework src folder e.g. utils, etc.
+- [x] Hash support + litterals and use it for DemoId
+- [x] Pass on slick naming and design
 - [x] API centralization
 - [x] Camera management in demos for trackpad and mouse/kb
 - [x] Camera limit angle to avoid gimbal lock

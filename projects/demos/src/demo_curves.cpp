@@ -567,7 +567,7 @@ void drawImgui(DemoHdl hdl, slk::f32 /* frame_delta_ms */) {
 } // namespace
 
 DemoDesc curvesDemo() {
-    return {.id = CURVES_DEMO_ID,
-            .info = DemoInfo{.name = "Curves demo", .description = "Curves demo", .caps = EDemoCapBits::DEBUG_IMGUI | EDemoCapBits::CUSTOM_CAMERA_CONTROL },
-            .api = {.init = &init, .shutdown = &shutdown, .update = &update, .drawImgui = &drawImgui, .draw3d = &draw3d, .draw2d = &draw2d}};
+    return {.m_id = CURVES_DEMO_ID,
+            .m_info = DemoInfo{.m_name = "Curves demo", .m_descriptionm = "Curves demo", .m_caps = EDemoCapBits::DEBUG_IMGUI | EDemoCapBits::CUSTOM_CAMERA_CONTROL },
+            .m_api = {.m_init = &init, .m_shutdown = &shutdown, .m_update = &update, .m_drawImgui = &drawImgui, .m_draw3d = &draw3d, .m_draw2d = &draw2d}};
 }

@@ -98,11 +98,11 @@ void renderDbgWnd(AppState& app_state) {
 
     auto const demos = g_app_state.m_demos.demos();
     auto const curr_demo_id = g_app_state.m_demos.currentId();
-    auto const curr_demo_it = std::ranges::find_if(demos, [curr_demo_id](DemoDesc const& desc) { return strcmp(curr_demo_id, desc.id) == 0; });
+    auto const curr_demo_it = std::ranges::find(demos, curr_demo_id, &DemoDesc::m_id);
     assert(curr_demo_it != demos.end());
 
     auto const dbg_demo_raw_names =
-        demos | std::views::transform([](DemoDesc const& desc) { return desc.info.name.data(); }) | std::ranges::to<std::vector<char const*>>();
+        demos | std::views::transform([](DemoDesc const& desc) { return desc.m_info.m_name.data(); }) | std::ranges::to<std::vector<char const*>>();
 
     slk::i32 const curr_demo_idx = std::distance(demos.begin(), curr_demo_it);
     slk::i32 next_demo_idx = curr_demo_idx;
@@ -153,11 +153,11 @@ void renderDbgWnd(AppState& app_state) {
     }
 
     if (next_demo_idx != curr_demo_idx) {
-        g_app_state.m_demos.setCurrent(demos[next_demo_idx].id);
+        g_app_state.m_demos.setCurrent(demos[next_demo_idx].m_id);
     }
 
     DemoDesc const curr_demo_desc = app_state.m_demos.currentDesc();
-    if (allMaskBitsSet(curr_demo_desc.info.caps, EDemoCapBits::DEBUG_IMGUI)) {
+    if (allMaskBitsSet(curr_demo_desc.m_info.m_caps, EDemoCapBits::DEBUG_IMGUI)) {
         if (ImGui::CollapsingHeader("Demo", ImGuiTreeNodeFlags_DefaultOpen)) {
             app_state.m_demos.drawImgui(app_state.m_last_frame_time_ms);
         }
@@ -359,7 +359,7 @@ void appUpdate() {
     }
 
     if (input.isKeyboardKeyDown(slk::EKeyboardVKey::BACKSLASH) &&
-        !anyMaskBitSet(g_app_state.m_demos.currentDesc().info.caps, EDemoCapBits::CUSTOM_CAMERA_CONTROL))
+        !anyMaskBitSet(g_app_state.m_demos.currentDesc().m_info.m_caps, EDemoCapBits::CUSTOM_CAMERA_CONTROL))
         g_app_state.m_camera.setLookAt(CAMERA_RESET_POSITION, CAMERA_RESET_TARGET);
 
     auto const time_point = AppState::Timer::now();

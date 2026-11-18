@@ -23,7 +23,7 @@ slk::b8 Demos::shutdown() {
 
     if (m_curr_hdl)
     {
-        m_demos[m_curr_idx].api.shutdown(m_curr_hdl);
+        m_demos[m_curr_idx].m_api.m_shutdown(m_curr_hdl);
         m_curr_hdl = nullptr;
     }
 
@@ -43,7 +43,7 @@ DemoId  Demos::currentId() const {
     if (!m_curr_hdl)
         return {};
 
-    return m_demos[m_curr_idx].id;
+    return m_demos[m_curr_idx].m_id;
 }
 
 slk::b8 Demos::setCurrent(DemoId id)
@@ -53,23 +53,21 @@ slk::b8 Demos::setCurrent(DemoId id)
         return false;
     }
 
-    auto const demo_it = std::ranges::find_if(m_demos, [id] (DemoDesc const& desc) {
-        return strcmp(desc.id, id) == 0;
-    });
+    auto const demo_it = std::ranges::find(m_demos, id, &DemoDesc::m_id);
 
     if (demo_it == m_demos.end()) {
         return false;
     }
 
     if (m_curr_hdl) {
-        slk::b8 const res = m_demos[m_curr_idx].api.shutdown(m_curr_hdl);
+        slk::b8 const res = m_demos[m_curr_idx].m_api.m_shutdown(m_curr_hdl);
         assert(res);
 
         m_curr_hdl = nullptr;
         m_curr_idx = INVALID_DEMO_IDX;
     }
 
-    slk::b8 const res = demo_it->api.init(m_curr_hdl);
+    slk::b8 const res = demo_it->m_api.m_init(m_curr_hdl);
     if (!res)
     {
         assert(!m_curr_hdl);
@@ -85,7 +83,7 @@ slk::b8 Demos::update(slk::f32 frame_delta_ms, slk::Camera& cam) {
     if (!m_curr_hdl)
         return false;
 
-    return m_demos[m_curr_idx].api.update(m_curr_hdl, frame_delta_ms, cam);
+    return m_demos[m_curr_idx].m_api.m_update(m_curr_hdl, frame_delta_ms, cam);
 }
 
 slk::b8 Demos::draw3d(slk::f32 frame_delta_ms, slk::Camera const& cam)
@@ -93,7 +91,7 @@ slk::b8 Demos::draw3d(slk::f32 frame_delta_ms, slk::Camera const& cam)
     if (!m_curr_hdl)
         return false;
 
-    m_demos[m_curr_idx].api.draw3d(m_curr_hdl, frame_delta_ms, cam);
+    m_demos[m_curr_idx].m_api.m_draw3d(m_curr_hdl, frame_delta_ms, cam);
     return true;
 }
 
@@ -101,7 +99,7 @@ slk::b8 Demos::draw2d(slk::f32 frame_delta_ms) {
     if (!m_curr_hdl)
         return false;
 
-    m_demos[m_curr_idx].api.draw2d(m_curr_hdl, frame_delta_ms);
+    m_demos[m_curr_idx].m_api.m_draw2d(m_curr_hdl, frame_delta_ms);
     return true;
 }
 
@@ -110,7 +108,7 @@ slk::b8 Demos::drawImgui(slk::f32 frame_delta_ms)
     if (!m_curr_hdl)
         return false;
 
-    m_demos[m_curr_idx].api.drawImgui(m_curr_hdl, frame_delta_ms);
+    m_demos[m_curr_idx].m_api.m_drawImgui(m_curr_hdl, frame_delta_ms);
     return true;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <slk/core.hpp>
+#include <slk/hash.hpp>
 
 #include <string_view>
 
@@ -10,8 +11,7 @@ namespace slk {
     struct Camera;
 }
 
-// TODO: Change to hash
-using DemoId = char const*;
+using DemoId = slk::Hash64;
 using DemoHdl = void*;
 
 enum class EDemoCapBits {
@@ -23,24 +23,24 @@ enum class EDemoCapBits {
 sb_declare_enum_mask_operators(EDemoCapBits)
 
 struct DemoInfo {
-    std::string_view name;
-    std::string_view description;
-    EDemoCapBits caps;
+    std::string_view m_name;
+    std::string_view m_descriptionm;
+    EDemoCapBits m_caps;
 };
 
 struct DemoApi {
-    slk::b8 (*init)(DemoHdl& hdl);
-    slk::b8 (*shutdown)(DemoHdl hdl);
-    slk::b8 (*update)(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera& cam);
-    void (*drawImgui)(DemoHdl hdl, slk::f32 frame_delta_ms);
-    void (*draw3d)(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& cam);
-    void (*draw2d)(DemoHdl hdl, slk::f32 frame_delta_ms);
+    slk::b8 (*m_init)(DemoHdl& hdl);
+    slk::b8 (*m_shutdown)(DemoHdl hdl);
+    slk::b8 (*m_update)(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera& cam);
+    void (*m_drawImgui)(DemoHdl hdl, slk::f32 frame_delta_ms);
+    void (*m_draw3d)(DemoHdl hdl, slk::f32 frame_delta_ms, slk::Camera const& cam);
+    void (*m_draw2d)(DemoHdl hdl, slk::f32 frame_delta_ms);
 };
 
 struct DemoDesc {
-    DemoId id;
-    DemoInfo info;
-    DemoApi api;
+    DemoId m_id;
+    DemoInfo m_info;
+    DemoApi m_api;
 };
 
 class Demos {

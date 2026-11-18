@@ -2,7 +2,9 @@
 
 #include "demos.hpp"
 
-inline constexpr DemoId CURVES_DEMO_ID = "demo_curves";
+using namespace slk::literals;
+
+inline constexpr DemoId CURVES_DEMO_ID = "demo_curves"_h64;
 
 DemoDesc curvesDemo();
 
