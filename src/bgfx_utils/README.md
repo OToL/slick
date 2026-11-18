@@ -2,3 +2,7 @@
 - Custom changes are marked with: `SLICK - BEGIN/END`
     - imgui/imgui.h
     - imgui/imgui.cpp
+- New files
+    - conversion.hpp
+    - conversion.cpp
+

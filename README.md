@@ -36,37 +36,33 @@
 <root>/
 ├── _build/                      Generated build system files (ninja, etc.)
 │   └── <target>_<config>/
-├── slk/                         Shared c/c++ engine modules used by other components
-│   ├── src/
-│   │   └── <module name>/
-│   ├── data/
+├── src/                         C/C++ runtime code e.g. slick, extern bridges, etc.
+│   └── <module name>/           
+├── data/                        Common Engine data
+├── scripts/                     Utility scripts e.g. cmake, build, etc.
+│   ├── cmake/
 │   ├── ...
-│   └── test/                    Unit tests
+│   └── code/
 ├── extern/                      External dependencies
 │   ├── redist/                  Pre-built external dependencies
 │   │   ├── include/
 │   │   │   └── <dep name>/
 │   │   ├── lib/
 │   │   │   └── <target>/
-│   │   └── bin/
-│   │       └── <target>/
+│   │   ├── bin/
+│   │   │   └── <target>/      
+│   │   └── extra/               Additional resources (e.g. scripts, shaders, data, etc.)
+│   │       └── <dep name>/
 │   └── src/                     Dependencies sources (Git sub-module or snapshot) 
 │       └── <dep name>/
-├── scripts/                     Utility scripts e.g. make, build, etc.
-├── tools/                       Tools sources
-│   └── <tool name>/
-│       ├── src/
-│       ├── data/
-│       ├── ...
-│       └── extern/
-├── samples/                     Applications demonstrating/testing specific features
-│   └── <sample name>/
-│       ├── src/
-│       ├── data/
-│       ├── ...
-│       └── extern/
-├── projects/                    Personal projects to learn & investigate new things
-│   └── <project name>/
+├── projects/                    Applications demonstrating or testing specific features
+│   ├── shared/                  Shared projects libraries
+│   │   ├── <module name> 
+│   │   │    ├── src/
+│   │   │    ├── data/
+│   │   │    └── ...
+│   │   └── extern/
+│   └── <project name>/          Sub-directories can be omitted when the project is source only
 │       ├── src/
 │       ├── data/
 │       ├── ...
@@ -80,9 +76,6 @@
 # TODO
 
 ## Board
-
-- [ ] Bgfx type conversion + namespace
-- [ ] Update `Depot Structure`
 
 ## Backlog
 
@@ -105,6 +98,8 @@
 
 ## Archives
 
+- [x] Bgfx type conversion
+- [x] Update `Depot Structure`
 - [x] Rework src folder e.g. utils, etc.
 - [x] Hash support + litterals and use it for DemoId
 - [x] Pass on slick naming and design

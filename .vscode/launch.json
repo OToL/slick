@@ -20,7 +20,7 @@
             "request": "launch",
             "program": "./_build/darwin-debug/projects/demos/demos",
             "args": [],
-            "cwd": "${workspaceFolder}/projects/demos/_build",
+            "cwd": "${workspaceFolder}/_deploy/demos",
             "stopOnEntry": false,
             "runInTerminal": false,
             "sourceLanguages": [

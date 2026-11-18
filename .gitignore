@@ -3,4 +3,5 @@
 imgui.ini
 extern/redist/lib/
 _build/
+_deploy/
 .claude/

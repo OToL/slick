@@ -8,6 +8,7 @@ set(bgfx_internal_files
 add_library(bgfx-utils
     debugdraw/debugdraw.cpp
     imgui/imgui.cpp
+    conversion.cpp
     ${bgfx_internal_files})
 
 target_compile_options(bgfx-utils PRIVATE
@@ -27,6 +28,7 @@ set_source_files_properties(${bgfx_internal_files} PROPERTIES
 target_include_directories(bgfx-utils SYSTEM 
     PUBLIC
         ${SLICK_EXTERN_INCLUDE_DIR}
+        ${SLICK_SRC_DIR}
     PRIVATE
         "${SLICK_EXTERN_INCLUDE_DIR}/bgfx/3rdparty")
 

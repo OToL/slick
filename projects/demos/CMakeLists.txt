@@ -3,7 +3,7 @@ include(${SLICK_EXTERN_EXTRA_DIR}/bgfx/scripts/bgfx_tool_utils.cmake)
 bgfx_compile_shaders(
 	TYPE VERTEX
     VARYING_DEF ${CMAKE_CURRENT_LIST_DIR}/data/shaders/varying.def.sc
-    OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/_build/shaders
+    OUTPUT_DIR ${SLICK_ROOT_DIR}/_deploy/demos/shaders
     INCLUDE_DIRS ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders
 	SHADERS data/shaders/grid_vs.sc
     DEPENDS 
@@ -14,7 +14,7 @@ bgfx_compile_shaders(
 bgfx_compile_shaders(
     TYPE FRAGMENT
     VARYING_DEF ${CMAKE_CURRENT_LIST_DIR}/data/shaders/varying.def.sc
-    OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/_build/shaders
+    OUTPUT_DIR ${SLICK_ROOT_DIR}/_deploy/demos/shaders
     INCLUDE_DIRS ${SLICK_EXTERN_EXTRA_DIR}/bgfx/shaders
 	SHADERS data/shaders/grid_fs.sc
     DEPENDS

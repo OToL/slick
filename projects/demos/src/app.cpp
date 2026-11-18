@@ -22,6 +22,7 @@
 #include <bgfx/platform.h>
 
 #include <bgfx_utils/imgui/imgui.h>
+#include <bgfx_utils/conversion.h>
 
 #include <cassert>
 #include <chrono>
@@ -276,7 +277,7 @@ void updateCamera(AppState& app_state, slk::Camera& cam, slk::InputApi const& in
                 DebugDrawEncoder dde;
                 dde.begin(0);
                 dde.setColor(slk::ColorU32::RED().abgr());
-                dde.draw(bx::Sphere{.center = bx::Vec3{g_app_state.m_orbit_pivot.m_x, g_app_state.m_orbit_pivot.m_y, g_app_state.m_orbit_pivot.m_z},
+                dde.draw(bx::Sphere{.center = bgfx_utils::toBx(g_app_state.m_orbit_pivot),
                                     .radius = .1f});
                 dde.end();
             }
