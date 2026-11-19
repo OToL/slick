@@ -15,6 +15,7 @@
 #include <slk/math/intersection.hpp>
 #include <slk/input/input_api.hpp>
 #include <slk/input/events.hpp>
+#include <slk/result.hpp>
 
 #include <sokol/sokol_app.h>
 

@@ -63,6 +63,8 @@ using b8 = bool;
 // Toolchain specific macros
 #if defined(__clang__)
 #    define sb_force_inline [[clang::always_inline]]
+#    define sb_warn_unused [[clang::warn_unused_result]]
 #else
 #    define sb_force_inline
+#    define sb_warn_unused
 #endif

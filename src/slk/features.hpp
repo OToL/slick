@@ -14,9 +14,3 @@
 #   define sb_inline_constexpr
 #endif
 
-#if defined(__clang__)
-#    define sb_force_inline [[clang::always_inline]]
-#else
-#    define sb_force_inline
-#endif
-
